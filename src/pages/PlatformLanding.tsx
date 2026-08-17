@@ -82,15 +82,12 @@ export default function PlatformLanding() {
             </div>
 
             {/* Icon Version */}
-            <div className={`absolute left-0 transition-opacity duration-700 ease-in-out flex items-center gap-1.5 ${showIcon ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <div className={`absolute left-0 transition-opacity duration-700 ease-in-out ${showIcon ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
               <div className="w-10 h-10 rounded-[10px] bg-[#0b1121] flex items-center justify-center shadow-lg border border-slate-800/50">
                 <span className="text-xl font-black tracking-tighter leading-none flex items-center">
                   <span className="text-white">G</span><span className="text-cyan-400">Z</span>
                 </span>
               </div>
-              <span className={`text-2xl font-black tracking-tighter leading-none ${scrolled ? 'text-slate-900' : 'text-white'}`}>
-                eed
-              </span>
             </div>
           </Link>
 
