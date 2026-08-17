@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { supabase } from '../supabase';
 
 interface PlatformSettings {
   // Hero Section
@@ -51,10 +52,39 @@ export const PlatformSettingsProvider = ({ children }: { children: ReactNode }) 
     }
   });
 
-  const updateSettings = (newSettings: Partial<PlatformSettings>) => {
+  // Fetch settings from Supabase on load
+  useEffect(() => {
+    const fetchRemoteSettings = async () => {
+      try {
+        // We append a timestamp to bypass browser cache
+        const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl('settings.json');
+        if (publicUrlData?.publicUrl) {
+          const res = await fetch(`${publicUrlData.publicUrl}?t=${Date.now()}`);
+          if (res.ok) {
+            const remoteSettings = await res.json();
+            setSettings(prev => ({ ...prev, ...remoteSettings }));
+            localStorage.setItem('gzeed_platform_settings', JSON.stringify(remoteSettings));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch remote settings', err);
+      }
+    };
+    fetchRemoteSettings();
+  }, []);
+
+  const updateSettings = async (newSettings: Partial<PlatformSettings>) => {
     setSettings(prev => {
       const updated = { ...prev, ...newSettings };
+      
+      // 1. Save locally for instant UI update
       localStorage.setItem('gzeed_platform_settings', JSON.stringify(updated));
+      
+      // 2. Save remotely to Supabase (so phones and other browsers see it)
+      const file = new Blob([JSON.stringify(updated)], { type: 'application/json' });
+      supabase.storage.from('media').upload('settings.json', file, { upsert: true })
+        .catch(err => console.error('Failed to sync settings to Supabase', err));
+        
       return updated;
     });
   };
