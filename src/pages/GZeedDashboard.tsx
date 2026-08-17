@@ -15,14 +15,17 @@ import {
   ChevronRight,
   MonitorPlay,
   Palette,
-  ArrowRight
+  ArrowRight,
+  LogOut,
+  User
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function GZeedDashboard() {
-  const { isAr } = useLang();
+  const { isAr, toggle, lang } = useLang();
   const navigate = useNavigate();
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [themeFilter, setThemeFilter] = useState('all');
   const [isDomainEditing, setIsDomainEditing] = useState(false);
@@ -139,14 +142,50 @@ export default function GZeedDashboard() {
               />
             </div>
           </div>
-          <div className="flex items-center gap-4 pl-4">
-            <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+          <div className="flex items-center gap-4 pl-4 relative">
+            <button 
+              onClick={toggle}
+              className="p-2 text-sm font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <Globe className="w-4 h-4" />
+              <span className="uppercase">{lang}</span>
             </button>
-            <div className="w-8 h-8 bg-gradient-to-tr from-cyan-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm cursor-pointer">
-              AD
+            <div 
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="w-9 h-9 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center text-slate-600 font-bold text-sm shadow-sm cursor-pointer hover:bg-slate-200 transition-colors"
+            >
+              <User className="w-5 h-5" />
             </div>
+
+            {/* User Dropdown Menu */}
+            {showUserMenu && (
+              <div className="absolute top-12 left-0 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-2 animate-fade-in z-50">
+                <div className="px-4 py-3 border-b border-slate-100 mb-2">
+                  <p className="text-sm font-bold text-slate-900">Admin</p>
+                  <p className="text-xs font-medium text-slate-500">admin@gzeed.com</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    setActiveTab('settings');
+                  }}
+                  className="w-full text-start px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"
+                >
+                  <Settings className="w-4 h-4 text-slate-400" />
+                  {isAr ? 'الإعدادات' : 'Paramètres'}
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    navigate('/login');
+                  }}
+                  className="w-full text-start px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {isAr ? 'تسجيل الخروج' : 'Déconnexion'}
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
