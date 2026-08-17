@@ -113,7 +113,7 @@ export default function PlatformLanding() {
       </nav>
 
       {/* Hero Section - Video Background */}
-      <section className="relative pt-40 pb-32 px-6 overflow-hidden min-h-[90vh] flex flex-col justify-center bg-black">
+      <section className="relative pt-40 pb-32 px-6 overflow-hidden min-h-screen flex flex-col justify-center bg-black">
         {/* Video Background */}
         <div className="absolute inset-0 w-full h-full overflow-hidden">
           <video
