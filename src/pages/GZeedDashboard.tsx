@@ -14,7 +14,8 @@ import {
   Search,
   ChevronRight,
   MonitorPlay,
-  Palette
+  Palette,
+  ArrowRight
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useNavigate } from 'react-router-dom';
