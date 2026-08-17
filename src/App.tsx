@@ -609,7 +609,7 @@ function AppContent() {
         <Route path="/demo/city-rentals" element={<CityRentalsDemo />} />
         <Route path="/demo/ecommerce/abaya" element={<AbayaDemo />} />
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
-        <Route path="/store-signup" element={<StoreSignup onLogin={handleLogin} />} />
+        <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
         <Route path="/partner-signup" element={
           <Suspense fallback={<PageLoader />}>
             <AffiliateSignup onLogin={handleLogin} />
@@ -680,7 +680,7 @@ function AppContent() {
   if (currentUser.role === 'client') {
     return (
       <Routes>
-        <Route path="/store-signup" element={<StoreSignup onLogin={handleLogin} />} />
+        <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
         <Route path="*" element={<PortailClient currentUser={currentUser} onLogout={handleLogout} />} />
       </Routes>
     );
