@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Store, ArrowRight, CheckCircle2, Loader2, Play } from 'lucide-react';
+import { Mail, Store, ArrowRight, CheckCircle2, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
 export default function GZeedSignup() {
@@ -8,6 +8,7 @@ export default function GZeedSignup() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     firstName: '',
@@ -166,15 +167,24 @@ export default function GZeedSignup() {
                   <label className="block text-sm font-bold text-slate-300 mb-2">
                     {isAr ? 'كلمة السر' : 'Mot de passe'}
                   </label>
-                  <input
-                    type="password"
-                    required
-                    autoComplete="new-password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-left"
-                    dir="ltr"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      autoComplete="new-password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-left"
+                      dir="ltr"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors p-1"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-start gap-3 pt-2">
