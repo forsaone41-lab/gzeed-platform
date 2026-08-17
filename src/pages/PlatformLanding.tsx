@@ -17,6 +17,7 @@ export default function PlatformLanding() {
   const [debouncedBrand, setDebouncedBrand] = useState("");
   const [isSearchingDomain, setIsSearchingDomain] = useState(false);
   const [domainResults, setDomainResults] = useState<{ ext: string, available: boolean }[]>([]);
+  const [showIcon, setShowIcon] = useState(false);
 
   // Helper for 3-way translation
   const txt = (ar: string, fr: string, en: string) => lang === 'ar' ? ar : lang === 'en' ? en : fr;
@@ -25,6 +26,14 @@ export default function PlatformLanding() {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Alternate logo every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowIcon(prev => !prev);
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   // Debounce the input for domain search
@@ -63,16 +72,26 @@ export default function PlatformLanding() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white border-b border-slate-200 py-3 shadow-sm' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-1.5" dir="ltr">
-            <div className="w-10 h-10 rounded-[10px] bg-[#0b1121] flex items-center justify-center shadow-lg border border-slate-800/50">
-              <span className="text-xl font-black tracking-tighter leading-none flex items-center">
-                <span className="text-white">G</span><span className="text-cyan-400">Z</span>
+          {/* Logo (Alternating) */}
+          <Link to="/" className="relative h-10 w-32 flex items-center" dir="ltr">
+            {/* Text Version */}
+            <div className={`absolute left-0 transition-opacity duration-700 ease-in-out ${showIcon ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+              <span className={`text-3xl font-black tracking-tighter leading-none ${scrolled ? 'text-slate-900' : 'text-white'}`}>
+                G<span className="text-cyan-400">Zeed</span>
               </span>
             </div>
-            <span className={`text-2xl font-black tracking-tighter leading-none ${scrolled ? 'text-slate-900' : 'text-white'}`}>
-              eed
-            </span>
+
+            {/* Icon Version */}
+            <div className={`absolute left-0 transition-opacity duration-700 ease-in-out flex items-center gap-1.5 ${showIcon ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+              <div className="w-10 h-10 rounded-[10px] bg-[#0b1121] flex items-center justify-center shadow-lg border border-slate-800/50">
+                <span className="text-xl font-black tracking-tighter leading-none flex items-center">
+                  <span className="text-white">G</span><span className="text-cyan-400">Z</span>
+                </span>
+              </div>
+              <span className={`text-2xl font-black tracking-tighter leading-none ${scrolled ? 'text-slate-900' : 'text-white'}`}>
+                eed
+              </span>
+            </div>
           </Link>
 
           <div className="flex items-center gap-6">
