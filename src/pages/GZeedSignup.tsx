@@ -225,7 +225,7 @@ export default function GZeedSignup() {
                 <CheckCircle2 className="w-12 h-12 text-emerald-400 animate-pulse" />
               </div>
               <h1 className="text-3xl font-black text-white mb-4">
-                {isAr ? 'تم إنشاء متجرك بنجاح!' : 'Boutique créée avec succès !'}
+                {isAr ? 'تم إنشاء حسابك بنجاح!' : 'Compte créé avec succès !'}
               </h1>
               <p className="text-slate-400 font-medium mb-8">
                 {isAr ? 'جاري توجيهك إلى لوحة التحكم الخاصة بك...' : 'Redirection vers votre tableau de bord...'}
