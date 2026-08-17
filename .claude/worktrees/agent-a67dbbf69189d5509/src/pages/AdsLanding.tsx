@@ -1,0 +1,814 @@
+import React, { useState, useEffect } from 'react';
+import { Shirt, Scissors, Zap, ShieldCheck, ChevronRight, CheckCircle2, Factory, Loader2, Sparkles, Send, X, ChevronDown, ImageIcon, ArrowRight, AlertTriangle, Globe } from 'lucide-react';
+import { supabase } from '../supabase';
+import { loadCompanyProfile, syncCompanyProfile, CompanyProfile, saveLead, loadData, TarifService, saveRecord } from '../types';
+import { generatePDF } from '../utils/pdf';
+import { sendEmailNotification } from './LandingPage';
+import { trackPixelEvent } from '../utils/pixel';
+
+export default function AdsLanding() {
+  const [company, setCompany] = useState<CompanyProfile>(loadCompanyProfile());
+  const [isSending, setIsSending] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [totalEstimate, setTotalEstimate] = useState<{min: number, max: number} | null>(null);
+  const [submittedName, setSubmittedName] = useState('');
+  const [isAr, setIsAr] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [tarifsDb, setTarifsDb] = useState<TarifService[]>([]);
+  const [showSimulatorModal, setShowSimulatorModal] = useState(false);
+  const [simulatorStep, setSimulatorStep] = useState(1);
+  const [newClientCode, setNewClientCode] = useState<{name: string, code: string, email: string, phone: string, id: string} | null>(null);
+
+  interface ModelEntry {
+    id: string;
+    type: string;
+    customType: string;
+    quantity: string;
+    tailles: Record<string, string>;
+    details: string;
+    photo: string | null;
+    photos: string[];
+    provideFabric: boolean;
+  }
+
+  const emptyModel = (): ModelEntry => ({
+    id: Math.random().toString(36).slice(2),
+    type: 'T-Shirt', customType: '', quantity: '',
+    tailles: { XS: '', S: '', M: '', L: '', XL: '', XXL: '' },
+    details: '', photo: null, photos: [], provideFabric: false
+  });
+
+  const [models, setModels] = useState<ModelEntry[]>([emptyModel()]);
+
+  const updateModel = (id: string, field: Partial<ModelEntry>) => {
+    setModels(prev => prev.map(m => m.id === id ? { ...m, ...field } : m));
+  };
+
+  const calculateEstimate = (type: string, qtyStr: string, provideFabric: boolean = false) => {
+    const quantity = parseInt(qtyStr) || 0;
+    if (quantity === 0) return null;
+    
+    let baseMin = 0;
+    let baseMax = 0;
+    
+    // Try to find exact match in DB first
+    const dbTarif = tarifsDb.find(t => t.titre.toLowerCase() === type.toLowerCase());
+    
+    if (dbTarif) {
+      baseMin = dbTarif.prixMin;
+      baseMax = dbTarif.prixMax || dbTarif.prixMin;
+    } else {
+      // Fallback to defaults
+      switch(type) {
+        case 'T-Shirt': baseMin = 35; baseMax = 45; break;
+        case 'Polo': baseMin = 60; baseMax = 75; break;
+        case 'T-Shirt Oversize': baseMin = 45; baseMax = 60; break;
+        case 'Sweat / Hoodie': baseMin = 120; baseMax = 150; break;
+        case 'Djellaba / Gandoura': baseMin = 150; baseMax = 250; break;
+        case 'Ensemble / Survêtement': baseMin = 180; baseMax = 260; break;
+        case 'Pyjama': baseMin = 80; baseMax = 120; break;
+        case 'Uniforme / Travail': baseMin = 100; baseMax = 180; break;
+        case 'Pantalon': baseMin = 80; baseMax = 130; break;
+        default: return null; // For 'Autre'
+      }
+    }
+
+    // Adjust price based on quantity
+    if (quantity < 100) {
+      baseMin *= 1.15;
+      baseMax *= 1.15;
+    } else if (quantity >= 500) {
+      baseMin *= 0.9;
+      baseMax *= 0.9;
+    }
+
+    return {
+      min: Math.round(baseMin),
+      max: Math.round(baseMax),
+      totalMin: Math.round(baseMin * quantity),
+      totalMax: Math.round(baseMax * quantity)
+    };
+  };
+
+  const updateModelTaille = (id: string, size: string, val: string) => {
+    setModels(prev => prev.map(m => {
+      if (m.id !== id) return m;
+      const newTailles = { ...m.tailles, [size]: val };
+      const total = Object.values(newTailles).reduce((a, v) => a + (Number(v) || 0), 0);
+      return { ...m, tailles: newTailles, quantity: total > 0 ? total.toString() : m.quantity };
+    }));
+  };
+
+  const handleModelPhoto = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { setErrorMsg(isAr ? 'الصورة كبيرة جداً (Max 10MB)' : 'Photo trop grande (Max 10MB)'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if (w > h && w > MAX) { h = h * MAX / w; w = MAX; }
+        else if (h > MAX) { w = w * MAX / h; h = MAX; }
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        let newPhoto = '';
+        if (ctx) { ctx.drawImage(img, 0, 0, w, h); newPhoto = canvas.toDataURL('image/jpeg', 0.6); }
+        else { newPhoto = ev.target?.result as string; }
+        
+        setModels(prev => prev.map(m => {
+          if (m.id !== id) return m;
+          const currentPhotos = m.photos || (m.photo ? [m.photo] : []);
+          const newPhotos = [...currentPhotos, newPhoto];
+          return { ...m, photo: newPhotos[0], photos: newPhotos };
+        }));
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeModelPhoto = (id: string, index: number) => {
+    setModels(prev => prev.map(m => {
+      if (m.id !== id) return m;
+      const currentPhotos = m.photos || (m.photo ? [m.photo] : []);
+      const newPhotos = currentPhotos.filter((_, i) => i !== index);
+      return { ...m, photo: newPhotos.length > 0 ? newPhotos[0] : null, photos: newPhotos };
+    }));
+  };
+
+  // Auto-redirect to Arabic because it's for Moroccan FB ads
+  useEffect(() => {
+    document.documentElement.dir = 'rtl';
+    setIsAr(true);
+    const sync = async () => {
+      const remote = await syncCompanyProfile();
+      setCompany(remote);
+      const tarifsList = await loadData<TarifService>('tarifs');
+      const activeConfections = (tarifsList || []).filter(t => t.categorie === 'Confection' && t.actif);
+      setTarifsDb(activeConfections);
+      if (activeConfections.length > 0) {
+        setModels(prev => prev.map(m => m.type === 'T-Shirt' ? { ...m, type: activeConfections[0].titre } : m));
+      }
+    };
+    sync();
+    return () => {
+      document.documentElement.dir = 'ltr';
+    };
+  }, []);
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen bg-white sm:bg-slate-50 flex items-center justify-center sm:p-4 font-sans" dir="rtl">
+        <div className="bg-white p-6 sm:p-12 sm:rounded-3xl w-full max-w-lg text-center sm:shadow-2xl sm:border border-slate-100 animate-in fade-in zoom-in duration-500 min-h-screen sm:min-h-0 flex flex-col justify-center">
+          
+          <p className="text-slate-600 mb-8 font-medium text-lg leading-relaxed mt-4 sm:mt-0">
+            مرحباً <span className="font-bold text-slate-900">{submittedName}</span>، شكراً على ثقتك في <span className="font-bold">BEYA CREATIVE</span>. لقد توصلنا بطلبك وسنقوم بدراسته.
+          </p>
+
+          {totalEstimate && (
+            <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-6 mb-6 relative overflow-hidden">
+              <p className="text-sm font-bold text-indigo-600 mb-3 uppercase tracking-widest">التكلفة التقديرية الإجمالية</p>
+              <div className="text-4xl font-black text-slate-800 flex items-center justify-center gap-2 mb-3">
+                <span>{totalEstimate.min.toLocaleString()}</span>
+                <span className="text-slate-400 font-medium text-2xl">-</span>
+                <span>{totalEstimate.max.toLocaleString()}</span>
+                <span className="text-sm font-bold text-slate-500 ml-1">درهم</span>
+              </div>
+              <p className="text-[10px] text-indigo-400 font-bold">* هذا الثمن تقديري وقد يتغير حسب نوع الثوب والتفاصيل المحددة.</p>
+            </div>
+          )}
+
+          {newClientCode && (
+            <div className="bg-white border-2 border-emerald-50 rounded-2xl p-6 md:p-8 mb-6 shadow-sm relative overflow-hidden ring-1 ring-emerald-100">
+              <h3 className="text-lg font-black text-slate-800 mb-6 flex items-center justify-center gap-2" dir="ltr">
+                <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0" />
+                <span>Vos informations de connexion</span>
+              </h3>
+              
+              <div className="space-y-3 mb-6">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5">Email de connexion</p>
+                  <p className="text-sm font-bold text-slate-700 font-sans" dir="ltr">{newClientCode.email}</p>
+                </div>
+                <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 text-center">
+                  <p className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-1.5">Code secret</p>
+                  <p className="text-2xl font-black text-slate-900 tracking-[0.4em] font-mono">{newClientCode.code.split('').join(' ')}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 relative z-10" dir="ltr">
+                <button
+                  onClick={async () => {
+                    const el = document.getElementById('welcome-pdf-' + newClientCode.code);
+                    if (el) el.style.display = 'block';
+                    await generatePDF('welcome-pdf-' + newClientCode.code, `BeyaCreative_Bienvenue_${newClientCode.name.replace(/\s+/g, '_')}`);
+                    if (el) el.style.display = 'none';
+                  }}
+                  className="w-full py-4 bg-[#111827] hover:bg-black text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+                >
+                  Télécharger Welcome PDF
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+                <a href="/#/login" className="w-full py-4 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                  Se connecter à votre espace
+                </a>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-2 relative z-10">
+            <a 
+              href={`https://wa.me/${company.phone ? company.phone.replace(/\D/g, '') : '212624465962'}?text=${encodeURIComponent(isAr ? `مرحباً BEYA CREATIVE، لقد سجلت طلبي للتو باسم ${submittedName}. ${newClientCode ? `الرمز السري الخاص بي هو: ${newClientCode.code}.` : ''} أريد تأكيد الطلب والبدء في العينة. ${totalEstimate ? `(التكلفة التقديرية التي ظهرت لي: ${totalEstimate.min} - ${totalEstimate.max} درهم)` : ''}` : `Bonjour BEYA CREATIVE, je viens de passer ma commande sous le nom ${submittedName}. ${newClientCode ? `Mon code secret est : ${newClientCode.code}.` : ''} Je souhaite confirmer ma commande. ${totalEstimate ? `(Devis estimé : ${totalEstimate.min} - ${totalEstimate.max} MAD)` : ''}`)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-base transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2"
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+              {isAr ? 'تأكيد الطلب عبر الواتساب' : 'Confirmer via WhatsApp'}
+            </a>
+          </div>
+          
+        {/* Hidden PDF Template for Client Welcome */}
+        {newClientCode && (
+          <div id={`welcome-pdf-${newClientCode.code}`} style={{ display: 'none' }}>
+            <div dir={isAr ? 'rtl' : 'ltr'} style={{ width: '210mm', minHeight: '297mm', fontFamily: isAr ? 'Arial, sans-serif' : 'Georgia, serif', padding: '20mm', color: '#1e293b', background: 'white' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px', borderBottom: '3px solid #4f46e5', paddingBottom: '20px' }}>
+                <div>
+                  <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#1e1b4b', letterSpacing: '-1px', margin: 0 }}>BEYA<span style={{ color: '#4f46e5' }}>CREATIVE</span></h1>
+                  <p style={{ fontSize: '10px', color: '#6366f1', fontWeight: 700, letterSpacing: '3px', margin: '4px 0 0', textTransform: 'uppercase' }}>Manufacturing Excellence</p>
+                </div>
+                <div style={{ textAlign: isAr ? 'left' : 'right' }}>
+                  <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>beyacreative.com</p>
+                  <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0' }}>{company?.phone || '+212624465962'}</p>
+                </div>
+              </div>
+
+              <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '2px', margin: '0 0 8px' }}>{isAr ? 'مرحباً بك في فضائك الخاص' : 'Bienvenue dans votre espace client'}</p>
+                <p style={{ fontSize: '18px', fontWeight: 900, color: '#1e293b', margin: '0 0 12px' }}>{isAr ? `مرحباً، ${newClientCode.name} 👋` : `Bonjour, ${newClientCode.name} 👋`}</p>
+                <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, margin: 0 }}>{isAr ? 'تم تفعيل حسابك في BEYA CREATIVE. يمكنك الآن متابعة طلباتك وتحميل وثائقك والتواصل مع فريقنا مباشرة من بوابتك.' : 'Votre compte BEYA CREATIVE est activé. Vous pouvez désormais suivre vos commandes, télécharger vos documents et communiquer avec notre équipe directement depuis votre portail.'}</p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
+                  <p style={{ fontSize: '9px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '2px', margin: '0 0 6px' }}>{isAr ? 'البريد الإلكتروني' : 'Email de connexion'}</p>
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', margin: 0 }}>{newClientCode.email}</p>
+                </div>
+                <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '16px' }}>
+                  <p style={{ fontSize: '9px', fontWeight: 900, color: '#059669', textTransform: 'uppercase', letterSpacing: '2px', margin: '0 0 6px' }}>{isAr ? 'الرمز السري' : 'Code secret'}</p>
+                  <p style={{ fontSize: '22px', fontWeight: 900, color: '#1e293b', letterSpacing: '6px', margin: 0, fontFamily: 'monospace' }}>{newClientCode.code}</p>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '13px', fontWeight: 900, color: '#1e1b4b', textTransform: 'uppercase', letterSpacing: '2px', borderRight: isAr ? '4px solid #4f46e5' : 'none', borderLeft: isAr ? 'none' : '4px solid #4f46e5', paddingRight: isAr ? '12px' : 0, paddingLeft: isAr ? 0 : '12px', margin: '0 0 14px' }}>{isAr ? 'من نحن؟' : 'Qui sommes-nous ?'}</h2>
+                <p style={{ fontSize: '12px', color: '#475569', lineHeight: 1.7, margin: 0 }}>{isAr ? 'BEYA CREATIVE مصنع نسيج مغربي متخصص في الخياطة المخصصة. فريقنا من الخياطات الخبيرات يعملن بأنماط دقيقة وعينات مصادق عليها لضمان أن كل قطعة تتوافق تمامًا مع رؤيتك.' : 'BEYA CREATIVE est une manufacture textile marocaine spécialisée dans la confection sur-mesure. Notre équipe de couturières expertes travaille avec des patrons de précision et des échantillons validés pour garantir que chaque pièce correspond exactement à votre vision.'}</p>
+              </div>
+
+              <div style={{ background: '#1e1b4b', borderRadius: '12px', padding: '20px', color: 'white', marginBottom: '20px' }}>
+                <h2 style={{ fontSize: '13px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px', margin: '0 0 12px', opacity: 0.9 }}>{isAr ? 'التزاماتنا للجودة' : 'Nos engagements qualité'}</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <p style={{ fontSize: '11px', fontWeight: 600, margin: 0, opacity: 0.9 }}>{isAr ? '✓ خياطات خبيرات ومعتمدات' : '✓ Couturières expertes et certifiées'}</p>
+                  <p style={{ fontSize: '11px', fontWeight: 600, margin: 0, opacity: 0.9 }}>{isAr ? '✓ أقمشة مختارة من موردين موثوقين' : '✓ Matières sélectionnées chez des fournisseurs fiables'}</p>
+                  <p style={{ fontSize: '11px', fontWeight: 600, margin: 0, opacity: 0.9 }}>{isAr ? '✓ كل قطعة تُفحص قبل التسليم' : '✓ Chaque pièce inspectée avant livraison'}</p>
+                  <p style={{ fontSize: '11px', fontWeight: 600, margin: 0, opacity: 0.9 }}>{isAr ? '✓ احترام صارم للمواعيد المتفق عليها' : '✓ Respect strict des délais convenus'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`min-h-screen bg-slate-50 font-sans selection:bg-indigo-500 selection:text-white ${isAr ? 'rtl' : 'ltr'}`} dir={isAr ? "rtl" : "ltr"}>
+      
+      {errorMsg && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setErrorMsg(null)}>
+          <div className="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100" onClick={e => e.stopPropagation()}>
+            <div className="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h4 className="text-xl font-black text-center text-slate-800 mb-2">تنبيه</h4>
+            <p className="text-center text-slate-500 font-medium mb-6">{errorMsg}</p>
+            <button onClick={() => setErrorMsg(null)} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold uppercase tracking-widest hover:bg-indigo-600 transition-colors active:scale-95">
+              حسناً
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <header className="fixed top-0 inset-x-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 transition-all">
+        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {(company?.logoLanding || company?.logoUrl) ? (
+              <img src={company.logoLanding || company.logoUrl} alt={company.name || "BEYA CREATIVE"} className="h-12 object-contain" />
+            ) : (
+              <>
+                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-indigo-200">B</div>
+                <span className="font-black text-xl tracking-tight text-slate-800">BEYA <span className="text-indigo-600">CREATIVE</span></span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button 
+              onClick={() => setIsAr(!isAr)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-black transition-colors border border-slate-200"
+            >
+              <Globe className="w-4 h-4" />
+              {isAr ? 'FR' : 'AR'}
+            </button>
+            <button onClick={() => { setShowSimulatorModal(true); setSimulatorStep(1); }} className="px-4 sm:px-6 py-2.5 bg-slate-900 text-white rounded-full text-xs sm:text-sm font-bold shadow-lg hover:bg-indigo-600 hover:shadow-indigo-200 transition-all flex items-center gap-2">
+              {isAr ? 'احسب التكلفة واطلب الآن' : 'Calculer le Coût'} <ChevronRight className={`w-4 h-4 ${isAr ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-6 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/factory_bg.jpg')] opacity-20 bg-cover bg-center mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+        
+        <div className="max-w-6xl mx-auto relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full text-xs font-bold mb-6 backdrop-blur-sm">
+              {isAr ? 'البرنامج الخاص بأصحاب العلامات التجارية والتجارة الإلكترونية' : 'Programme Spécial pour les Marques & E-commerce'}
+            </div>
+            <h1 className={`text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6 ${isAr ? 'leading-[1.3]' : 'leading-[1.1]'}`}>
+              {isAr ? 'ركز على المبيعات والتسويق، ' : 'Concentrez-vous sur les Ventes, '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 pb-2">
+                {isAr ? 'وخلي الإنتاج علينا.' : "On s'occupe de la Production."}
+              </span>
+            </h1>
+            <p className="text-lg text-slate-300 font-medium leading-relaxed mb-8 max-w-xl">
+              {isAr ? (
+                <>أنت صاحب <b>Brand</b> أو خدام فـ <b>E-commerce</b>؟ مصنع BEYA CREATIVE هو الشريك الاستراتيجي ديالك. كنوفروا ليك جودة عالمية باش تبني الثقة مع الكليان ديالك، مع إمكانية تجربة السوق بكميات معقولة.</>
+              ) : (
+                <>Vous avez une <b>Marque</b> ou vous faites du <b>E-commerce</b> ? BEYA CREATIVE est votre partenaire stratégique. Qualité internationale pour bâtir la confiance avec vos clients, avec possibilité de tester le marché avec des quantités raisonnables.</>
+              )}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button onClick={() => { setShowSimulatorModal(true); setSimulatorStep(1); }} className="px-8 py-4 bg-indigo-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/30 hover:bg-indigo-400 transition-all hover:scale-105">
+                <Zap className="w-5 h-5" />
+                {isAr ? 'احسب التكلفة وقدم طلبك' : 'Calculer le Coût & Commander'}
+              </button>
+              <div className="flex items-center gap-4 text-sm font-bold text-slate-400 px-4">
+                <div className="flex -space-x-2 space-x-reverse">
+                  {[1,2,3].map(i => (
+                    <div key={i} className={`w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center`}>
+                      <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                    </div>
+                  ))}
+                </div>
+                <div>{isAr ? '+50 Brand' : '+50 Marques'}<br/>{isAr ? 'بدأت ونجحت معنا' : 'Ont réussi avec nous'}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="relative hidden lg:block">
+            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-cyan-500 rounded-2xl rotate-3 opacity-20 blur-2xl"></div>
+            <img src="/beya_creative_streetwear.png" alt="BEYA CREATIVE Streetwear Idea to Reality" className="relative z-10 w-full aspect-square object-cover rounded-2xl shadow-2xl border border-white/10" />
+            
+            {/* Floating Badge */}
+            <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-2xl z-20 flex items-center gap-4 border border-slate-100">
+              <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-400">{isAr ? 'ضمان الجودة' : 'Garantie Qualité'}</p>
+                <p className="text-sm font-black text-slate-800">{isAr ? 'صناعة العينة قبل الإنتاج' : 'Échantillon avant production'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust & Process */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-slate-800 mb-4">{isAr ? 'علاش كاع الـ Brands كايخدمو معانا؟' : 'Pourquoi toutes les Marques travaillent avec nous ?'}</h2>
+            <p className="text-slate-500 font-medium max-w-2xl mx-auto">{isAr ? 'وفرنا ليك البيئة المثالية باش تكبر الـ Brand ديالك بلا مشاكل د الإنتاج.' : "Nous avons créé l'environnement idéal pour développer votre marque sans soucis de production."}</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-slate-50 p-8 rounded-xl border border-slate-100 hover:border-indigo-300 transition-colors">
+              <div className="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-6">
+                <Sparkles className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 mb-3">{isAr ? 'بدا وجرب السوق (Test)' : 'Testez le marché'}</h3>
+              <p className="text-slate-600 font-medium leading-relaxed">{isAr ? 'كنعرفو باللي باش تطلق Brand جديدة خاصك تجرب. كنعطيوك الفرصة تبدا بكميات صغيرة (100 بياسة) باش تـ Testi المنتوج ديالك.' : 'Nous vous offrons la possibilité de démarrer avec de petites quantités (100 pièces) pour tester votre produit sereinement.'}</p>
+            </div>
+            <div className="bg-slate-50 p-8 rounded-xl border border-slate-100 hover:border-emerald-300 transition-colors">
+              <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-6">
+                <ShieldCheck className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 mb-3">{isAr ? 'العينة قبل كلشي (Échantillon)' : "L'échantillon d'abord"}</h3>
+              <p className="text-slate-600 font-medium leading-relaxed">{isAr ? 'المعقول هو الأساس! كنصايبو ليك العينة الأولى، كتقيسها وتأكد من جودة الثوب والفصالة 100% عاد كنبداو الإنتاج الشامل.' : 'Nous confectionnons le premier échantillon, vous vérifiez la qualité et la coupe à 100% avant de lancer la production globale.'}</p>
+            </div>
+            <div className="bg-slate-50 p-8 rounded-xl border border-slate-100 hover:border-blue-300 transition-colors">
+              <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                <Factory className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 mb-3">{isAr ? 'توسع وكبر (Scaling)' : 'Scalez et Grandissez'}</h3>
+              <p className="text-slate-600 font-medium leading-relaxed">{isAr ? 'ملي المنتوج ديالك كيضرب وكيتباع بزاف، المصنع ديالنا مستعد يوفر ليك 10,000 قطعة فـ وقت قياسي باش مايوقفش الإشهار ديالك.' : 'Lorsque votre produit se vend bien, notre usine est prête à fournir de grandes quantités en un temps record pour suivre vos ventes.'}</p>
+            </div>
+          </div>
+
+          {/* FAQ Section */}
+          <div className="mt-24 max-w-3xl mx-auto">
+            <div className="text-center mb-10">
+              <h3 className="text-2xl font-black text-slate-800 mb-3">{isAr ? 'الأسئلة الشائعة (FAQ)' : 'Foire aux Questions (FAQ)'}</h3>
+              <p className="text-slate-500 font-medium">{isAr ? 'كل ما يخص الإنتاج والتعامل معنا' : 'Tout ce qui concerne la production et la collaboration avec nous'}</p>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                <h4 className="font-black text-slate-800 mb-2 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500"></div> {isAr ? 'شنو هي أقل كمية (Minimum Order)؟' : 'Quelle est la quantité minimum ?'}</h4>
+                <p className={`text-slate-600 font-medium text-sm ${isAr ? 'pr-4' : 'pl-4'}`}>{isAr ? 'لدعم أصحاب الـ Brands الجديدة، أقل كمية للبدء هي 100 قطعة للموديل (موزعة على المقاسات التي تختارها). هذه الكمية ممتازة لتجربة السوق.' : 'La quantité minimum pour commencer est de 100 pièces par modèle. Idéal pour tester le marché avec votre marque.'}</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                <h4 className="font-black text-slate-800 mb-2 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500"></div> {isAr ? 'واش كديرو الثوب ولا خاصني نجيبو؟' : "Fournissez-vous le tissu ?"}</h4>
+                <p className={`text-slate-600 font-medium text-sm ${isAr ? 'pr-4' : 'pl-4'}`}>{isAr ? 'نحن نقدم خدمة متكاملة (Full Package). نتكلف بالثوب، الفصالة، الخياطة، الطباعة/الطرز، والتغليف. نستخدم أفضل الأثواب التركية، الإيطالية، والمحلية لضمان جودة الـ Brand.' : 'Nous offrons un service complet (Full Package). Tissu, coupe, couture, impression et emballage. Nous gérons tout de A à Z.'}</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                <h4 className="font-black text-slate-800 mb-2 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500"></div> {isAr ? 'كيفاش كنعرف الأثمنة ديالكم؟' : 'Comment puis-je connaître vos prix ?'}</h4>
+                <p className={`text-slate-600 font-medium text-sm ${isAr ? 'pr-4' : 'pl-4'}`}>{isAr ? 'الثمن يعتمد على نوع اللباس والكمية. يمكنك استخدام' : 'Le prix dépend du modèle et de la quantité. Utilisez'} <button onClick={() => { setShowSimulatorModal(true); setSimulatorStep(1); }} className="text-indigo-600 font-bold underline">{isAr ? 'حاسبة التكلفة أسفله' : 'notre simulateur'}</button>{isAr ? '، قم بإدخال الموديل والكمية وسيعطيك تقديراً فورياً.' : ' pour avoir une estimation instantanée.'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Form Section */}
+      {/* CTA Section instead of inline form */}
+      <section className="py-24 px-6 bg-slate-900 text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1558769132-cb1fac08c04a?auto=format&fit=crop&q=80')] opacity-5 bg-cover bg-center mix-blend-overlay"></div>
+        <div className="max-w-3xl mx-auto relative z-10">
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-6">{isAr ? 'مستعد تبدا المشروع ديالك؟' : 'Prêt à lancer votre projet ?'}</h2>
+          <p className="text-slate-400 font-medium text-lg mb-10">{isAr ? 'استعمل حاسبة التكلفة ديالنا باش تعرف التكلفة التقريبية فـ أقل من دقيقة، وبلا ماتدخل حتى معلومة شخصية!' : "Utilisez notre simulateur pour connaître le coût estimé en moins d'une minute, sans aucune information personnelle !"}</p>
+          <button onClick={() => { setShowSimulatorModal(true); setSimulatorStep(1); }} className="px-8 py-4 bg-indigo-600 text-white rounded-full font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 hover:scale-105 transition-all flex items-center justify-center gap-3 mx-auto">
+            <Zap className="w-5 h-5" />
+            {isAr ? 'احسب التكلفة وابدأ الطلب' : 'Calculer le Coût & Commander'}
+          </button>
+        </div>
+      </section>
+
+      {/* Simulator Modal */}
+      {showSimulatorModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-300 my-auto">
+            <button onClick={() => setShowSimulatorModal(false)} className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-full transition-colors z-10">
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="p-4 md:p-6 max-h-[85vh] overflow-y-auto custom-scrollbar">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl md:text-3xl font-black text-slate-800 mb-3">
+                  {simulatorStep === 1 
+                    ? (isAr ? 'حاسبة التكلفة' : 'Simulateur de Prix') 
+                    : (isAr ? 'إكمال المعلومات' : 'Compléter vos informations')}
+                </h2>
+                <p className="text-slate-500 font-medium text-sm">
+                  {simulatorStep === 1 
+                    ? (isAr ? 'أدخل الموديلات التي ترغب في تصنيعها للحصول على تقدير فوري للتكلفة.' : 'Entrez les modèles que vous souhaitez fabriquer pour obtenir une estimation instantanée.')
+                    : (isAr ? 'التكلفة مناسبة؟ أدخل معلوماتك لنتواصل معك ونبدأ العمل فوراً.' : 'Le coût vous convient ? Entrez vos informations pour que nous puissions vous contacter et commencer le travail.')}
+                </p>
+                
+                {/* Stepper indicator */}
+                <div className="flex items-center justify-center gap-4 mt-6">
+                  <div className={`h-2 rounded-full transition-all ${simulatorStep >= 1 ? 'w-16 bg-indigo-600' : 'w-4 bg-slate-200'}`}></div>
+                  <div className={`h-2 rounded-full transition-all ${simulatorStep >= 2 ? 'w-16 bg-indigo-600' : 'w-4 bg-slate-200'}`}></div>
+                </div>
+              </div>
+
+              <form
+                className="space-y-4"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formElement = e.currentTarget;
+                  
+                  if (simulatorStep === 1) {
+                    const missingPhoto = models.find(m => !m.photo && (!m.photos || m.photos.length === 0));
+                    if (missingPhoto) {
+                      setErrorMsg(isAr ? 'كل موديل خاصو عندو صورة (إجباري)' : 'Chaque modèle doit avoir au moins une photo (Obligatoire)');
+                      return;
+                    }
+                    setSimulatorStep(2);
+                    return;
+                  }
+
+                  const formData = new FormData(formElement);
+                  const countryCode = (formElement.querySelector('select[name="countryCode"]') as HTMLSelectElement)?.value || '+212';
+                  const rawPhone = formData.get('phone') as string;
+                  const fullPhone = countryCode + (rawPhone.startsWith('0') ? rawPhone.substring(1) : rawPhone);
+                  const clientName = formData.get('name') as string;
+                  const clientEmail = formData.get('email') as string || 'Non spécifié';
+                  const clientVille = formData.get('ville') as string || 'Non spécifié';
+
+                  if (!clientName.trim().includes(' ')) {
+                    setErrorMsg(isAr ? 'المرجو إدخال الإسم الكامل (الشخصي والعائلي)' : 'Veuillez entrer votre nom complet (Prénom et Nom)');
+                    return;
+                  }
+
+                  setIsSending(true);
+                  try {
+                    let totMin = 0;
+                    let totMax = 0;
+                    
+                    for (const m of models) {
+                      const finalType = ((m.type === 'Autre' || m.type === 'آخر') ? m.customType : m.type) + (m.provideFabric ? ' (CMT - Client Tissu)' : '');
+                      const est = calculateEstimate(m.type, m.quantity, m.provideFabric);
+                      if (est) {
+                        totMin += est.totalMin;
+                        totMax += est.totalMax;
+                      }
+                      
+                      await saveLead({
+                        name: clientName,
+                        email: clientEmail,
+                        phone: fullPhone,
+                        ville: clientVille,
+                        type: finalType,
+                        quantity: Number(m.quantity) || 1,
+                        tailles: Object.fromEntries(Object.entries(m.tailles).filter(([_, v]) => v !== '').map(([k, v]) => [k, Number(v)])),
+                        details: m.details,
+                        photo: m.photos?.[0] || m.photo!,
+                        photos: m.photos || (m.photo ? [m.photo] : []),
+                      });
+                    }
+                    
+                    trackPixelEvent('Lead', {
+                      content_name: models.map(m => m.type).join(', '),
+                      content_category: 'Confection Lead',
+                      value: models.reduce((acc, m) => acc + (Number(m.quantity) || 1), 0),
+                      currency: 'MAD'
+                    });
+
+                    setSubmittedName(clientName);
+                    
+                    // Create User Account
+                    const newId = `user-${Date.now()}`;
+                    const autoCode = Math.floor(100000 + Math.random() * 900000).toString();
+                    const newClient = {
+                      id: newId,
+                      nom: clientName,
+                      role: 'client' as const,
+                      email: (clientEmail && clientEmail !== 'Non spécifié' ? clientEmail : `${clientName.replace(/\s+/g, '').toLowerCase()}_${newId.slice(0, 4)}@beya.ma`).toLowerCase().trim(),
+                      telephone: fullPhone,
+                      password: autoCode,
+                      pinCode: autoCode,
+                      actif: true,
+                      ville: clientVille || '',
+                      adresse: ''
+                    };
+                    await saveRecord('users', newClient);
+                    setNewClientCode({ name: clientName, code: autoCode, email: newClient.email, phone: fullPhone, id: newId });
+                    if (totMin > 0) {
+                      setTotalEstimate({ min: totMin, max: totMax });
+                    } else {
+                      setTotalEstimate(null);
+                    }
+
+                    setIsSending(false);
+                    setShowSimulatorModal(false);
+                    setIsSuccess(true);
+                    
+                    setModels([emptyModel()]);
+                    formElement.reset();
+                  } catch (err: any) {
+                    setIsSending(false);
+                    console.error("Error in AdsLanding:", err);
+                    setErrorMsg('وقع خطأ أثناء الإرسال. المرجو التأكد من أن جميع الخانات صحيحة.');
+                  }
+                }}
+              >
+                {/* STEP 1: SIMULATOR */}
+                {simulatorStep === 1 && (
+                  <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
+                    {models.map((m, idx) => (
+                      <div key={m.id} className="border-2 border-indigo-100 rounded-2xl p-3 md:p-4 space-y-3 bg-indigo-50/30 relative">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-black text-sm">{idx + 1}</div>
+                            <h3 className="font-black text-slate-800 text-lg">{isAr ? 'الموديل' : 'Modèle'} {idx + 1}</h3>
+                          </div>
+                          {models.length > 1 && (
+                            <button type="button" onClick={() => setModels(prev => prev.filter(x => x.id !== m.id))}
+                              className="w-6 h-6 bg-rose-100 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg flex items-center justify-center transition-all text-xs font-black shadow-sm">
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-widest mb-2">نوع اللباس</label>
+                            <div className="relative">
+                              <select value={m.type} onChange={e => updateModel(m.id, { type: e.target.value })}
+                                className="w-full bg-white border-2 border-slate-200 rounded-xl py-2 px-3 text-sm font-bold outline-none focus:border-indigo-600 transition-colors appearance-none">
+                                {tarifsDb.map(t => <option key={t.id} value={t.titre}>{t.titre}</option>)}
+                                {tarifsDb.length === 0 && <option value="T-Shirt">T-Shirt</option>}
+                                <option value="Autre">نوع آخر (Autre...)</option>
+                              </select>
+                              <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            </div>
+                            {m.type === 'Autre' && (
+                              <input type="text" value={m.customType} onChange={e => updateModel(m.id, { customType: e.target.value })}
+                                placeholder={isAr ? 'حدد النوع' : 'Spécifiez le type'}
+                                className="mt-2 w-full bg-white border-2 border-slate-200 rounded-xl py-2 px-3 text-sm font-bold outline-none focus:border-indigo-600" required />
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-widest mb-2">{isAr ? 'الكمية الإجمالية للموديل' : 'Quantité Totale'}</label>
+                            <input type="number" min="1" placeholder="100" value={m.quantity} onChange={e => updateModel(m.id, { quantity: e.target.value })}
+                              className="w-full bg-white border-2 border-slate-200 rounded-xl py-2 px-3 text-sm font-bold outline-none focus:border-indigo-600 h-[40px]" required />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-widest mb-2">{isAr ? 'الثوب (Tissu)' : 'Tissu'}</label>
+                            <select value={m.provideFabric ? 'yes' : 'no'} onChange={e => updateModel(m.id, { provideFabric: e.target.value === 'yes' })}
+                              className="w-full bg-white border-2 border-slate-200 rounded-xl py-2 px-3 text-sm font-bold outline-none focus:border-indigo-600 h-[40px]">
+                              <option value="no">{isAr ? 'نتكلفو بالثوب (Full Package)' : 'Fourni par nous (Full Package)'}</option>
+                              <option value="yes">{isAr ? 'غنجيب الثوب ديالي (CMT)' : 'Je fournis le tissu (CMT)'}</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-widest mb-2">{isAr ? 'المقاسات (اختياري - وزع الكمية)' : 'Tailles (Optionnel)'}</label>
+                          <div className="grid grid-cols-6 gap-2">
+                            {['XS','S','M','L','XL','XXL'].map(size => (
+                              <div key={size} className="relative group">
+                                <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 bg-indigo-50 text-[8px] font-black text-indigo-600 rounded-full border border-indigo-100 z-10">{size}</div>
+                                <input type="number" value={m.tailles[size]} onChange={e => updateModelTaille(m.id, size, e.target.value)} placeholder="0"
+                                  className="w-full bg-white border-2 border-slate-200 rounded-xl pt-3 pb-1 px-1 text-center text-xs font-black outline-none focus:border-indigo-600 h-[40px]" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-widest mb-2">{isAr ? 'تفاصيل الطلب (ألوان، نوع الثوب...)' : 'Détails de la commande (Couleurs, Tissu...)'}</label>
+                            <textarea rows={3} value={m.details} onChange={e => updateModel(m.id, { details: e.target.value })}
+                              placeholder={isAr ? 'اشرح شنو باغي...' : 'Expliquez ce que vous voulez...'}
+                              className="w-full bg-white border-2 border-slate-200 rounded-xl py-2 px-3 text-sm font-bold outline-none focus:border-indigo-600 resize-none" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-widest mb-2">
+                              {isAr ? 'صورة الموديل' : 'Photo du modèle'} <span className="text-rose-500">*</span>
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                              {(m.photos || (m.photo ? [m.photo] : [])).map((p, pIdx) => (
+                                <div key={pIdx} className="relative w-[70px] h-[70px] rounded-xl overflow-hidden border-2 border-indigo-200 shadow-sm">
+                                  <img src={p} className="w-full h-full object-cover" alt="" />
+                                  <button type="button" onClick={() => removeModelPhoto(m.id, pIdx)}
+                                    className="absolute top-1 right-1 p-1 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition-colors shadow-sm">
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ))}
+                              {(m.photos || (m.photo ? [m.photo] : [])).length < 5 && (
+                                <label className="flex flex-col items-center justify-center w-[70px] h-[70px] bg-white border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition-all shrink-0">
+                                  <ImageIcon className="w-4 h-4 text-slate-300 mb-1" />
+                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center px-1 leading-tight">{isAr ? 'إضافة صورة' : 'Ajouter'}</span>
+                                  <input type="file" accept="image/*" onChange={e => handleModelPhoto(m.id, e)} className="hidden" />
+                                </label>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Line Simulator Display */}
+                        {(() => {
+                          const est = calculateEstimate(m.type, m.quantity, m.provideFabric);
+                          if (!est) return null;
+                          return (
+                            <div className="mt-4 p-4 bg-white border-2 border-emerald-100 rounded-xl flex items-center justify-between">
+                              <div>
+                                <p className="text-xs font-black text-emerald-600 uppercase tracking-widest">{isAr ? 'التكلفة التقديرية' : 'Coût Estimé'}</p>
+                              </div>
+                              <div className={`text-${isAr ? 'right' : 'left'}`}>
+                                <p className="text-sm font-black text-slate-800">{est.min} - {est.max} MAD <span className="text-xs text-slate-500">{isAr ? '/ قطعة' : '/ Pièce'}</span></p>
+                                <p className="text-xs font-bold text-emerald-500">{isAr ? 'الإجمالي:' : 'Total :'} {est.totalMin.toLocaleString()} - {est.totalMax.toLocaleString()} MAD</p>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    ))}
+
+                    <button type="button" onClick={() => setModels(prev => [...prev, emptyModel()])}
+                      className="w-full py-4 border-2 border-dashed border-indigo-300 text-indigo-600 bg-indigo-50/50 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-indigo-100 transition-all flex items-center justify-center gap-2">
+                      + {isAr ? 'إضافة موديل آخر' : 'Ajouter un autre modèle'}
+                    </button>
+
+                    {(() => {
+                      const liveTotals = models.reduce((acc, m) => {
+                        const est = calculateEstimate(m.type, m.quantity, m.provideFabric);
+                        if (est) {
+                          acc.min += est.totalMin;
+                          acc.max += est.totalMax;
+                        }
+                        return acc;
+                      }, { min: 0, max: 0 });
+
+                      return liveTotals.max > 0 && (
+                        <div className="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-6 text-center animate-in zoom-in-95 duration-300">
+                          <p className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-2">{isAr ? 'إجمالي تكلفة مشروعك التقديرية' : 'Estimation Totale du Projet'}</p>
+                          <p className="text-3xl font-black text-emerald-700">
+                            {liveTotals.min.toLocaleString()} - {liveTotals.max.toLocaleString()} {isAr ? 'درهم' : 'DH'}
+                          </p>
+                          <p className="text-xs font-medium text-emerald-600/70 mt-2">{isAr ? 'السعر قابل للتفاوض البسيط حسب التفاصيل الدقيقة.' : 'Prix légèrement négociable selon les détails exacts.'}</p>
+                        </div>
+                      );
+                    })()}
+
+                    <button type="submit" className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm md:text-base uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">
+                      {isAr ? 'أنا موافق، أكمل معلوماتي للعمل فوراً' : "Je suis d'accord, compléter mes informations"} <ArrowRight className={`w-4 h-4 ${isAr ? '-scale-x-100' : ''}`} />
+                    </button>
+                  </div>
+                )}
+
+                {/* STEP 2: CONTACT INFO */}
+                {simulatorStep === 2 && (
+                  <div className="space-y-4 animate-in slide-in-from-left-4 duration-300">
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+                      <Zap className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                      <p className="text-sm text-amber-800 font-medium">{isAr ? 'خطوة أخيرة! أدخل معلوماتك لكي يتواصل معك فريقنا في أقرب وقت لتأكيد الطلب وبدء العمل على العينة.' : "Dernière étape ! Entrez vos informations pour que notre équipe vous contacte rapidement et commence le travail sur l'échantillon."}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-[13px] font-extrabold text-slate-700 uppercase tracking-widest mb-3">{isAr ? 'الإسم الكامل' : 'Nom Complet'}</label>
+                        <input type="text" name="name" placeholder={isAr ? "مثال: أحمد العلمي" : "Ex: Ahmed Alami"} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-4 text-sm font-bold outline-none focus:border-indigo-600 transition-colors" required />
+                      </div>
+                      <div>
+                        <label className="block text-[13px] font-extrabold text-slate-700 uppercase tracking-widest mb-3">Email</label>
+                        <input type="email" name="email" placeholder="email@example.com" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-4 text-sm font-bold outline-none focus:border-indigo-600 transition-colors" required />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-[13px] font-extrabold text-slate-700 uppercase tracking-widest mb-3">{isAr ? 'رقم الهاتف / الواتساب' : 'Téléphone / WhatsApp'}</label>
+                        <div className="flex gap-3">
+                          <div className="relative w-[100px] flex-shrink-0">
+                            <select name="countryCode" className="w-full appearance-none bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 pl-4 pr-8 text-xs font-black outline-none focus:border-indigo-600 transition-colors h-[58px]">
+                              <option value="+212">🇲🇦 212</option>
+                              <option value="+33">🇫🇷 33</option>
+                              <option value="+34">🇪🇸 34</option>
+                              <option value="+1">🇺🇸 1</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400">
+                              <ChevronDown className="w-4 h-4" />
+                            </div>
+                          </div>
+                          <input type="tel" name="phone" placeholder="6XXXXXXXX" className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:border-indigo-600 transition-colors h-[58px]" dir="ltr" required />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[13px] font-extrabold text-slate-700 uppercase tracking-widest mb-3">{isAr ? 'المدينة' : 'Ville'}</label>
+                        <input type="text" name="ville" placeholder={isAr ? "مثال: الدار البيضاء" : "Ex: Casablanca"} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-4 text-sm font-bold outline-none focus:border-indigo-600 transition-colors" required />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
+                      <button type="button" onClick={() => setSimulatorStep(1)} className="px-6 py-5 bg-slate-100 text-slate-600 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-200 transition-all">
+                        {isAr ? 'رجوع' : 'Retour'}
+                      </button>
+                      <button type="submit" disabled={isSending} className="flex-1 py-5 bg-indigo-600 text-white rounded-2xl font-black text-lg uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center gap-3 disabled:opacity-60">
+                        {isSending ? (isAr ? 'جاري الإرسال...' : 'Envoi en cours...') : (isAr ? 'تأكيد الطلب الآن' : 'Confirmer la commande')}
+                        {!isSending && <CheckCircle2 className="w-5 h-5 ml-2" />}
+                      </button>
+                    </div>
+                    <p className="text-center text-[10px] font-bold text-slate-400 mt-4">{isAr ? 'معلوماتك آمنة ولن يتم مشاركتها مع أي طرف ثالث.' : 'Vos informations sont en sécurité et ne seront pas partagées.'}</p>
+                  </div>
+                )}
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-slate-900 py-8 text-center border-t border-white/10 mt-20">
+        <div className="flex justify-center items-center gap-2 text-white/50 text-sm font-bold">
+          {company.logo ? (
+            <img src={company.logo} alt="Logo" className="h-6 w-auto object-contain opacity-60" />
+          ) : (
+            <div className="w-6 h-6 bg-white/10 rounded flex items-center justify-center text-white text-xs">B</div>
+          )}
+          {company.companyName || 'BEYA CREATIVE'} © {new Date().getFullYear()}
+        </div>
+      </footer>
+    </div>
+  );
+}
+

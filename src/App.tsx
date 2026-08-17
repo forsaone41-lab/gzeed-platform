@@ -1,0 +1,914 @@
+import { HashRouter, Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
+import * as React from 'react';
+import { useState, useEffect, Component, ReactNode, lazy, Suspense } from 'react';
+import { Menu, Package, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { supabase } from './supabase';
+import Sidebar from './components/Sidebar';
+import Calculator from './components/Tools/Calculator';
+import NotificationCenter from './components/Tools/NotificationCenter';
+import { CompanyProfile } from './types';
+
+// ? Lazy load all pages - each page loads only when visited
+const Dashboard        = lazy(() => import('./pages/Dashboard'));
+const StoreAnalytics   = lazy(() => import('./pages/StoreAnalytics'));
+const BeyaDesignerPage = lazy(() => import('./pages/BeyaDesignerPage'));
+const Demandes         = lazy(() => import('./pages/Demandes'));
+const Pipeline         = lazy(() => import('./pages/Pipeline'));
+const FichesTechniques = lazy(() => import('./pages/FichesTechniques'));
+const EvaluationPatronage = lazy(() => import('./pages/EvaluationPatronage'));
+const OrdresDeCoupe    = lazy(() => import('./pages/OrdresDeCoupe'));
+const ChaineDeMontage  = lazy(() => import('./pages/ChaineDeMontage'));
+const ChaineDetaillee  = lazy(() => import('./pages/ChaineDetaillee'));
+const ProductionScanner= lazy(() => import('./pages/ProductionScanner'));
+const WorkerPortal     = lazy(() => import('./pages/WorkerPortal'));
+const ChefChainePortal = lazy(() => import('./pages/ChefChainePortal'));
+const CommercialPortal = lazy(() => import('./pages/CommercialPortal'));
+const StockMateriaux   = lazy(() => import('./pages/StockMateriaux'));
+const SuiviRH          = lazy(() => import('./pages/SuiviRH'));
+const Echantillons     = lazy(() => import('./pages/Echantillons'));
+const Clients          = lazy(() => import('./pages/Clients'));
+const Commandes        = lazy(() => import('./pages/Commandes'));
+const ManageOrder      = lazy(() => import('./pages/ManageOrder'));
+const Factures         = lazy(() => import('./pages/Factures'));
+const Devis            = lazy(() => import('./pages/Devis'));
+const DevisBuilder     = lazy(() => import('./pages/DevisBuilder'));
+const Recus            = lazy(() => import('./pages/Recus'));
+const PrixMarche       = lazy(() => import('./pages/PrixMarche'));
+const Pointage         = lazy(() => import('./pages/Pointage'));
+const PortailClient    = lazy(() => import('./pages/PortailClient'));
+const ClientInfo       = lazy(() => import('./pages/ClientInfo'));
+const Utilisateurs     = lazy(() => import('./pages/Utilisateurs'));
+const StorePlans       = lazy(() => import('./pages/StorePlans'));
+const AffiliateSignup  = lazy(() => import('./pages/AffiliateSignup'));
+const AffiliatePortal  = lazy(() => import('./pages/AffiliatePortal'));
+const AffiliateAdmin   = lazy(() => import('./pages/AffiliateAdmin'));
+const PartnerDirectory = lazy(() => import('./pages/PartnerDirectory'));
+const Performance      = lazy(() => import('./pages/Performance'));
+const Charges          = lazy(() => import('./pages/Charges'));
+const BilanFinancier   = lazy(() => import('./pages/BilanFinancier'));
+const Settings         = lazy(() => import('./pages/Settings'));
+const Profil           = lazy(() => import('./pages/Profil'));
+const Login            = lazy(() => import('./pages/Login'));
+const LandingPage      = lazy(() => import('./pages/LandingPage'));
+const BeyaFunnel       = lazy(() => import('./pages/BeyaFunnel'));
+const DownloadApp      = lazy(() => import('./pages/DownloadApp'));
+const AdsLanding       = lazy(() => import('./pages/AdsLanding'));
+const NewLanding       = lazy(() => import('./pages/NewLanding'));
+const KioskScanner     = lazy(() => import('./pages/KioskScanner'));
+const FastScanner      = lazy(() => import('./pages/FastScanner'));
+const PlanningView     = lazy(() => import('./pages/PlanningView'));
+const PartenairePortal = lazy(() => import('./pages/PartenairePortal'));
+const Agenda           = lazy(() => import('./pages/Agenda'));
+const Recrutement     = lazy(() => import('./pages/Recrutement'));
+const ListeAttente    = lazy(() => import('./pages/ListeAttente'));
+const Notifications   = lazy(() => import('./pages/Notifications'));
+const AISpace         = lazy(() => import('./pages/AISpace'));
+const Achats          = lazy(() => import('./pages/Achats'));
+const Fournisseurs    = lazy(() => import('./pages/Fournisseurs'));
+const Reclamations    = lazy(() => import('./pages/Reclamations'));
+const VisioRoom       = lazy(() => import('./pages/VisioRoom'));
+const PublicMeet      = lazy(() => import('./pages/PublicMeet'));
+const Inbox           = lazy(() => import('./pages/Inbox'));
+const GmailInbox      = lazy(() => import('./pages/GmailInbox'));
+const Tarifs          = lazy(() => import('./pages/Tarifs'));
+const Reglement       = lazy(() => import('./pages/Reglement'));
+const ValidationBoard = lazy(() => import('./pages/ValidationBoard'));
+const HPGLViewer      = lazy(() => import('./pages/HPGLViewer'));
+const KMLViewer       = lazy(() => import('./pages/KMLViewer'));
+const AtelierCalculator = lazy(() => import('./pages/AtelierCalculator'));
+const AtelierAiExpert = lazy(() => import('./pages/AtelierAiExpert'));
+const BeyaVirtualTryOn = lazy(() => import('./pages/BeyaVirtualTryOn'));
+const StoreBuilder    = lazy(() => import('./pages/StoreBuilder'));
+const StoreLanding    = lazy(() => import('./pages/StoreLanding'));
+const StoreLandingV2  = lazy(() => import('./pages/StoreLandingV2'));
+const StoreLandingV3  = lazy(() => import('./pages/StoreLandingV3'));
+const StoreLandingV4  = lazy(() => import('./pages/StoreLandingV4'));
+const StoreLandingV5  = lazy(() => import('./pages/StoreLandingV5'));
+const EnterpriseLanding  = lazy(() => import('./pages/EnterpriseLanding'));
+const PlatformLanding  = lazy(() => import('./pages/PlatformLanding'));
+const BeyaDropshipping = lazy(() => import('./pages/BeyaDropshipping'));
+const StoreSignup     = lazy(() => import('./pages/StoreSignup'));
+const SetupLanding    = lazy(() => import('./pages/SetupLanding'));
+const TourismDemo     = lazy(() => import('./pages/demos/TourismDemo'));
+const VacationDealsDemo = lazy(() => import('./pages/demos/VacationDealsDemo'));
+const OmraToursDemo = lazy(() => import('./pages/demos/OmraToursDemo'));
+const MaziaDemo = lazy(() => import('./pages/demos/MaziaDemo'));
+const AbayaDemo = lazy(() => import('./pages/demos/AbayaDemo'));
+const BidlaDemo = lazy(() => import('./pages/demos/BidlaDemo'));
+const DentistDemo = lazy(() => import('./pages/demos/DentistDemo'));
+const CarRentalDemo = lazy(() => import('./pages/demos/CarRentalDemo'));
+const ServiceProDemo = lazy(() => import('./pages/demos/ServiceProDemo'));
+const ApartmentDemo = lazy(() => import('./pages/demos/ApartmentDemo'));
+const BeautySalonDemo = lazy(() => import('./pages/demos/BeautySalonDemo'));
+const TraiteurDemo = lazy(() => import('./pages/demos/TraiteurDemo'));
+const LogisticsDemo = lazy(() => import('./pages/demos/LogisticsDemo'));
+const CityRentalsDemo = lazy(() => import('./pages/demos/CityRentalsDemo'));
+const EcommerceDemo = lazy(() => import('./pages/demos/EcommerceDemo'));
+const StoreOnboarding = lazy(() => import('./pages/StoreOnboarding'));
+const MerchantDashboard = lazy(() => import('./pages/MerchantDashboard'));
+const Terms           = lazy(() => import('./pages/Terms'));
+const Partners        = lazy(() => import('./pages/Partners'));
+const Privacy         = lazy(() => import('./pages/Privacy'));
+const SaaSAdminPage   = lazy(() => import('./pages/SaaSAdminPage'));
+import { PageLoader } from './components/PageLoader';
+
+import { initMockData, User, loadPermissions, AppPage, loadCompanyProfile, syncCompanyProfile, loadData, saveRecord } from './types';
+import { LangProvider, useLang } from './contexts/LangContext';
+import { initFacebookPixel, trackPixelEvent } from './utils/pixel';
+
+initMockData();
+
+// ? CRITICAL: Capture password-recovery tokens BEFORE HashRouter overwrites the hash.
+// Supabase redirects to: https://app.beyacreative.com/#access_token=xxx&type=recovery
+// But HashRouter immediately replaces the hash with #/ (its default route),
+// so by the time any useEffect runs, the tokens are already gone.
+// We capture them here at module-load time (synchronous, before any React renders).
+const __INITIAL_URL__ = window.location.href;
+const __INITIAL_HASH__ = window.location.hash || '';
+const __INITIAL_SEARCH__ = window.location.search || '';
+const __IS_RECOVERY_REDIRECT__ = __INITIAL_HASH__.includes('type=recovery') || __INITIAL_SEARCH__.includes('type=recovery') || __INITIAL_URL__.includes('type=recovery');
+
+// If this is a recovery redirect, let Supabase's JS client pick up the tokens from the hash
+// BEFORE we clean the URL. Supabase's createClient auto-detects hash tokens on init.
+// After a brief delay, we'll clean the URL in the useEffect below.
+
+const AUTH_KEY = 'textrack_auth';
+
+const MobileLogoWithFallback = ({ src, alt }: { src: string; alt: string }) => {
+  const [error, setError] = React.useState(false);
+  if (error || !src) {
+    return (
+      <>
+        <div className="w-8 h-8 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <Package className="w-5 h-5 text-white" />
+        </div>
+        <span className="text-sm font-black text-slate-900 uppercase tracking-tighter italic">
+          {alt.split(' ')[0]} <span className="text-indigo-600 font-light italic ml-1">{alt.split(' ').slice(1).join(' ')}</span>
+        </span>
+      </>
+    );
+  }
+  return <img src={src} className="h-8 object-contain" alt={alt} onError={() => setError(true)} />;
+};
+
+function AdminLayout({
+  onOpenClientPortal,
+  currentUser,
+  onLogout,
+  company,
+}: {
+  onOpenClientPortal: () => void;
+  currentUser: User;
+  onLogout: () => void;
+  company: CompanyProfile;
+}) {
+  const { isAr } = useLang();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  return (
+    <div className="flex min-h-screen bg-slate-50/50" dir={isAr ? 'rtl' : 'ltr'}>
+      {/* Mobile Header - Premium Glassy "Zaji" Design */}
+      {currentUser.role !== 'worker' && (
+        <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 z-[140] flex items-center justify-between px-5 shadow-sm print:hidden">
+          <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : 'flex-row'}`}>
+            <MobileLogoWithFallback src={company.logoMobileHeader || company.logoUrl} alt={company.name} />
+          </div>
+
+        <div className="flex items-center gap-2">
+          {currentUser.role === 'admin' && location.pathname === '/' && (
+            <div className="scale-75 origin-right">
+              <NotificationCenter />
+            </div>
+          )}
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-indigo-600 transition-all bg-slate-100/50 rounded-xl border border-slate-200 active:scale-90"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+      )}
+      
+      {/* Mobile Calculator - Bottom Right - Admin Only */}
+      {currentUser.role === 'admin' && location.pathname !== '/partenaire-portal' && (
+        <div className={`md:hidden fixed bottom-6 ${isAr ? 'left-6' : 'right-6'} z-[140] scale-90 print:hidden`}>
+          <Calculator />
+        </div>
+      )}
+
+      <div className={currentUser.role === 'worker' ? 'hidden md:block' : ''}>
+        <Sidebar
+          onOpenClientPortal={onOpenClientPortal}
+          currentUser={currentUser}
+          onLogout={onLogout}
+          mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen}
+          company={company}
+        />
+      </div>
+      
+      <main className={`flex-1 overflow-y-auto w-full relative ${currentUser.role === 'worker' ? 'mt-0' : 'mt-16 md:mt-0'} print:mt-0 print:overflow-visible`}>
+        {/* Global Tools Bar - Notification only on Dashboard Page for Admin */}
+        {currentUser.role === 'admin' && (
+          <div className={`fixed top-8 ${isAr ? 'right-12' : 'right-12'} z-[130] hidden md:flex items-center gap-4 print:hidden`}>
+            {location.pathname === '/' && <NotificationCenter />}
+          </div>
+        )}
+
+        {/* Floating Calculator - Admin Only */}
+        {currentUser.role === 'admin' && location.pathname !== '/partenaire-portal' && (
+          <div className={`fixed bottom-8 ${isAr ? 'right-8' : 'right-8'} z-[130] hidden md:block print:hidden`}>
+            <Calculator />
+          </div>
+        )}
+
+        {/* Decorative background element */}
+        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-indigo-500/5 blur-[120px] pointer-events-none print:hidden" />
+        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-500/5 blur-[120px] pointer-events-none print:hidden" />
+        
+        <div className="p-4 md:p-8 lg:p-12 max-w-[1600px] mx-auto relative print:p-0 print:max-w-none">
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function PointageLayout() {
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <main className="w-full min-h-screen p-4 md:p-6 lg:p-8 overflow-y-auto">
+        <Suspense fallback={<PageLoader />}>
+          <Outlet />
+        </Suspense>
+      </main>
+    </div>
+  );
+}
+
+function ClientInfoRoute() {
+  const company = loadCompanyProfile();
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" /></div>}>
+      <ClientInfo company={company} standalone={true} />
+    </Suspense>
+  );
+}
+
+function AppContent() {
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [recoveryError, setRecoveryError] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
+
+  useEffect(() => {
+    // Listen for Supabase auth events (specifically PASSWORD_RECOVERY)
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setShowRecoveryModal(true);
+      }
+    });
+
+    // Use the module-level flag captured BEFORE HashRouter could wipe the hash.
+    // This is the only reliable way to detect recovery redirects with HashRouter.
+    if (__IS_RECOVERY_REDIRECT__) {
+      const setupManualSession = async () => {
+        try {
+          const urlString = __INITIAL_HASH__.includes('access_token=') ? __INITIAL_HASH__.substring(1) : (__INITIAL_URL__.split('#')[1] || '');
+          if (urlString && urlString.includes('access_token=')) {
+            const params = new URLSearchParams(urlString);
+            const access_token = params.get('access_token');
+            const refresh_token = params.get('refresh_token');
+            if (access_token && refresh_token) {
+              await supabase.auth.setSession({ access_token, refresh_token });
+            }
+          }
+        } catch (e) {
+          console.error('Failed to set manual recovery session', e);
+        } finally {
+          setShowRecoveryModal(true);
+        }
+      };
+      setupManualSession();
+    }
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      setRecoveryError('???? ?????? ??? ?? ????? ?? 8 ???? ??? ?????');
+      return;
+    }
+    
+    setIsUpdatingPassword(true);
+    setRecoveryError('');
+    
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      
+      alert('?? ????? ???? ?????? ?????! ????? ???? ????? ??????.');
+      setShowRecoveryModal(false);
+      handleLogout();
+    } catch (err: any) {
+      setRecoveryError(err.message);
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    try {
+      const s = localStorage.getItem(AUTH_KEY);
+      return s ? JSON.parse(s) : null;
+    } catch { return null; }
+  });
+  const [showClientPortal, setShowClientPortal] = useState(false);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [company, setCompany] = useState<CompanyProfile>(loadCompanyProfile());
+  const location = useLocation();
+
+  // Facebook Pixel tracking on route changes
+  useEffect(() => {
+    if (company && company.metaPixelId) {
+      initFacebookPixel(company.metaPixelId);
+      trackPixelEvent('PageView');
+    }
+  }, [location.pathname, company?.metaPixelId]);
+
+  const hostname = window.location.hostname;
+  const isGZeed = hostname === 'gzeed.com' || hostname === 'www.gzeed.com';
+  const isSaaSDomain = hostname === 'beyacreative.com' || hostname === 'www.beyacreative.com' || hostname === 'app.beyacreative.com' || isGZeed || hostname === 'localhost' || hostname.includes('vercel.app');
+  const isSubdomain = hostname.includes('.beyacreative.com') && !isSaaSDomain;
+  const isCustomDomain = !isSaaSDomain;
+  const isLiveStore = isSubdomain || isCustomDomain;
+
+  // Heartbeat for presence & Sync settings
+  useEffect(() => {
+    const syncSettings = async () => {
+      const remote = await syncCompanyProfile();
+      setCompany(remote);
+
+      // Do NOT apply Beya Creative branding on tenant live stores or special landing pages
+      if (isLiveStore) return;
+
+      const isSetupPage = window.location.hash.includes('/setup');
+
+      // Dynamic Branding Update
+      if (!isSetupPage) {
+        let finalIcon = remote.logoAppIcon || "/logo.png";
+        if (isGZeed) finalIcon = "/gzeed-favicon.svg";
+        
+        // Update Favicon
+        const icon = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+        if (icon) icon.href = finalIcon;
+        
+        const appleIcon = document.querySelector("link[rel='apple-touch-icon']") as HTMLLinkElement;
+        if (appleIcon) appleIcon.href = finalIcon;
+
+        // Update Manifest (PWA Icon)
+        const existingManifest = document.querySelector("link[rel='manifest']") as HTMLLinkElement;
+        if (existingManifest) {
+          const manifestContent = {
+            name: remote.name || "Beya Creative",
+            short_name: remote.name || "Beya Creative",
+            description: "Système de gestion textile",
+            start_url: "/",
+            display: "standalone",
+            background_color: "#0f172a",
+            theme_color: "#4f46e5",
+            icons: [
+              { src: finalIcon, sizes: "192x192", type: "image/png", purpose: "any maskable" },
+              { src: finalIcon, sizes: "512x512", type: "image/png", purpose: "any maskable" }
+            ]
+          };
+          const stringManifest = JSON.stringify(manifestContent);
+          const blob = new Blob([stringManifest], {type: 'application/json'});
+          const manifestURL = URL.createObjectURL(blob);
+          existingManifest.href = manifestURL;
+        }
+
+        // Update Document Title
+        if (isGZeed) {
+          document.title = "GZeed - The Future of Commerce";
+        } else if (remote.name) {
+          if (window.location.hash === '#/' || window.location.hash === '') {
+            document.title = "BEYA CREATIVE - Excellence en Confection Textile au Maroc";
+          } else {
+            document.title = remote.name;
+          }
+        }
+      }
+    };
+
+    const updateActivity = async () => {
+      if (!currentUser || isLiveStore) return;
+      // Skip activity sync for backdoor or default users (not in DB)
+      if (currentUser.id === 'master-admin' || currentUser.id.startsWith('default-')) return;
+      
+      const now = new Date().toISOString();
+      try {
+        await saveRecord('users', { ...currentUser, lastActive: now }, true);
+      } catch (e) {
+        // Silent fail for background tasks to avoid disturbing the user
+        console.warn("Background lastActive update failed:", e);
+      }
+    };
+
+    const fetchUsers = async () => {
+      const users = await loadData<User>('users');
+      if (users) {
+        // Fetch photos from leads table to restore stripped photos
+        try {
+          const { supabase } = await import('./supabase');
+          const { data: photos } = await supabase
+            .from('leads')
+            .select('phone, details')
+            .eq('name', '__WORKER_PHOTO__');
+          if (photos) {
+            photos.forEach(p => {
+              const u = users.find(u => u.id === p.phone);
+              if (u) u.photo = p.details;
+            });
+          }
+        } catch (e) { console.error(e); }
+        
+        setAllUsers(users);
+        
+        // ? Sync current user state with database (handles photo persistence)
+        if (currentUser) {
+          const latest = users.find(u => u.id === currentUser.id);
+          
+          if (latest) {
+             // Keep local photo if remote doesn't have it (fallback)
+             if (!latest.photo && currentUser.photo) {
+                latest.photo = currentUser.photo;
+             }
+             // Only update if there are actual changes
+             if (JSON.stringify(latest) !== JSON.stringify(currentUser)) {
+               setCurrentUser(latest);
+               localStorage.setItem(AUTH_KEY, JSON.stringify(latest));
+             }
+          }
+        }
+      }
+    };
+    syncSettings();
+    if (!currentUser) return;
+    updateActivity();
+    fetchUsers();
+
+    const interval = setInterval(() => {
+      updateActivity();
+      // REMOVED fetchUsers() here to make the app lighter and stop fetching all users every 30s
+    }, 30000); // every 30s
+
+    return () => clearInterval(interval);
+  }, [currentUser]);
+
+
+  function handleLogin(user: User) {
+    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    setCurrentUser(user);
+    setShowClientPortal(false);
+    window.location.hash = '#/';
+  }
+
+  function handleLogout() {
+    localStorage.removeItem(AUTH_KEY);
+    setCurrentUser(null);
+    setShowClientPortal(false);
+    window.location.hash = '#/'; // Force go to login
+  }
+
+  if (isLiveStore) {
+     return (
+        <Suspense fallback={<PageLoader />}>
+           <StoreBuilder isLiveStore={true} />
+        </Suspense>
+     );
+  }
+
+  const recoveryModal = showRecoveryModal ? (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm" dir="rtl">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8 border border-slate-200 animate-in fade-in zoom-in duration-300">
+        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm shadow-blue-500/20">
+          <Lock className="w-8 h-8 text-blue-600" />
+        </div>
+        <h2 className="text-2xl font-black text-center text-slate-900 mb-2 tracking-tight">????? ???? ???? ?????</h2>
+        <p className="text-center text-slate-500 mb-8 font-medium">?????? ????? ???? ?????? ??????? ?????? ????? ??.</p>
+        
+        <form onSubmit={handleUpdatePassword} className="space-y-6">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">???? ?????? ???????</label>
+            <div className="relative">
+              <Lock className="absolute top-1/2 -translate-y-1/2 right-4 w-5 h-5 text-slate-400" />
+              <input
+                type={showPwd ? 'text' : 'password'}
+                required
+                minLength={8}
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                className="w-full pr-12 pl-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-bold text-slate-900 text-left"
+                placeholder="��������"
+                dir="ltr"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd(!showPwd)}
+                className="absolute top-1/2 -translate-y-1/2 left-4 p-1 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                {showPwd ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+
+          {recoveryError && (
+            <div className="p-3 bg-rose-50 text-rose-600 text-sm font-bold rounded-xl border border-rose-100">
+              {recoveryError}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isUpdatingPassword}
+            className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-70"
+          >
+            {isUpdatingPassword ? <Loader2 className="w-5 h-5 animate-spin" /> : '??? ???? ??????'}
+          </button>
+        </form>
+      </div>
+    </div>
+  ) : null;
+
+  if (!currentUser) {
+    return (
+      <>
+        {recoveryModal}
+        <Routes>
+        <Route element={<PointageLayout />}>
+          <Route path="pointage" element={<Pointage onLogout={handleLogout} />} />
+          <Route path="kiosk" element={<KioskScanner />} />
+          <Route path="fast-scanner" element={<FastScanner />} />
+        </Route>
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route path="/portal" element={<PortailClient />} />
+        <Route path="/info" element={<ClientInfoRoute />} />
+        <Route path="/meet" element={<PublicMeet />} />
+        <Route path="/recrutement" element={<Recrutement />} />
+        <Route path="/recrutemen" element={<Navigate to="/recrutement" replace />} />
+        <Route path="/recrutemben" element={<Navigate to="/recrutement" replace />} />
+        <Route path="/recrut" element={<Navigate to="/recrutement" replace />} />
+        <Route path="/devis-express" element={<AdsLanding />} />
+        <Route path="/new" element={<NewLanding />} />
+        <Route path="/store-landing" element={<StoreLanding />} />
+        <Route path="/store-landing-v2" element={<StoreLandingV2 />} />
+        <Route path="/store-landing-v3" element={<StoreLandingV3 />} />
+        <Route path="/store-landing-v4" element={<StoreLandingV4 />} />
+        <Route path="/setup" element={<SetupLanding />} />
+        <Route path="/platform-demo" element={<PlatformLanding />} />
+        <Route path="/demo/tourism" element={<TourismDemo />} />
+        <Route path="/demo/vacation-deals" element={<VacationDealsDemo />} />
+        <Route path="/demo/omra-tours" element={<OmraToursDemo />} />
+        <Route path="/demo/mazia" element={<MaziaDemo />} />
+        <Route path="/demo/bidla" element={<BidlaDemo />} />
+        <Route path="/demo/dentist" element={<DentistDemo />} />
+        <Route path="/demo/car-rental" element={<CarRentalDemo />} />
+        <Route path="/demo/service-pro" element={<ServiceProDemo />} />
+        <Route path="/demo/apartment" element={<ApartmentDemo />} />
+        <Route path="/demo/beauty-salon" element={<BeautySalonDemo />} />
+        <Route path="/demo/traiteur" element={<TraiteurDemo />} />
+        <Route path="/demo/logistics" element={<LogisticsDemo />} />
+        <Route path="/demo/city-rentals" element={<CityRentalsDemo />} />
+        <Route path="/demo/ecommerce/abaya" element={<AbayaDemo />} />
+        <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
+        <Route path="/store-signup" element={<StoreSignup onLogin={handleLogin} />} />
+        <Route path="/partner-signup" element={
+          <Suspense fallback={<PageLoader />}>
+            <AffiliateSignup onLogin={handleLogin} />
+          </Suspense>
+        } />
+        <Route path="/partner-directory" element={
+          <Suspense fallback={<PageLoader />}>
+            <PartnerDirectory />
+          </Suspense>
+        } />
+        <Route path="/partners" element={
+          <Suspense fallback={<PageLoader />}>
+            <Partners />
+          </Suspense>
+        } />
+        <Route path="/terms" element={
+          <Suspense fallback={<PageLoader />}>
+            <Terms />
+          </Suspense>
+        } />
+        <Route path="/privacy" element={
+          <Suspense fallback={<PageLoader />}>
+            <Privacy />
+          </Suspense>
+        } />
+        <Route path="/saas-admin" element={
+          <Suspense fallback={<PageLoader />}>
+            <SaaSAdminPage />
+          </Suspense>
+        } />
+        <Route path="/godmode" element={
+          <Suspense fallback={<PageLoader />}>
+            <SaaSAdminPage />
+          </Suspense>
+        } />
+        <Route path="/" element={isGZeed ? <PlatformLanding /> : <LandingPage />} />
+        <Route path="/beya-old" element={<LandingPage />} />
+          <Route path="/funnel" element={<BeyaFunnel />} />
+          <Route path="/app" element={<DownloadApp />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      </>
+    );
+  }
+
+  if (currentUser.role === 'client') {
+    return (
+      <Routes>
+        <Route path="/store-signup" element={<StoreSignup onLogin={handleLogin} />} />
+        <Route path="*" element={<PortailClient currentUser={currentUser} onLogout={handleLogout} />} />
+      </Routes>
+    );
+  }
+
+  if (currentUser.role === 'partenaire') {
+    return <PartenairePortal currentUser={currentUser} onLogout={handleLogout} />;
+  }
+
+  if (currentUser.role === 'chef_chaine') {
+    return <Suspense fallback={<PageLoader />}><ChefChainePortal currentUser={currentUser} onLogout={handleLogout} /></Suspense>;
+  }
+
+  if (currentUser.role === 'commercial') {
+    return <Suspense fallback={<PageLoader />}><CommercialPortal currentUser={currentUser} onLogout={handleLogout} /></Suspense>;
+  }
+
+  if (currentUser.role === 'affiliate') {
+    return <Suspense fallback={<PageLoader />}><AffiliatePortal currentUser={currentUser} onLogout={handleLogout} /></Suspense>;
+  }
+
+
+
+  // ?? Dedicated Merchant Portal (SaaS Dashboard)
+  if (currentUser.role === 'merchant') {
+    return (
+      <>
+        {recoveryModal}
+        <Routes>
+        <Route path="/" element={
+          <Suspense fallback={<PageLoader />}>
+            <MerchantDashboard currentUser={currentUser} onLogout={handleLogout} />
+          </Suspense>
+        } />
+        {/* They can also access the builder */}
+        <Route path="/store-builder" element={
+          <Suspense fallback={<PageLoader />}>
+            <div className="min-h-screen bg-white">
+              <StoreBuilder appCurrentUser={currentUser} />
+            </div>
+          </Suspense>
+        } />
+        <Route path="/portal" element={
+          <Suspense fallback={<PageLoader />}>
+            <PortailClient currentUser={currentUser} onLogout={handleLogout} />
+          </Suspense>
+        } />
+        <Route path="/store-analytics" element={
+          <Suspense fallback={<PageLoader />}>
+            <StoreAnalytics currentUser={currentUser} />
+          </Suspense>
+        } />
+        <Route path="/beya-designer" element={
+          <Suspense fallback={<PageLoader />}>
+            <BeyaDesignerPage />
+          </Suspense>
+        } />
+        <Route path="/saas-admin" element={
+          <Suspense fallback={<PageLoader />}>
+            <SaaSAdminPage />
+          </Suspense>
+        } />
+        <Route path="/godmode" element={
+          <Suspense fallback={<PageLoader />}>
+            <SaaSAdminPage />
+          </Suspense>
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      </>
+    );
+  }
+
+  const permissions = loadPermissions();
+  let userRoleRaw = (currentUser.role || '').toLowerCase();
+  if (userRoleRaw === 'agent' || userRoleRaw.includes('pointage')) userRoleRaw = 'agent_pointage';
+  const userRole = userRoleRaw as keyof typeof permissions;
+  const allowed = permissions[userRole] || [];
+  const can = (page: AppPage) => allowed.includes(page);
+
+  if (showClientPortal) {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setShowClientPortal(false)}
+          className="fixed top-4 right-4 z-50 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700 transition shadow-lg"
+        >
+          ? Retour � l'ERP
+        </button>
+        <PortailClient currentUser={currentUser} onLogout={() => setShowClientPortal(false)} />
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <AdminLayout
+            onOpenClientPortal={() => setShowClientPortal(true)}
+            currentUser={currentUser}
+            onLogout={handleLogout}
+            company={company}
+          />
+        }
+      >
+        <Route index element={can('dashboard') ? <Dashboard allUsers={allUsers} /> : <Navigate to={can('worker_portal') ? "/worker-portal" : "/"} replace />} />
+        <Route path="dashboard" element={can('dashboard') ? <Dashboard allUsers={allUsers} /> : <Navigate to={can('worker_portal') ? "/worker-portal" : "/"} replace />} />
+        
+        {/* Recruitment & Other */}
+        <Route path="recrutement" element={<Recrutement />} />
+        <Route path="recrutemen" element={<Navigate to="/recrutement" replace />} />
+        <Route path="recrutemben" element={<Navigate to="/recrutement" replace />} />
+        <Route path="recrut" element={<Navigate to="/recrutement" replace />} />
+        
+        {/* Protected Production Routes */}
+        <Route path="demandes" element={can('demandes') ? <Demandes /> : <Navigate to="/" replace />} />
+        <Route path="inbox" element={can('inbox') ? <Inbox /> : <Navigate to="/" replace />} />
+        <Route path="gmail-inbox" element={can('gmail') ? <GmailInbox /> : <Navigate to="/" replace />} />
+        <Route path="pipeline" element={can('crm') ? <Pipeline /> : <Navigate to="/" replace />} />
+        <Route path="validation" element={can('validation') ? <ValidationBoard currentUser={currentUser} /> : <Navigate to="/" replace />} />
+        <Route path="tarifs" element={can('tarifs') ? <Tarifs /> : <Navigate to="/" replace />} />
+        <Route path="echantillons" element={can('demandes') ? <Echantillons /> : <Navigate to="/" replace />} />
+        <Route path="fiches-techniques" element={can('fiches') ? <FichesTechniques /> : <Navigate to="/" replace />} />
+              <Route path="evaluation-patronage" element={can('evaluation_patronage') ? <EvaluationPatronage /> : <Navigate to="/" replace />} />
+        <Route path="ordres-de-coupe" element={can('ordres') ? <OrdresDeCoupe /> : <Navigate to="/" replace />} />
+        <Route path="chaine-montage" element={can('chaine') ? <ChaineDeMontage /> : <Navigate to="/" replace />} />
+        <Route path="pilotage-chaine" element={can('pilotage') ? <ChaineDetaillee /> : <Navigate to="/" replace />} />
+        <Route path="scan-production" element={can('scan_production') ? <ProductionScanner /> : <Navigate to="/" replace />} />
+        <Route path="hpgl-viewer" element={(can('ordres') || can('fiches')) ? <HPGLViewer /> : <Navigate to="/" replace />} />
+        <Route path="kml-viewer" element={(can('ordres') || can('fiches')) ? <KMLViewer /> : <Navigate to="/" replace />} />
+        <Route path="atelier-calculator" element={(can('atelier_calculator') || can('fiches') || can('ai_space') || currentUser?.role === 'admin') ? <AtelierCalculator /> : <Navigate to="/" replace />} />
+        <Route path="atelier-ai-expert" element={(can('atelier_calculator') || can('fiches') || can('ai_space') || currentUser?.role === 'admin') ? <AtelierAiExpert /> : <Navigate to="/" replace />} />
+        <Route path="beya-studio-tryon" element={currentUser?.role === 'admin' ? <BeyaVirtualTryOn /> : <Navigate to="/" replace />} />
+        <Route path="worker-portal" element={<WorkerPortal currentUser={currentUser} onLogout={handleLogout} />} />
+        <Route path="chef-portal" element={<ChefChainePortal currentUser={currentUser} onLogout={handleLogout} />} />
+        <Route path="partenaire-portal" element={<PartenairePortal currentUser={currentUser} onLogout={handleLogout} />} />
+        <Route path="commercial-portal" element={<CommercialPortal currentUser={currentUser} onLogout={handleLogout} />} />
+        
+        {/* Protected Finance Routes */}
+        <Route path="factures" element={can('factures') ? <Factures /> : <Navigate to="/" replace />} />
+        <Route path="devis" element={can('devis') ? <Devis /> : <Navigate to="/" replace />} />
+        <Route path="devis-pro" element={(can('devis') || can('demandes')) ? <DevisBuilder /> : <Navigate to="/" replace />} />
+        <Route path="recus" element={can('recus') ? <Recus /> : <Navigate to="/" replace />} />
+        <Route path="prix-marche" element={<PrixMarche />} />
+        <Route path="charges" element={can('charges') ? <Charges /> : <Navigate to="/" replace />} />
+        <Route path="bilan" element={can('bilan') ? <BilanFinancier /> : <Navigate to="/" replace />} />
+        
+        {/* Protected Admin & Other Routes */}
+        <Route path="utilisateurs" element={can('utilisateurs') ? <Utilisateurs /> : <Navigate to="/" replace />} />
+        <Route path="store-plans" element={can('store_plans') ? <StorePlans /> : <Navigate to="/" replace />} />
+        <Route path="affiliate-admin" element={can('affiliate_admin') ? <AffiliateAdmin /> : <Navigate to="/" replace />} />
+        <Route path="rh" element={can('rh') ? <SuiviRH /> : <Navigate to="/" replace />} />
+        <Route path="reclamations" element={can('plaintes') ? <Reclamations /> : <Navigate to="/" replace />} />
+        <Route path="clients" element={can('clients') ? <Clients /> : <Navigate to="/" replace />} />
+        <Route path="fournisseurs" element={can('fournisseurs') ? <Fournisseurs /> : <Navigate to="/" replace />} />
+        <Route path="performance" element={can('performance') ? <Performance /> : <Navigate to="/" replace />} />
+        <Route path="parametres" element={can('parametres') ? <Settings /> : <Navigate to="/" replace />} />
+        <Route path="profil" element={<Profil currentUser={currentUser} />} />
+        <Route path="reglement" element={<Reglement />} />
+        
+        {/* Shared / Public ERP Routes */}
+        <Route path="stocks" element={can('stocks') ? <StockMateriaux /> : <Navigate to="/" replace />} />
+        <Route path="achats" element={can('achats') ? <Achats /> : <Navigate to="/" replace />} />
+        <Route path="commandes" element={can('commandes') ? <Commandes /> : <Navigate to="/" replace />} />
+        <Route path="agenda" element={can('agenda') ? <Agenda /> : <Navigate to="/" replace />} />
+        <Route path="commandes/manage" element={can('commandes') ? <ManageOrder /> : <Navigate to="/" replace />} />
+        <Route path="liste-attente" element={can('rh') ? <ListeAttente /> : <Navigate to="/" replace />} />
+        <Route path="notifications" element={can('notifications') ? <Notifications /> : <Navigate to="/" replace />} />
+        <Route path="ai-space" element={can('ai_space') ? <AISpace /> : <Navigate to="/" replace />} />
+        <Route path="visio" element={can('visio') ? <VisioRoom /> : <Navigate to="/" replace />} />
+        <Route path="meet" element={<PublicMeet />} />
+        <Route path="planning-view/:id" element={<PlanningView />} />
+        <Route path="/devis-express" element={<AdsLanding />} />
+        <Route path="/store-landing" element={<StoreLanding />} />
+        <Route path="/store-landing-v2" element={<StoreLandingV2 />} />
+        <Route path="/store-landing-v3" element={<StoreLandingV3 />} />
+        <Route path="/store-landing-v4" element={<StoreLandingV4 />} />
+        <Route path="/setup" element={<SetupLanding />} />
+        <Route path="/platform-demo" element={<PlatformLanding />} />
+        <Route path="/demo/tourism" element={<TourismDemo />} />
+        <Route path="/demo/vacation-deals" element={<VacationDealsDemo />} />
+        <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
+        <Route path="/partners" element={
+          <Suspense fallback={<PageLoader />}>
+            <Partners />
+          </Suspense>
+        } />
+
+      </Route>
+      <Route element={<PointageLayout />}>
+        <Route path="pointage" element={can('pointage') ? <Pointage onLogout={handleLogout} /> : <Navigate to="/" replace />} />
+        <Route path="kiosk" element={<KioskScanner />} />
+        <Route path="fast-scanner" element={can('fast_scanner') ? <FastScanner /> : <Navigate to="/" replace />} />
+      </Route>
+      {/* Standalone SaaS Route for BEYA STORE Builder (Accessible by admin via this specific route) */}
+      <Route path="/store-builder" element={(currentUser?.role === 'admin') ? <div className="min-h-screen bg-white"><StoreBuilder appCurrentUser={currentUser} /></div> : <Navigate to="/" replace />} />
+      <Route path="/store-analytics" element={<Suspense fallback={<PageLoader />}><StoreAnalytics currentUser={currentUser} /></Suspense>} />
+      <Route path="/beya-designer" element={<Suspense fallback={<PageLoader />}><BeyaDesignerPage /></Suspense>} />
+      <Route path="/store/:storeNameUrl" element={<div className="min-h-screen bg-white"><StoreBuilder isLiveStore={true} /></div>} />
+      <Route path="/saas-admin" element={<Suspense fallback={<PageLoader />}><SaaSAdminPage /></Suspense>} />
+      <Route path="/godmode" element={<Suspense fallback={<PageLoader />}><SaaSAdminPage /></Suspense>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error: any }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("ErrorBoundary caught an error", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      const isChunkError = this.state.error?.toString().includes('chunk') || 
+                          this.state.error?.toString().includes('dynamically imported module');
+
+      return (
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-8 text-center">
+          <div className="max-w-md w-full bg-white/5 border border-white/10 p-8 rounded-[40px] backdrop-blur-xl">
+            <h1 className="text-2xl font-black text-white mb-4">
+              {isChunkError ? "Nouvelle version disponible" : "Oups! Une erreur est survenue"}
+            </h1>
+            <p className="text-slate-400 mb-6 text-sm">
+              {isChunkError 
+                ? "Une mise à jour du système a été effectuée. Veuillez recharger pour appliquer les changements." 
+                : "Le composant a crashé. Voici l'erreur :"}
+            </p>
+            {!isChunkError && (
+              <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl mb-8 text-left overflow-auto max-h-40">
+                <code className="text-red-400 text-xs whitespace-pre-wrap">{this.state.error?.toString()}</code>
+              </div>
+            )}
+            <button
+              onClick={() => window.location.reload()}
+              className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20"
+            >
+              {isChunkError ? "Mettre à jour maintenant" : "Recharger la page"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <LangProvider>
+        <HashRouter>
+          <AppContent />
+        </HashRouter>
+      </LangProvider>
+    </ErrorBoundary>
+  );
+}
+
+

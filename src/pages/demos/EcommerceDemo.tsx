@@ -1,0 +1,362 @@
+import React, { useState, useEffect } from 'react';
+import { ShoppingBag, Search, Menu, User, Heart, ChevronRight, Star, ArrowRight } from 'lucide-react';
+import { useParams, Navigate } from 'react-router-dom';
+
+const THEME_CONFIGS: Record<string, any> = {
+  'minimalist': {
+    name: 'MINIMALIST.',
+    colors: { bg: 'bg-white', text: 'text-slate-900', primary: 'bg-slate-900 text-white', accent: 'text-slate-900', border: 'border-slate-200' },
+    hero: {
+      image: 'https://images.unsplash.com/photo-1491933382434-500287f9b54b?q=80&w=2000&auto=format&fit=crop',
+      title: 'Less is More.',
+      subtitle: 'Discover our new collection of premium essential electronics designed for the modern lifestyle.',
+      btn: 'Shop Essentials'
+    },
+    products: [
+      { name: 'Minimalist Keyboard', price: '$129.00', img: 'https://images.unsplash.com/photo-1595225476474-87563907a212?q=80&w=600' },
+      { name: 'Wireless Headphones', price: '$249.00', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600', badge: 'New' },
+      { name: 'Desk Organizer', price: '$49.00', img: 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?q=80&w=600' },
+      { name: 'Aluminium Stand', price: '$39.00', img: 'https://images.unsplash.com/photo-1585565804112-f201f68c48b4?q=80&w=600' }
+    ]
+  },
+  'streetwear': {
+    name: 'STREETWEAR PRO',
+    colors: { bg: 'bg-black', text: 'text-white', primary: 'bg-red-600 text-white hover:bg-red-700', accent: 'text-red-500', border: 'border-slate-800' },
+    hero: {
+      image: 'https://images.unsplash.com/photo-1523398002811-999aa8d08124?q=80&w=2000&auto=format&fit=crop',
+      title: 'DROP 004 IS LIVE',
+      subtitle: 'Limited edition urban wear. Once it is gone, it is gone forever.',
+      btn: 'COP NOW'
+    },
+    products: [
+      { name: 'Oversized Graphic Tee', price: '$45.00', img: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=600' },
+      { name: 'Cargo Pants V2', price: '$85.00', img: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=600', badge: 'Sold Out' },
+      { name: 'Utility Vest', price: '$110.00', img: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=600' },
+      { name: 'Street Beanie', price: '$25.00', img: 'https://images.unsplash.com/photo-1576871337622-98d48d1cf531?q=80&w=600' }
+    ]
+  },
+  'mazia': {
+    name: 'MAZIA COSMETICS',
+    colors: { bg: 'bg-rose-50', text: 'text-rose-950', primary: 'bg-rose-400 text-white hover:bg-rose-500', accent: 'text-rose-500', border: 'border-rose-200' },
+    hero: {
+      image: 'https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=2000&auto=format&fit=crop',
+      title: 'Pure Beauty, Naturally.',
+      subtitle: 'Cruelty-free, vegan skincare that loves your skin as much as you do.',
+      btn: 'Shop Skincare'
+    },
+    products: [
+      { name: 'Hydrating Serum', price: '$34.00', img: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=600' },
+      { name: 'Rose Water Toner', price: '$22.00', img: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?q=80&w=600', badge: 'Best Seller' },
+      { name: 'Vitamin C Cream', price: '$45.00', img: 'https://images.unsplash.com/photo-1617897903246-719242758050?q=80&w=600' },
+      { name: 'Gua Sha Stone', price: '$18.00', img: 'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?q=80&w=600' }
+    ]
+  },
+  'luxury-perfume': {
+    name: 'AURA NOCTURNE',
+    colors: { bg: 'bg-[#0a0a0a]', text: 'text-amber-100', primary: 'bg-amber-600 text-white hover:bg-amber-700', accent: 'text-amber-500', border: 'border-amber-900/30' },
+    hero: {
+      image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=2000&auto=format&fit=crop',
+      title: 'The Essence of Luxury',
+      subtitle: 'Crafted by master perfumers using the rarest ingredients in the world.',
+      btn: 'Discover the Collection'
+    },
+    products: [
+      { name: 'Oud Imperial', price: '$285.00', img: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=600' },
+      { name: 'Midnight Rose', price: '$210.00', img: 'https://images.unsplash.com/photo-1582211594533-268f4f1edcb9?q=80&w=600', badge: 'Signature' },
+      { name: 'Amber Vanilla', price: '$195.00', img: 'https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?q=80&w=600' },
+      { name: 'Sandalwood Extrait', price: '$320.00', img: 'https://images.unsplash.com/photo-1616949755610-8c9bbc08f138?q=80&w=600' }
+    ]
+  },
+  'abaya': {
+    name: 'ABAYA FASHION',
+    colors: { bg: 'bg-[#faf7f2]', text: 'text-[#4a4238]', primary: 'bg-[#8c7a6b] text-white hover:bg-[#756557]', accent: 'text-[#8c7a6b]', border: 'border-[#e8e0d5]' },
+    hero: {
+      image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=2000&auto=format&fit=crop',
+      title: 'Modest Elegance',
+      subtitle: 'Discover our new Ramadan Collection featuring premium fabrics and exquisite tailoring.',
+      btn: 'Shop Collection'
+    },
+    products: [
+      { name: 'Silk Flow Abaya', price: '$120.00', img: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=600' },
+      { name: 'Embroidered Kaftan', price: '$180.00', img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600', badge: 'Ramadan' },
+      { name: 'Everyday Basic', price: '$75.00', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600' },
+      { name: 'Luxury Chiffon Wrap', price: '$145.00', img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600' }
+    ]
+  },
+  'iptv': {
+    name: 'STREAM BOX MA',
+    colors: { bg: 'bg-[#0b0b14]', text: 'text-slate-100', primary: 'bg-violet-600 text-white hover:bg-violet-700', accent: 'text-violet-400', border: 'border-violet-900/40' },
+    hero: {
+      image: 'https://images.unsplash.com/photo-1546027658-7aa750153465?q=80&w=2000&auto=format&fit=crop',
+      title: 'Le Divertissement Sans Limites',
+      subtitle: 'Abonnements IPTV HD/4K et boxes Android TV. Des milliers de chaînes, films et séries livrés en quelques minutes.',
+      btn: 'Voir les Offres'
+    },
+    products: [
+      { name: 'IPTV 1 Mois HD', price: '79 MAD', img: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?q=80&w=600', badge: 'Populaire' },
+      { name: 'IPTV 12 Mois 4K', price: '499 MAD', img: 'https://images.unsplash.com/photo-1567690187548-f07b1d7bf5a9?q=80&w=600', badge: 'Meilleur Prix' },
+      { name: 'Box Android TV 4K', price: '450 MAD', img: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?q=80&w=600' },
+      { name: 'Récepteur HD Satellite', price: '350 MAD', img: 'https://images.unsplash.com/photo-1461151304267-38535e780c79?q=80&w=600' }
+    ]
+  },
+  'lingerie': {
+    name: 'SILK & LACE',
+    colors: { bg: 'bg-[#fdfaf6]', text: 'text-stone-800', primary: 'bg-[#b69485] text-white hover:bg-[#a68273]', accent: 'text-[#b69485]', border: 'border-[#e8e0d5]' },
+    hero: {
+      image: '/demo-assets/lingerie/lingerie_hero_1786817080033.png',
+      title: 'Comfort. Elegance. You.',
+      subtitle: 'Our premium collection of sleepwear and intimate apparel, designed to elevate your evenings.',
+      btn: 'Discover the Collection'
+    },
+    products: [
+      { name: 'Delicate Lace Set', price: '$65.00', img: '/demo-assets/lingerie/lingerie_p1_1786817088110.png', badge: 'New' },
+      { name: 'Silk Nightgown', price: '$55.00', img: '/demo-assets/lingerie/lingerie_p2_1786817096661.png' },
+      { name: 'Emerald Silk Robe', price: '$89.00', img: '/demo-assets/lingerie/lingerie_p3_1786817105561.png', badge: 'Best Seller' },
+      { name: 'Cozy Cotton Pajamas', price: '$45.00', img: '/demo-assets/lingerie/lingerie_p4_1786817114656.png' }
+    ]
+  },
+  'jalaba-caftan': {
+    name: 'DAR CAFTAN',
+    colors: { bg: 'bg-[#0f1f1a]', text: 'text-amber-50', primary: 'bg-emerald-700 text-white hover:bg-emerald-800', accent: 'text-amber-400', border: 'border-emerald-900/40' },
+    hero: {
+      image: '/demo-assets/jalaba-caftan/moroccan_caftan_hero_1786817002711.png',
+      title: "L'Élégance Marocaine",
+      subtitle: 'Caftans et jalabas artisanaux, brodés à la main, pour toutes vos occasions et fêtes.',
+      btn: 'Voir la Collection'
+    },
+    products: [
+      { name: 'Caftan Brodé Royal', price: '950 MAD', img: '/demo-assets/jalaba-caftan/caftan_royal_1786817018583.png', badge: 'Fait Main' },
+      { name: 'Jalaba Homme Classique', price: '450 MAD', img: '/demo-assets/jalaba-caftan/jalaba_homme_1786817027878.png' },
+      { name: 'Takchita de Fête', price: '1800 MAD', img: '/demo-assets/jalaba-caftan/takchita_mariage_1786817037077.png', badge: 'Mariage' },
+      { name: 'Jalaba Femme Casual', price: '380 MAD', img: '/demo-assets/jalaba-caftan/jalaba_femme_1786817045955.png' }
+    ]
+  },
+  'dentist': {
+    name: 'SMILE CLINIC',
+    colors: { bg: 'bg-white', text: 'text-slate-800', primary: 'bg-blue-600 text-white hover:bg-blue-700', accent: 'text-blue-500', border: 'border-blue-100' },
+    hero: {
+      image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=2000&auto=format&fit=crop',
+      title: 'Your Perfect Smile Awaits',
+      subtitle: 'Professional dental care with state-of-the-art technology in a relaxing environment.',
+      btn: 'Book Appointment'
+    },
+    products: [
+      { name: 'Teeth Whitening', price: 'from $150', img: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?q=80&w=600' },
+      { name: 'Dental Implants', price: 'Consultation', img: 'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?q=80&w=600', badge: 'Expert' },
+      { name: 'Invisalign', price: 'from $2000', img: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=600' },
+      { name: 'General Checkup', price: '$85.00', img: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600' }
+    ]
+  }
+};
+
+export default function EcommerceDemo() {
+  const { themeId } = useParams();
+  const theme = THEME_CONFIGS[themeId || 'minimalist'];
+
+  if (!theme) return <Navigate to="/" replace />;
+
+  const [activePage, setActivePage] = useState('home');
+  const [activeProduct, setActiveProduct] = useState<any>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  return (
+    <div className={`min-h-screen ${theme.colors.bg} ${theme.colors.text} font-sans transition-colors duration-500`}>
+      {/* Navbar */}
+      <header className={`sticky top-0 z-50 ${theme.colors.bg} ${theme.colors.border} border-b backdrop-blur-md bg-opacity-90`}>
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="font-black text-2xl tracking-tighter cursor-pointer" onClick={() => setActivePage('home')}>
+            {theme.name}
+          </div>
+          
+          <nav className="hidden md:flex gap-8 font-bold text-sm">
+            <a href="#!" onClick={(e) => { e.preventDefault(); setActivePage('home'); }} className={`hover:${theme.colors.accent} transition-colors`}>Home</a>
+            <a href="#!" onClick={(e) => { e.preventDefault(); setActivePage('shop'); }} className={`hover:${theme.colors.accent} transition-colors`}>Shop</a>
+            <a href="#!" onClick={(e) => { e.preventDefault(); setActivePage('collections'); }} className={`hover:${theme.colors.accent} transition-colors`}>Collections</a>
+            <a href="#!" onClick={(e) => { e.preventDefault(); setActivePage('contact'); }} className={`hover:${theme.colors.accent} transition-colors`}>Contact</a>
+          </nav>
+
+          <div className="flex items-center gap-4">
+            <button className={`p-2 hover:${theme.colors.accent} transition-colors`}><Search className="w-5 h-5" /></button>
+            <button className={`p-2 transition-colors ${isLoggedIn ? theme.colors.accent : 'hover:' + theme.colors.accent}`} onClick={() => setIsLoggedIn(!isLoggedIn)}>
+              {isLoggedIn ? <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs bg-current text-white`}>A</div> : <User className="w-5 h-5" />}
+            </button>
+            <button className={`p-2 hover:${theme.colors.accent} transition-colors relative`}>
+              <ShoppingBag className="w-5 h-5" />
+              <span className={`absolute top-1 right-1 w-2 h-2 ${theme.colors.primary} rounded-full`}></span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Pages Router */}
+      {activePage === 'home' && (
+        <main>
+          {/* Hero */}
+          <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0">
+              <img src={theme.hero.image} alt="Hero" className="w-full h-full object-cover scale-105" />
+              <div className="absolute inset-0 bg-black/40" />
+            </div>
+            <div className="relative z-10 text-center text-white max-w-3xl px-6 animate-fade-in-up">
+              <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight">{theme.hero.title}</h1>
+              <p className="text-lg md:text-xl mb-10 opacity-90">{theme.hero.subtitle}</p>
+              <button onClick={() => setActivePage('shop')} className={`${theme.colors.primary} px-8 py-4 rounded-full font-bold tracking-wide uppercase transition-all transform hover:scale-105 hover:-translate-y-0.5 shadow-2xl`}>
+                {theme.hero.btn}
+              </button>
+            </div>
+          </section>
+
+          {/* Featured Products */}
+          <section className="py-24 max-w-7xl mx-auto px-6">
+            <div className="flex justify-between items-end mb-12 border-b pb-4" style={{ borderColor: 'inherit' }}>
+              <div>
+                <h2 className="text-3xl font-black">Featured Collection</h2>
+                <p className="opacity-60 mt-2">Handpicked favorites for you.</p>
+              </div>
+              <button onClick={() => setActivePage('shop')} className={`hidden md:flex items-center gap-2 font-bold ${theme.colors.accent} hover:opacity-70 transition-opacity`}>
+                View All <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              {theme.products.map((product: any, idx: number) => (
+                <div key={idx} className="group cursor-pointer transition-transform duration-300 hover:-translate-y-1" onClick={() => { setActiveProduct(product); setActivePage('product'); }}>
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-lg mb-4 bg-gray-100">
+                    <img src={product.img} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    {product.badge && (
+                      <div className={`absolute top-3 left-3 ${theme.colors.primary} text-xs font-bold px-2 py-1 rounded uppercase tracking-wider`}>
+                        {product.badge}
+                      </div>
+                    )}
+                    <button className={`absolute bottom-0 inset-x-0 py-4 ${theme.colors.primary} font-bold opacity-0 group-hover:opacity-100 transition-opacity flex justify-center items-center gap-2`}>
+                      Add to Cart <ShoppingBag className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <h3 className="font-bold text-lg">{product.name}</h3>
+                  <p className={`font-medium opacity-70 mt-1`}>{product.price}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </main>
+      )}
+
+      {activePage === 'shop' && (
+        <main className="py-24 max-w-7xl mx-auto px-6 min-h-[70vh]">
+          <h1 className="text-4xl font-black mb-12">All Products</h1>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {[...theme.products, ...theme.products].map((product: any, idx: number) => (
+              <div key={idx} className="group cursor-pointer transition-transform duration-300 hover:-translate-y-1" onClick={() => { setActiveProduct(product); setActivePage('product'); }}>
+                <div className="relative aspect-[3/4] overflow-hidden rounded-lg mb-4 bg-gray-100">
+                  <img src={product.img} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <button className={`absolute bottom-0 inset-x-0 py-4 ${theme.colors.primary} font-bold opacity-0 group-hover:opacity-100 transition-opacity flex justify-center items-center gap-2`}>
+                    Add to Cart <ShoppingBag className="w-4 h-4" />
+                  </button>
+                </div>
+                <h3 className="font-bold text-lg">{product.name}</h3>
+                <p className={`font-medium opacity-70 mt-1`}>{product.price}</p>
+              </div>
+            ))}
+          </div>
+        </main>
+      )}
+
+      {activePage === 'collections' && (
+        <main className="py-24 max-w-7xl mx-auto px-6 min-h-[70vh] flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-5xl font-black mb-4">Collections</h1>
+            <p className="opacity-60 text-lg">Curated sets are coming next season.</p>
+          </div>
+        </main>
+      )}
+
+      {activePage === 'contact' && (
+        <main className="py-24 max-w-3xl mx-auto px-6 min-h-[70vh]">
+          <h1 className="text-4xl font-black mb-8 text-center">Contact Us</h1>
+          <form className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+              <input type="text" placeholder="Name" className={`w-full p-4 border ${theme.colors.border} bg-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-current`} />
+              <input type="email" placeholder="Email" className={`w-full p-4 border ${theme.colors.border} bg-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-current`} />
+            </div>
+            <textarea placeholder="Message" rows={5} className={`w-full p-4 border ${theme.colors.border} bg-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-current resize-none`}></textarea>
+            <button className={`w-full py-4 rounded-lg font-bold ${theme.colors.primary} transition-opacity hover:opacity-90`}>Send Message</button>
+          </form>
+        </main>
+      )}
+
+      {activePage === 'product' && activeProduct && (
+        <main className="py-12 md:py-24 max-w-7xl mx-auto px-6 min-h-[70vh]">
+          <div className="flex items-center gap-2 mb-8 text-sm opacity-60">
+            <span className="cursor-pointer hover:opacity-100" onClick={() => setActivePage('home')}>Home</span>
+            <ChevronRight className="w-4 h-4" />
+            <span className="cursor-pointer hover:opacity-100" onClick={() => setActivePage('shop')}>Shop</span>
+            <ChevronRight className="w-4 h-4" />
+            <span className="font-bold">{activeProduct.name}</span>
+          </div>
+          <div className="grid md:grid-cols-2 gap-12 items-start">
+            <div className="relative aspect-[4/5] bg-gray-100 rounded-2xl overflow-hidden">
+              <img src={activeProduct.img} alt={activeProduct.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex flex-col">
+              {activeProduct.badge && (
+                <span className={`self-start ${theme.colors.primary} px-3 py-1 text-xs font-bold uppercase rounded mb-4`}>
+                  {activeProduct.badge}
+                </span>
+              )}
+              <h1 className="text-4xl md:text-5xl font-black mb-4">{activeProduct.name}</h1>
+              <p className="text-2xl opacity-80 mb-6">{activeProduct.price}</p>
+              
+              <div className="flex items-center gap-1 mb-8 text-yellow-400">
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <span className={`text-sm ml-2 ${theme.colors.text} opacity-50`}>(128 Reviews)</span>
+              </div>
+              
+              <p className="opacity-70 mb-8 leading-relaxed">
+                Experience premium quality with the {activeProduct.name}. Carefully crafted to perfection, it brings both elegance and functionality to your daily life. Available in limited quantities.
+              </p>
+              
+              <div className="flex gap-4 mb-12">
+                <button className={`flex-1 py-4 rounded-lg font-bold flex items-center justify-center gap-2 ${theme.colors.primary} hover:opacity-90 transition-opacity text-lg`}>
+                  Add to Cart
+                </button>
+                <button className={`w-14 h-14 rounded-lg border ${theme.colors.border} flex items-center justify-center hover:opacity-70 transition-opacity`}>
+                  <Heart className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className={`border-t ${theme.colors.border} pt-8 space-y-4`}>
+                <div className="flex justify-between font-bold cursor-pointer hover:opacity-70">
+                  <span>Product Details</span>
+                  <ChevronRight className="w-5 h-5" />
+                </div>
+                <div className="flex justify-between font-bold cursor-pointer hover:opacity-70">
+                  <span>Shipping & Returns</span>
+                  <ChevronRight className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* Footer */}
+      <footer className={`${theme.colors.bg} border-t ${theme.colors.border} py-12`}>
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="font-black text-xl tracking-tighter">
+            {theme.name}
+          </div>
+          <div className="flex gap-6 text-sm font-bold opacity-60">
+            <span className="hover:opacity-100 cursor-pointer transition-opacity">INSTAGRAM</span>
+            <span className="hover:opacity-100 cursor-pointer transition-opacity">FACEBOOK</span>
+            <span className="hover:opacity-100 cursor-pointer transition-opacity">TWITTER</span>
+          </div>
+          <p className="opacity-60 text-sm">&copy; 2026 {theme.name}. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
