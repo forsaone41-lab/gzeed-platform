@@ -58,24 +58,24 @@ export default function GZeedDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 flex" dir={isAr ? 'rtl' : 'ltr'}>
       
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col hidden md:flex transition-all duration-300 relative border-r border-slate-800" dir={isAr ? 'rtl' : 'ltr'}>
+      {/* Sidebar - Apple Style Minimalist */}
+      <aside className="w-64 bg-[#F5F5F7] text-slate-900 flex flex-col hidden md:flex transition-all duration-300 relative border-r border-slate-200" dir={isAr ? 'rtl' : 'ltr'}>
         {/* Logo Area */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-900/50 backdrop-blur-xl sticky top-0 z-10 cursor-pointer" onClick={() => navigate('/')}>
+        <div className="h-16 flex items-center px-6 border-b border-slate-200 bg-[#F5F5F7]/80 backdrop-blur-xl sticky top-0 z-10 cursor-pointer" onClick={() => navigate('/')}>
           <div className="flex items-center gap-2" dir="ltr">
-            <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center font-black text-white text-sm shadow-lg shadow-cyan-500/20">
+            <div className="w-8 h-8 bg-black rounded-xl flex items-center justify-center font-black text-white text-sm shadow-md">
               GZ
             </div>
-            <span className="font-black text-white tracking-tight text-xl">GZeed</span>
+            <span className="font-black text-slate-900 tracking-tight text-xl">GZeed</span>
           </div>
         </div>
 
         {/* Store Selector */}
-        <div className="p-4 border-b border-slate-800">
-          <div className="bg-slate-800 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-slate-700 transition-colors">
+        <div className="p-4 border-b border-slate-200">
+          <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:shadow-sm transition-all">
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-slate-400">{isAr ? 'متجرك الحالي' : 'Boutique actuelle'}</span>
-              <span className="text-sm font-black text-white">متجر الأناقة</span>
+              <span className="text-xs font-bold text-slate-500">{isAr ? 'متجرك الحالي' : 'Boutique actuelle'}</span>
+              <span className="text-sm font-black text-slate-900">متجر الأناقة</span>
             </div>
             <ChevronRight className={`w-4 h-4 text-slate-400 ${isAr ? 'rotate-180' : ''}`} />
           </div>
@@ -86,7 +86,7 @@ export default function GZeedDashboard() {
           <nav className="px-3 space-y-1">
             {navItems.map((item, idx) => {
               if (item.divider) {
-                return <div key={`div-${idx}`} className="h-px bg-slate-800 my-4 mx-4" />;
+                return <div key={`div-${idx}`} className="h-px bg-slate-200 my-4 mx-4" />;
               }
               const Icon = item.icon as React.ElementType;
               const isActive = activeTab === item.id;
@@ -95,13 +95,13 @@ export default function GZeedDashboard() {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-all duration-200 group
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 group
                     ${isActive 
-                      ? 'bg-cyan-500/10 text-cyan-400' 
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' 
+                      : 'text-slate-600 hover:bg-slate-200/50 hover:text-slate-900'
                     }`}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-cyan-400' : 'text-slate-500 group-hover:text-white transition-colors'}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-black' : 'text-slate-400 group-hover:text-slate-600 transition-colors'}`} />
                   {isAr ? item.labelAr : item.labelFr}
                 </button>
               );
@@ -109,15 +109,14 @@ export default function GZeedDashboard() {
           </nav>
         </div>
 
-        {/* Upgrade Card */}
-        <div className="p-4 border-t border-slate-800">
-          <div className="bg-gradient-to-br from-indigo-600 to-cyan-600 rounded-xl p-4 text-white relative overflow-hidden">
-            <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+        {/* Upgrade Card - Minimalist */}
+        <div className="p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 text-slate-900 shadow-sm relative overflow-hidden">
             <h4 className="font-black text-sm mb-1">{isAr ? 'خطتك الحالية: مجانية' : 'Plan actuel: Gratuit'}</h4>
-            <p className="text-xs font-medium text-white/80 mb-3 leading-relaxed">
+            <p className="text-xs font-medium text-slate-500 mb-4 leading-relaxed">
               {isAr ? 'قم بالترقية للحصول على نطاق مخصص (gzeed.com).' : 'Passez au niveau supérieur pour un domaine personnalisé.'}
             </p>
-            <button className="w-full py-2 bg-white text-slate-900 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">
+            <button className="w-full py-2.5 bg-black text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow-md">
               {isAr ? 'ترقية الآن' : 'Mettre à niveau'}
             </button>
           </div>
@@ -167,11 +166,12 @@ export default function GZeedDashboard() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <button className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-lg font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
+                <button className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
                   <MonitorPlay className="w-4 h-4" />
                   {isAr ? 'عرض المتجر' : 'Voir la boutique'}
                 </button>
-                <button className="px-4 py-2.5 bg-slate-900 text-white rounded-lg font-bold text-sm hover:bg-slate-800 transition-all shadow-md">
+                <button onClick={() => setActiveTab('products')} className="px-4 py-2.5 bg-black text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-md flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
                   {isAr ? 'إضافة منتج' : 'Ajouter un produit'}
                 </button>
               </div>
