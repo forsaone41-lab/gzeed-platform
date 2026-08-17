@@ -126,8 +126,8 @@ export default function PlatformLanding() {
           >
             <source src={settings.heroVideoUrl || "https://assets.mixkit.co/videos/preview/mixkit-software-developer-working-on-code-1560-large.mp4"} type="video/mp4" />
           </video>
-          {/* Dark Overlay for text readability (65% opacity) */}
-          <div className="absolute inset-0 bg-black/[0.65]" />
+          {/* Dark Overlay for text readability (20% opacity) */}
+          <div className="absolute inset-0 bg-black/20" />
         </div>
 
         <div className="max-w-5xl mx-auto text-center relative z-10 w-full">
