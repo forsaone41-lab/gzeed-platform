@@ -258,28 +258,18 @@ export default function GZeedDashboard() {
                   {lang === 'ar' ? 'لنقم بإعداد مشروعك وإطلاقه للعالم.' : lang === 'en' ? "Let's set up your project for launch." : "Configurons votre projet pour le lancer."}
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <button 
-                  onClick={() => window.open('#/demo/ecommerce/abaya', '_blank')}
-                  className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
+                  onClick={() => window.open(getThemePreviewUrl(activeThemeId), '_blank')}
+                  className="flex-1 md:flex-none justify-center px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
                 >
                   <MonitorPlay className="w-4 h-4" />
                   {lang === 'ar' ? 'عرض المتجر' : lang === 'en' ? 'View Store' : 'Voir la boutique'}
                 </button>
                 <button 
-                  onClick={() => {
-                    setTasksCompleted(prev => ({ ...prev, product: true }));
-                    showToastAndNavigate(
-                      lang === 'ar' ? 'تم إضافة المنتج بنجاح!' : lang === 'en' ? 'Product added successfully!' : 'Produit ajouté avec succès !',
-                      'products'
-                    );
-                  }}
-                  className="px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all flex items-center gap-2 shadow-sm"
+                  onClick={() => setActiveTab('add-product')}
+                  className="flex-1 md:flex-none justify-center px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-md flex items-center gap-2"
                 >
-                  <Plus className="w-4 h-4" />
-                  {lang === 'ar' ? 'إضافة منتج' : lang === 'en' ? 'Add Product' : 'Ajouter un produit'}
-                </button>
-                <button onClick={() => setActiveTab('products')} className="px-4 py-2.5 bg-black text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-md flex items-center gap-2">
                   <Plus className="w-4 h-4" />
                   {lang === 'ar' ? 'إضافة منتج' : lang === 'en' ? 'Add Product' : 'Ajouter un produit'}
                 </button>
