@@ -10,8 +10,11 @@ export default function GZeedSignup() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
+    firstName: '',
+    lastName: '',
     storeName: '',
-    category: ''
+    password: '',
+    agreeToTerms: true
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -120,25 +123,82 @@ export default function GZeedSignup() {
                 {isAr ? 'هذا الاسم سيظهر لعملائك (يمكنك تغييره لاحقاً).' : 'Ce nom sera visible par vos clients (modifiable plus tard).'}
               </p>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-300 mb-2">
+                      {isAr ? 'الاسم الشخصي' : 'Prénom'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      autoFocus
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                      className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-300 mb-2">
+                      {isAr ? 'الاسم العائلي' : 'Nom'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                      className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-bold text-slate-300 mb-2">
-                    {isAr ? 'اسم المتجر / المشروع' : 'Nom de la boutique / projet'}
+                    {isAr ? 'اسم المتجر / المشروع' : 'Nom de la boutique'}
                   </label>
                   <input
                     type="text"
                     required
-                    autoFocus
                     value={formData.storeName}
                     onChange={(e) => setFormData({...formData, storeName: e.target.value})}
                     placeholder={isAr ? "مثال: متجر الأناقة" : "Ex: Ma Super Boutique"}
-                    className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-4 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium text-lg"
+                    className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-300 mb-2">
+                    {isAr ? 'كلمة السر' : 'Mot de passe'}
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-left"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="flex items-start gap-3 pt-2">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    required
+                    checked={formData.agreeToTerms}
+                    onChange={(e) => setFormData({...formData, agreeToTerms: e.target.checked})}
+                    className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-800"
+                  />
+                  <label htmlFor="terms" className="text-sm text-slate-400 font-medium leading-tight cursor-pointer hover:text-slate-300 transition-colors">
+                    {isAr ? 'أوافق على جميع الشروط والأحكام الخاصة بفتح متجر على منصة GZeed' : 'J\'accepte les conditions générales d\'utilisation de GZeed'}
+                  </label>
+                </div>
+
                 <button 
                   type="submit" 
-                  disabled={loading || !formData.storeName}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-lg py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)] mt-6"
+                  disabled={loading || !formData.storeName || !formData.firstName || !formData.password || !formData.agreeToTerms}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-lg py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)] mt-8"
                 >
                   {loading ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> {isAr ? 'جاري التجهيز...' : 'Préparation...'}</>
@@ -172,12 +232,7 @@ export default function GZeedSignup() {
 
         </div>
         
-        {/* Footer info */}
-        {step < 3 && (
-          <p className="text-center text-slate-500 text-sm mt-8 font-medium">
-            {isAr ? 'بالتسجيل، أنت توافق على شروط الخدمة الخاصة بـ GZeed' : 'En vous inscrivant, vous acceptez les conditions de GZeed'}
-          </p>
-        )}
+        {/* Removed duplicate footer info since it's now a checkbox */}
       </div>
     </div>
   );
