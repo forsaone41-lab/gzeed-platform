@@ -137,7 +137,8 @@ export default function GZeedDashboard() {
         {/* Page Content */}
         <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
           
-          <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
+          {activeTab === 'home' && (
+            <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
             {/* Greeting */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
@@ -295,7 +296,141 @@ export default function GZeedDashboard() {
               </div>
             </div>
 
-          </div>
+            </div>
+          )}
+
+          {activeTab === 'orders' && (
+            <div className="max-w-5xl mx-auto animate-fade-in">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900">{isAr ? 'الطلبات' : 'Commandes'}</h2>
+                  <p className="text-slate-500 font-medium">{isAr ? 'إدارة وتتبع جميع طلبات متجرك.' : 'Gérez et suivez toutes vos commandes.'}</p>
+                </div>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                  <ShoppingBag className="w-10 h-10 text-slate-300" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 mb-2">{isAr ? 'لا توجد طلبات بعد' : 'Aucune commande pour le moment'}</h3>
+                <p className="text-slate-500 font-medium mb-6 max-w-md">{isAr ? 'عندما يقوم العملاء بالشراء من متجرك، ستظهر طلباتهم هنا.' : 'Lorsque les clients achèteront sur votre boutique, leurs commandes apparaîtront ici.'}</p>
+                <button className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition-all">
+                  {isAr ? 'كيف أزيد مبيعاتي؟' : 'Comment augmenter mes ventes ?'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'products' && (
+            <div className="max-w-5xl mx-auto animate-fade-in">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900">{isAr ? 'المنتجات' : 'Produits'}</h2>
+                  <p className="text-slate-500 font-medium">{isAr ? 'أضف منتجاتك وابدأ البيع.' : 'Ajoutez vos produits et commencez à vendre.'}</p>
+                </div>
+                <button className="px-5 py-2.5 bg-cyan-600 text-white rounded-xl font-bold shadow-md hover:bg-cyan-500 transition-all flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  {isAr ? 'إضافة منتج' : 'Ajouter un produit'}
+                </button>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
+                <div className="w-20 h-20 bg-cyan-50 rounded-full flex items-center justify-center mb-4 border border-cyan-100">
+                  <Box className="w-10 h-10 text-cyan-400" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 mb-2">{isAr ? 'أضف أول منتج لك' : 'Ajoutez votre premier produit'}</h3>
+                <p className="text-slate-500 font-medium mb-6 max-w-md">{isAr ? 'قم بإعداد منتجاتك، أسعارك، وصورك لتبدأ استقبال العملاء.' : 'Configurez vos produits, prix et images pour commencer.'}</p>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'themes' && (
+            <div className="max-w-5xl mx-auto animate-fade-in">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900">{isAr ? 'القوالب والتصميم' : 'Thèmes & Design'}</h2>
+                  <p className="text-slate-500 font-medium">{isAr ? 'اختر المظهر المثالي لمشروعك.' : 'Choisissez le look parfait pour votre projet.'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden group cursor-pointer hover:shadow-xl transition-all">
+                    <div className="h-48 bg-slate-100 relative">
+                      <div className="absolute inset-0 bg-slate-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button className="px-6 py-2.5 bg-white text-slate-900 rounded-lg font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all">
+                          {isAr ? 'معاينة القالب' : 'Aperçu du thème'}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-bold text-lg text-slate-900">{isAr ? `قالب عصري ${i}` : `Thème Moderne ${i}`}</h3>
+                      <p className="text-sm text-slate-500 font-medium mt-1">{isAr ? 'مناسب للمتاجر الإلكترونية والملابس' : 'Idéal pour le e-commerce et les vêtements'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'builder' && (
+            <div className="max-w-5xl mx-auto animate-fade-in flex flex-col items-center justify-center min-h-[60vh] text-center">
+              <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-3xl flex items-center justify-center mb-6 shadow-2xl shadow-cyan-500/30">
+                <Palette className="w-12 h-12 text-white" />
+              </div>
+              <h2 className="text-3xl font-black text-slate-900 mb-4">{isAr ? 'محرر الواجهة المرئي' : 'Éditeur Visuel'}</h2>
+              <p className="text-slate-500 font-medium mb-8 max-w-lg mx-auto">
+                {isAr ? 'قم بتعديل كل جزء من موقعك باستخدام أداة السحب والإفلات السهلة. لا تحتاج لأي خبرة في البرمجة!' : 'Modifiez chaque partie de votre site avec notre outil glisser-déposer. Aucune expérience requise !'}
+              </p>
+              <button 
+                onClick={() => navigate('/store-builder')}
+                className="px-8 py-4 bg-slate-900 text-white rounded-xl font-black text-lg shadow-xl shadow-slate-900/20 hover:scale-105 transition-all flex items-center gap-3"
+              >
+                <MonitorPlay className="w-6 h-6" />
+                {isAr ? 'افتح المحرر الآن' : 'Ouvrir l\'éditeur maintenant'}
+              </button>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="max-w-3xl mx-auto animate-fade-in space-y-6">
+              <div className="mb-8">
+                <h2 className="text-2xl font-black text-slate-900">{isAr ? 'إعدادات المتجر' : 'Paramètres de la boutique'}</h2>
+              </div>
+              
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">{isAr ? 'المعلومات الأساسية' : 'Informations générales'}</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'اسم المتجر' : 'Nom de la boutique'}</label>
+                    <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-cyan-500 outline-none" defaultValue="متجر الأناقة" dir="auto" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'وصف المتجر' : 'Description de la boutique'}</label>
+                    <textarea className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-cyan-500 outline-none h-24" dir="auto"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">{isAr ? 'النطاق (Domain)' : 'Domaine'}</h3>
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-5 h-5 text-slate-400" />
+                    <div>
+                      <p className="font-bold text-slate-900">store-123.gzeed.com</p>
+                      <p className="text-xs text-slate-500 font-medium">{isAr ? 'نطاق مجاني' : 'Domaine gratuit'}</p>
+                    </div>
+                  </div>
+                  <button className="text-sm font-bold text-cyan-600 hover:text-cyan-700">{isAr ? 'ربط نطاق مخصص' : 'Connecter un domaine'}</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {['customers', 'analytics'].includes(activeTab) && (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400 animate-fade-in">
+              <Settings className="w-16 h-16 mb-4 animate-spin-slow opacity-20" />
+              <h2 className="text-xl font-bold text-slate-500">{isAr ? 'هذه الصفحة قيد التطوير' : 'Page en cours de développement'}</h2>
+            </div>
+          )}
         </div>
       </main>
     </div>
