@@ -350,19 +350,27 @@ export default function GZeedDashboard() {
                   <p className="text-slate-500 font-medium">{isAr ? 'اختر المظهر المثالي لمشروعك.' : 'Choisissez le look parfait pour votre projet.'}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden group cursor-pointer hover:shadow-xl transition-all">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  { id: 'minimalist', name: isAr ? 'أزياء مينيماليست' : 'Minimalist Fashion', image: '/images/themes/tech.png', desc: isAr ? 'متجر إلكتروني للملابس' : 'Boutique E-commerce Mode' },
+                  { id: 'abaya', name: isAr ? 'أزياء عباية' : 'Abaya Fashion', image: '/images/themes/abaya.png', desc: isAr ? 'متجر إلكتروني للعبايات' : 'Boutique E-commerce Abayas' },
+                  { id: 'perfume', name: isAr ? 'عطور فاخرة' : 'Luxury Perfume', image: '/images/themes/perfume.png', desc: isAr ? 'متجر إلكتروني للعطور' : 'Boutique E-commerce Parfums' },
+                  { id: 'digital', name: isAr ? 'منتجات رقمية' : 'Digital Store', image: '/demo-assets/digital.png', desc: isAr ? 'لبيع الاشتراكات والبرامج' : 'Pour vendre des abonnements' },
+                  { id: 'dentist', name: isAr ? 'عيادة أسنان' : 'Dentist Clinic', image: '/images/themes/dentist.png', desc: isAr ? 'موقع تعريفي لعيادة' : 'Site vitrine pour clinique' },
+                  { id: 'omra', name: isAr ? 'عمرة وسياحة' : 'Omra & Tours', image: '/images/themes/tourism_1.png', desc: isAr ? 'موقع لوكالة أسفار' : 'Site pour agence de voyage' },
+                ].map((theme) => (
+                  <div key={theme.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden group cursor-pointer hover:shadow-xl hover:border-cyan-300 transition-all">
                     <div className="h-48 bg-slate-100 relative">
-                      <div className="absolute inset-0 bg-slate-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button className="px-6 py-2.5 bg-white text-slate-900 rounded-lg font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all">
-                          {isAr ? 'معاينة القالب' : 'Aperçu du thème'}
+                      <img src={theme.image} alt={theme.name} className="w-full h-full object-cover object-top" onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=600&auto=format&fit=crop'; }} />
+                      <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                        <button className="px-6 py-2.5 bg-cyan-500 text-white rounded-lg font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all hover:bg-cyan-400">
+                          {isAr ? 'استخدام القالب' : 'Utiliser ce thème'}
                         </button>
                       </div>
                     </div>
                     <div className="p-5">
-                      <h3 className="font-bold text-lg text-slate-900">{isAr ? `قالب عصري ${i}` : `Thème Moderne ${i}`}</h3>
-                      <p className="text-sm text-slate-500 font-medium mt-1">{isAr ? 'مناسب للمتاجر الإلكترونية والملابس' : 'Idéal pour le e-commerce et les vêtements'}</p>
+                      <h3 className="font-bold text-lg text-slate-900">{theme.name}</h3>
+                      <p className="text-sm text-slate-500 font-medium mt-1">{theme.desc}</p>
                     </div>
                   </div>
                 ))}
