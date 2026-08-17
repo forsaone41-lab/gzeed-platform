@@ -48,8 +48,8 @@ export default function GZeedSignup() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Logo */}
-      <div className="absolute top-8 left-8 flex items-center gap-2 z-20 cursor-pointer" onClick={() => navigate('/')}>
-        <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center font-black text-white text-xl">
+      <div className="absolute top-8 left-8 flex items-center gap-2 z-20 cursor-pointer" onClick={() => navigate('/')} dir="ltr">
+        <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center font-black text-white text-xl shadow-lg shadow-cyan-500/20">
           GZ
         </div>
         <span className="text-2xl font-black text-white tracking-tight">GZeed</span>
@@ -57,14 +57,6 @@ export default function GZeedSignup() {
 
       <div className="w-full max-w-md z-10">
         
-        {/* Step Indicators */}
-        {step < 3 && (
-          <div className="flex items-center justify-center gap-2 mb-8">
-            <div className={`h-1.5 w-12 rounded-full ${step >= 1 ? 'bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-slate-700'}`} />
-            <div className={`h-1.5 w-12 rounded-full ${step >= 2 ? 'bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-slate-700'}`} />
-          </div>
-        )}
-
         <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 p-8 rounded-3xl shadow-2xl">
           
           {step === 1 && (
@@ -117,10 +109,10 @@ export default function GZeedSignup() {
                 <Store className="w-8 h-8 text-indigo-400" />
               </div>
               <h1 className="text-3xl font-black text-white mb-2">
-                {isAr ? 'ما هو اسم مشروعك؟' : 'Quel est le nom de votre projet ?'}
+                {isAr ? 'أكمل إعداد حسابك' : 'Finalisez votre compte'}
               </h1>
               <p className="text-slate-400 mb-8 font-medium">
-                {isAr ? 'هذا الاسم سيظهر لعملائك (يمكنك تغييره لاحقاً).' : 'Ce nom sera visible par vos clients (modifiable plus tard).'}
+                {isAr ? 'أدخل معلوماتك الشخصية واسم متجرك الجديد للبدء.' : 'Entrez vos informations et le nom de votre boutique pour commencer.'}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -133,6 +125,7 @@ export default function GZeedSignup() {
                     <input
                       type="text"
                       required
+                      autoComplete="off"
                       autoFocus
                       value={formData.firstName}
                       onChange={(e) => setFormData({...formData, firstName: e.target.value})}
@@ -146,6 +139,7 @@ export default function GZeedSignup() {
                     <input
                       type="text"
                       required
+                      autoComplete="off"
                       value={formData.lastName}
                       onChange={(e) => setFormData({...formData, lastName: e.target.value})}
                       className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
@@ -160,6 +154,7 @@ export default function GZeedSignup() {
                   <input
                     type="text"
                     required
+                    autoComplete="off"
                     value={formData.storeName}
                     onChange={(e) => setFormData({...formData, storeName: e.target.value})}
                     placeholder={isAr ? "مثال: متجر الأناقة" : "Ex: Ma Super Boutique"}
@@ -174,6 +169,7 @@ export default function GZeedSignup() {
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
                     className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-left"
