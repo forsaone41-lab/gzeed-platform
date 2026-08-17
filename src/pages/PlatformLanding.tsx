@@ -113,7 +113,7 @@ export default function PlatformLanding() {
       </nav>
 
       {/* Hero Section - Video Background */}
-      <section className="relative pt-40 pb-32 px-6 overflow-hidden min-h-[90vh] flex flex-col justify-center bg-slate-900">
+      <section className="relative pt-40 pb-32 px-6 overflow-hidden min-h-[90vh] flex flex-col justify-center bg-black">
         {/* Video Background */}
         <div className="absolute inset-0 w-full h-full overflow-hidden">
           <video
@@ -126,7 +126,7 @@ export default function PlatformLanding() {
             <source src={settings.heroVideoUrl || "https://assets.mixkit.co/videos/preview/mixkit-software-developer-working-on-code-1560-large.mp4"} type="video/mp4" />
           </video>
           {/* Dark Overlay for text readability (65% opacity) */}
-          <div className="absolute inset-0 bg-slate-900/[0.65]" />
+          <div className="absolute inset-0 bg-black/[0.65]" />
         </div>
 
         <div className="max-w-5xl mx-auto text-center relative z-10 w-full">
