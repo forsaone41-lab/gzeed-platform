@@ -176,7 +176,7 @@ export default function GZeedDashboard() {
                   
                   <div className="space-y-4">
                     {/* Task 1 */}
-                    <div className="flex items-start gap-4 p-4 rounded-xl border border-cyan-100 bg-cyan-50/50 hover:bg-cyan-50 transition-colors cursor-pointer group">
+                    <div onClick={() => setActiveTab('settings')} className="flex items-start gap-4 p-4 rounded-xl border border-cyan-100 bg-cyan-50/50 hover:bg-cyan-50 transition-colors cursor-pointer group">
                       <div className="w-6 h-6 rounded-full border-2 border-cyan-500 flex items-center justify-center shrink-0 mt-0.5 bg-white">
                         <div className="w-2 h-2 rounded-full bg-cyan-500" />
                       </div>
@@ -194,7 +194,7 @@ export default function GZeedDashboard() {
                     </div>
 
                     {/* Task 2 */}
-                    <div className="flex items-start gap-4 p-4 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
+                    <div onClick={() => setActiveTab('themes')} className="flex items-start gap-4 p-4 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
                       <div className="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 bg-white" />
                       <div>
                         <h3 className="font-bold text-slate-900 mb-1 group-hover:text-cyan-700 transition-colors">
@@ -207,7 +207,7 @@ export default function GZeedDashboard() {
                     </div>
 
                     {/* Task 3 */}
-                    <div className="flex items-start gap-4 p-4 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
+                    <div onClick={() => setActiveTab('products')} className="flex items-start gap-4 p-4 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
                       <div className="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 bg-white" />
                       <div>
                         <h3 className="font-bold text-slate-900 mb-1 group-hover:text-cyan-700 transition-colors">
@@ -250,7 +250,7 @@ export default function GZeedDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 {/* E-commerce */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-cyan-300 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
+                <div onClick={() => { setActiveTab('themes'); setThemeFilter('store'); }} className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-cyan-300 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
                   <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-cyan-100 to-transparent rounded-bl-full opacity-50" />
                   <div className="w-12 h-12 bg-cyan-100 text-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <ShoppingBag className="w-6 h-6" />
@@ -265,7 +265,7 @@ export default function GZeedDashboard() {
                 </div>
 
                 {/* Website */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-indigo-300 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
+                <div onClick={() => { setActiveTab('themes'); setThemeFilter('website'); }} className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-indigo-300 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
                   <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-bl-full opacity-50" />
                   <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Globe className="w-6 h-6" />
