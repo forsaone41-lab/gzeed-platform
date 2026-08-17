@@ -24,6 +24,7 @@ export default function GZeedDashboard() {
   const { isAr } = useLang();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
+  const [themeFilter, setThemeFilter] = useState('all');
 
   const navItems = [
     { id: 'home', icon: Home, labelAr: 'الرئيسية', labelFr: 'Accueil' },
@@ -343,25 +344,54 @@ export default function GZeedDashboard() {
           )}
 
           {activeTab === 'themes' && (
-            <div className="max-w-5xl mx-auto animate-fade-in">
-              <div className="flex justify-between items-center mb-8">
+            <div className="max-w-6xl mx-auto animate-fade-in">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                   <h2 className="text-2xl font-black text-slate-900">{isAr ? 'القوالب والتصميم' : 'Thèmes & Design'}</h2>
-                  <p className="text-slate-500 font-medium">{isAr ? 'اختر المظهر المثالي لمشروعك.' : 'Choisissez le look parfait pour votre projet.'}</p>
+                  <p className="text-slate-500 font-medium">{isAr ? 'اختر القالب المناسب لنوع باقتك ومشروعك.' : 'Choisissez le thème adapté à votre forfait.'}</p>
+                </div>
+                
+                {/* Theme Filters */}
+                <div className="flex bg-slate-200/50 p-1 rounded-xl">
+                  {[
+                    { id: 'all', label: isAr ? 'الكل' : 'Tous' },
+                    { id: 'store', label: isAr ? 'متاجر إلكترونية' : 'E-commerce' },
+                    { id: 'website', label: isAr ? 'مواقع تعريفية' : 'Sites Vitrine' },
+                    { id: 'dev', label: isAr ? 'للمطورين' : 'Développeurs' }
+                  ].map(filter => (
+                    <button
+                      key={filter.id}
+                      onClick={() => setThemeFilter(filter.id)}
+                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                        themeFilter === filter.id 
+                          ? 'bg-white text-slate-900 shadow-sm' 
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
                 </div>
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
-                  { id: 'minimalist', name: isAr ? 'أزياء مينيماليست' : 'Minimalist Fashion', image: '/images/themes/tech.png', desc: isAr ? 'متجر إلكتروني للملابس' : 'Boutique E-commerce Mode' },
-                  { id: 'abaya', name: isAr ? 'أزياء عباية' : 'Abaya Fashion', image: '/images/themes/abaya.png', desc: isAr ? 'متجر إلكتروني للعبايات' : 'Boutique E-commerce Abayas' },
-                  { id: 'perfume', name: isAr ? 'عطور فاخرة' : 'Luxury Perfume', image: '/images/themes/perfume.png', desc: isAr ? 'متجر إلكتروني للعطور' : 'Boutique E-commerce Parfums' },
-                  { id: 'digital', name: isAr ? 'منتجات رقمية' : 'Digital Store', image: '/demo-assets/digital.png', desc: isAr ? 'لبيع الاشتراكات والبرامج' : 'Pour vendre des abonnements' },
-                  { id: 'dentist', name: isAr ? 'عيادة أسنان' : 'Dentist Clinic', image: '/images/themes/dentist.png', desc: isAr ? 'موقع تعريفي لعيادة' : 'Site vitrine pour clinique' },
-                  { id: 'omra', name: isAr ? 'عمرة وسياحة' : 'Omra & Tours', image: '/images/themes/tourism_1.png', desc: isAr ? 'موقع لوكالة أسفار' : 'Site pour agence de voyage' },
-                ].map((theme) => (
+                  { id: 'minimalist', category: 'store', name: isAr ? 'أزياء مينيماليست' : 'Minimalist Fashion', image: '/images/themes/tech.png', desc: isAr ? 'متجر إلكتروني للملابس' : 'Boutique E-commerce Mode' },
+                  { id: 'abaya', category: 'store', name: isAr ? 'أزياء عباية' : 'Abaya Fashion', image: '/images/themes/abaya.png', desc: isAr ? 'متجر إلكتروني للعبايات' : 'Boutique E-commerce Abayas' },
+                  { id: 'perfume', category: 'store', name: isAr ? 'عطور فاخرة' : 'Luxury Perfume', image: '/images/themes/perfume.png', desc: isAr ? 'متجر إلكتروني للعطور' : 'Boutique E-commerce Parfums' },
+                  { id: 'digital', category: 'store', name: isAr ? 'منتجات رقمية' : 'Digital Store', image: '/demo-assets/digital.png', desc: isAr ? 'لبيع الاشتراكات والبرامج' : 'Pour vendre des abonnements' },
+                  { id: 'dentist', category: 'website', name: isAr ? 'عيادة أسنان' : 'Dentist Clinic', image: '/images/themes/dentist.png', desc: isAr ? 'موقع تعريفي لعيادة' : 'Site vitrine pour clinique' },
+                  { id: 'omra', category: 'website', name: isAr ? 'عمرة وسياحة' : 'Omra & Tours', image: '/images/themes/tourism_1.png', desc: isAr ? 'موقع لوكالة أسفار' : 'Site pour agence de voyage' },
+                  { id: 'blank', category: 'dev', name: isAr ? 'قالب فارغ (للمطورين)' : 'Thème Vide (Dev)', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop', desc: isAr ? 'ابنِ موقعك من الصفر بالكود' : 'Créez depuis zéro avec du code' },
+                ]
+                .filter(theme => themeFilter === 'all' || theme.category === themeFilter)
+                .map((theme) => (
                   <div key={theme.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden group cursor-pointer hover:shadow-xl hover:border-cyan-300 transition-all">
                     <div className="h-48 bg-slate-100 relative">
                       <img src={theme.image} alt={theme.name} className="w-full h-full object-cover object-top" onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=600&auto=format&fit=crop'; }} />
+                      <div className="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                        {theme.category === 'store' ? (isAr ? 'متجر' : 'Store') : theme.category === 'website' ? (isAr ? 'موقع' : 'Site') : 'Dev'}
+                      </div>
                       <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                         <button className="px-6 py-2.5 bg-cyan-500 text-white rounded-lg font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all hover:bg-cyan-400">
                           {isAr ? 'استخدام القالب' : 'Utiliser ce thème'}
