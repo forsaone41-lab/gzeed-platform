@@ -28,11 +28,11 @@ export default function PlatformLanding() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Alternate logo every 6 seconds
+  // Alternate logo every 8 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setShowIcon(prev => !prev);
-    }, 6000);
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -75,14 +75,14 @@ export default function PlatformLanding() {
           {/* Logo (Alternating) */}
           <Link to="/" className="relative h-10 w-32 flex items-center" dir="ltr">
             {/* Text Version */}
-            <div className={`absolute left-0 transition-opacity duration-700 ease-in-out ${showIcon ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <div className={`absolute left-0 transition-opacity duration-1000 ease-in-out ${showIcon ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
               <span className={`text-3xl font-black tracking-tighter leading-none ${scrolled ? 'text-slate-900' : 'text-white'}`}>
                 G<span className="text-cyan-400">Zeed</span>
               </span>
             </div>
 
             {/* Icon Version */}
-            <div className={`absolute left-0 transition-opacity duration-700 ease-in-out ${showIcon ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <div className={`absolute left-0 transition-opacity duration-1000 ease-in-out ${showIcon ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg border transition-colors duration-300 ${scrolled ? 'bg-[#0b1121] border-slate-800/50' : 'bg-white border-white/20'}`}>
                 <span className="text-2xl font-black tracking-tighter leading-none flex items-center">
                   <span className={`transition-colors duration-300 ${scrolled ? 'text-white' : 'text-slate-900'}`}>G</span><span className="text-cyan-400">Z</span>
