@@ -612,6 +612,7 @@ function AppContent() {
         <Route path="/demo/ecommerce/abaya" element={<AbayaDemo />} />
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
         <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
+        <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="/partner-signup" element={
           <Suspense fallback={<PageLoader />}>
             <AffiliateSignup onLogin={handleLogin} />
@@ -683,6 +684,7 @@ function AppContent() {
     return (
       <Routes>
         <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
+        <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="*" element={<PortailClient currentUser={currentUser} onLogout={handleLogout} />} />
       </Routes>
     );
@@ -868,6 +870,7 @@ function AppContent() {
         <Route path="/setup" element={<SetupLanding />} />
         <Route path="/platform-demo" element={<PlatformLanding />} />
         <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
+        <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="/demo/tourism" element={<TourismDemo />} />
         <Route path="/demo/vacation-deals" element={<VacationDealsDemo />} />
