@@ -28,7 +28,7 @@ export default function GZeedSignup() {
         setStep(2);
       }, 800);
     } else if (step === 2) {
-      if (!formData.storeName) return;
+      if (!formData.firstName || !formData.password) return;
       setLoading(true);
       // Simulate API call to create store
       setTimeout(() => {
@@ -113,7 +113,7 @@ export default function GZeedSignup() {
                 {isAr ? 'أكمل إعداد حسابك' : 'Finalisez votre compte'}
               </h1>
               <p className="text-slate-400 mb-8 font-medium">
-                {isAr ? 'أدخل معلوماتك الشخصية واسم متجرك الجديد للبدء.' : 'Entrez vos informations et le nom de votre boutique pour commencer.'}
+                {isAr ? 'أدخل معلوماتك الشخصية للبدء.' : 'Entrez vos informations pour commencer.'}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -148,20 +148,7 @@ export default function GZeedSignup() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-bold text-slate-300 mb-2">
-                    {isAr ? 'اسم المتجر / المشروع' : 'Nom de la boutique'}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    autoComplete="off"
-                    value={formData.storeName}
-                    onChange={(e) => setFormData({...formData, storeName: e.target.value})}
-                    placeholder={isAr ? "مثال: متجر الأناقة" : "Ex: Ma Super Boutique"}
-                    className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                  />
-                </div>
+
 
                 <div>
                   <label className="block text-sm font-bold text-slate-300 mb-2">
@@ -203,7 +190,7 @@ export default function GZeedSignup() {
 
                 <button 
                   type="submit" 
-                  disabled={loading || !formData.storeName || !formData.firstName || !formData.password || !formData.agreeToTerms}
+                  disabled={loading || !formData.firstName || !formData.password || !formData.agreeToTerms}
                   className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-lg py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)] mt-8"
                 >
                   {loading ? (
