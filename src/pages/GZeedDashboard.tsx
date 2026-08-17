@@ -32,6 +32,15 @@ export default function GZeedDashboard() {
   const [domainName, setDomainName] = useState('store-123.gzeed.com');
   const [subdomainInput, setSubdomainInput] = useState('');
   const [customDomainInput, setCustomDomainInput] = useState('');
+  
+  // Toast State
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToastAndNavigate = (msg: string, nextTab: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+    setActiveTab(nextTab);
+  };
 
   const navItems = [
     { id: 'home', icon: Home, labelAr: 'الرئيسية', labelFr: 'Accueil' },
@@ -517,6 +526,7 @@ export default function GZeedDashboard() {
                                 if (subdomainInput.trim()) {
                                   setDomainName(`${subdomainInput.trim().toLowerCase()}.gzeed.com`);
                                   setIsDomainEditing(false);
+                                  showToastAndNavigate(isAr ? 'تم حفظ النطاق بنجاح! حان وقت اختيار قالبك.' : 'Domaine enregistré ! Choisissez maintenant votre thème.', 'themes');
                                 }
                               }}
                               className="px-6 py-3 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-500 transition-colors shrink-0"
@@ -546,6 +556,7 @@ export default function GZeedDashboard() {
                                 if (customDomainInput.trim()) {
                                   setDomainName(customDomainInput.trim().toLowerCase());
                                   setIsDomainEditing(false);
+                                  showToastAndNavigate(isAr ? 'تم ربط النطاق بنجاح! حان وقت اختيار قالبك.' : 'Domaine connecté ! Choisissez maintenant votre thème.', 'themes');
                                 }
                               }}
                               className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-500 transition-colors shrink-0"
@@ -587,6 +598,14 @@ export default function GZeedDashboard() {
           )}
         </div>
       </main>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full font-bold shadow-xl flex items-center gap-3 animate-fade-in z-50">
+          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
 }
