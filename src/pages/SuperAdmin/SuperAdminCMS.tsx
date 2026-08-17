@@ -211,6 +211,19 @@ export default function SuperAdminCMS() {
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${formData.showFeatures ? '-translate-x-8' : '-translate-x-1'}`} />
           </button>
         </div>
+        
+        <div className="p-6 border-t border-slate-200 flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-slate-900">قسم الفيديو التعريفي (دراسة الحالة)</h3>
+            <p className="text-sm text-slate-500 mt-1">عرض أو إخفاء الفيديو الترويجي (كيف تحول مصنع تقليدي...)</p>
+          </div>
+          <button 
+            onClick={() => setFormData({ ...formData, showIntroVideo: !formData.showIntroVideo })}
+            className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors ${formData.showIntroVideo ? 'bg-cyan-500' : 'bg-slate-300'}`}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${formData.showIntroVideo ? '-translate-x-8' : '-translate-x-1'}`} />
+          </button>
+        </div>
       </div>
 
       <div className="flex justify-end pt-4 sticky bottom-8">

@@ -16,6 +16,9 @@ interface PlatformSettings {
   
   // Features Section Visibility
   showFeatures: boolean;
+  
+  // Intro Video Section Visibility
+  showIntroVideo: boolean;
 }
 
 const defaultSettings: PlatformSettings = {
@@ -29,7 +32,8 @@ const defaultSettings: PlatformSettings = {
   proPrice: '199',
   agencyPrice: '499',
   
-  showFeatures: true
+  showFeatures: true,
+  showIntroVideo: false
 };
 
 const PlatformSettingsContext = createContext<{

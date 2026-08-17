@@ -199,6 +199,7 @@ export default function PlatformLanding() {
       )}
 
       {/* Case Study Section (GoDaddy style big banner) */}
+      {settings.showIntroVideo && (
       <section className="py-24 px-6 border-y border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto bg-slate-900 rounded-3xl overflow-hidden flex flex-col md:flex-row items-center">
 
@@ -232,6 +233,7 @@ export default function PlatformLanding() {
 
         </div>
       </section>
+      )}
 
       {/* Footer */}
       <PublicFooter />
