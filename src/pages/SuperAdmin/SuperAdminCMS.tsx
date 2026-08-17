@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { Save, Type, DollarSign, Upload, Video } from 'lucide-react';
+import { Save, Type, DollarSign, Upload, Video, Info } from 'lucide-react';
 import { usePlatformSettings } from '../../contexts/PlatformSettingsContext';
+import { supabase } from '../../supabase';
 
 export default function SuperAdminCMS() {
   const { settings, updateSettings } = usePlatformSettings();
@@ -13,20 +14,33 @@ export default function SuperAdminCMS() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Simulate upload delay
     setIsUploading(true);
     
-    setTimeout(() => {
-      // In production, upload to Supabase Storage and get the public URL.
-      // For now, we create a local preview URL so the user can see it instantly.
-      const localUrl = URL.createObjectURL(file);
-      setFormData({ ...formData, heroVideoUrl: localUrl });
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `hero-bg-${Date.now()}.${fileExt}`;
+      const filePath = `videos/${fileName}`;
+
+      const { data, error } = await supabase.storage.from('media').upload(filePath, file);
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(filePath);
+      
+      setFormData({ ...formData, heroVideoUrl: publicUrlData.publicUrl });
+      alert("تم رفع الفيديو بنجاح للـ السيرفر!");
+    } catch (err: any) {
+      console.error('Error uploading video:', err);
+      alert('وقع خطأ فرفع الفيديو! تأكد أنك قاديتي مساحة تخزين اسمها (media) فـ Supabase وأنها (Public).');
+    } finally {
       setIsUploading(false);
-    }, 1500);
+    }
   };
 
   const handleSave = () => {
