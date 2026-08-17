@@ -64,6 +64,7 @@ const ListeAttente    = lazy(() => import('./pages/ListeAttente'));
 const Notifications   = lazy(() => import('./pages/Notifications'));
 const GZeedSignup     = lazy(() => import('./pages/GZeedSignup'));
 const GZeedDashboard  = lazy(() => import('./pages/GZeedDashboard'));
+const GZeedBuilder    = lazy(() => import('./pages/GZeedBuilder'));
 const GZeedLogin      = lazy(() => import('./pages/GZeedLogin'));
 const AISpace         = lazy(() => import('./pages/AISpace'));
 const Achats          = lazy(() => import('./pages/Achats'));
@@ -613,6 +614,14 @@ function AppContent() {
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
         <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
         <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
+        <Route path="/gzeed-builder" element={<Suspense fallback={<PageLoader />}><GZeedBuilder /></Suspense>} />
+        <Route path="/store-builder" element={
+          <Suspense fallback={<PageLoader />}>
+            <div className="min-h-screen bg-white">
+              <StoreBuilder />
+            </div>
+          </Suspense>
+        } />
         <Route path="/partner-signup" element={
           <Suspense fallback={<PageLoader />}>
             <AffiliateSignup onLogin={handleLogin} />

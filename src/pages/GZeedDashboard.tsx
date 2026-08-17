@@ -17,7 +17,14 @@ import {
   Palette,
   ArrowRight,
   LogOut,
-  User
+  User,
+  Check,
+  ExternalLink,
+  X,
+  ArrowLeft,
+  UploadCloud,
+  Package,
+  DownloadCloud
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useNavigate } from 'react-router-dom';
@@ -28,16 +35,51 @@ export default function GZeedDashboard() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [themeFilter, setThemeFilter] = useState('all');
+  const [activeThemeId, setActiveThemeId] = useState<string | null>(() => localStorage.getItem('gzeed_active_theme') || null);
   const [isDomainEditing, setIsDomainEditing] = useState(false);
   const [domainTab, setDomainTab] = useState('subdomain');
   
+  // Basic Info States
+  const [isBasicInfoEditing, setIsBasicInfoEditing] = useState(false);
+  const [storeName, setStoreName] = useState(() => localStorage.getItem('gzeed_store_name') || 'متجر الأناقة');
+  const [storeDescription, setStoreDescription] = useState('');
+  
   // Domain States
-  const [domainName, setDomainName] = useState('store-123.gzeed.com');
+  const [domainName, setDomainName] = useState(() => localStorage.getItem('gzeed_domain_name') || 'store-123.gzeed.com');
   const [subdomainInput, setSubdomainInput] = useState('');
   const [customDomainInput, setCustomDomainInput] = useState('');
   
+  // Task Progress State
+  const [tasksCompleted, setTasksCompleted] = useState(() => {
+    const saved = localStorage.getItem('gzeed_tasks');
+    return saved ? JSON.parse(saved) : { name: false, theme: false, product: false, domain: false };
+  });
+  
+  const [productType, setProductType] = useState('physical');
+
+  React.useEffect(() => {
+    if (activeThemeId) localStorage.setItem('gzeed_active_theme', activeThemeId);
+    localStorage.setItem('gzeed_store_name', storeName);
+    localStorage.setItem('gzeed_domain_name', domainName);
+    localStorage.setItem('gzeed_tasks', JSON.stringify(tasksCompleted));
+  }, [activeThemeId, storeName, domainName, tasksCompleted]);
+
+  const completedCount = Object.values(tasksCompleted).filter(Boolean).length;
+  const progressOffset = 377 - (377 * (completedCount / 4));
+
   // Toast State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const getThemePreviewUrl = (id: string | null) => {
+    if (!id) return '#/demo/ecommerce/abaya';
+    if (id === 'dentist') return '#/demo/dentist';
+    if (id === 'omra') return '#/demo/omra-tours';
+    if (id === 'digital') return '#/demo/ecommerce/iptv';
+    if (id === 'perfume') return '#/demo/ecommerce/luxury-perfume';
+    if (id === 'abaya') return '#/demo/ecommerce/abaya';
+    if (id === 'minimalist') return '#/demo/ecommerce/minimalist';
+    return `#/demo/ecommerce/${id}`;
+  };
 
   const showToastAndNavigate = (msg: string, nextTab: string) => {
     setToastMessage(msg);
@@ -46,23 +88,23 @@ export default function GZeedDashboard() {
   };
 
   const navItems = [
-    { id: 'home', icon: Home, labelAr: 'الرئيسية', labelFr: 'Accueil' },
-    { id: 'orders', icon: ShoppingBag, labelAr: 'الطلبات', labelFr: 'Commandes' },
-    { id: 'products', icon: Box, labelAr: 'المنتجات', labelFr: 'Produits' },
-    { id: 'customers', icon: Users, labelAr: 'العملاء', labelFr: 'Clients' },
-    { id: 'analytics', icon: BarChart3, labelAr: 'التحليلات', labelFr: 'Analytique' },
+    { id: 'home', icon: Home, labelAr: 'الرئيسية', labelFr: 'Accueil', labelEn: 'Home' },
+    { id: 'orders', icon: ShoppingBag, labelAr: 'الطلبات', labelFr: 'Commandes', labelEn: 'Orders' },
+    { id: 'products', icon: Box, labelAr: 'المنتجات', labelFr: 'Produits', labelEn: 'Products' },
+    { id: 'customers', icon: Users, labelAr: 'العملاء', labelFr: 'Clients', labelEn: 'Customers' },
+    { id: 'analytics', icon: BarChart3, labelAr: 'التحليلات', labelFr: 'Analytique', labelEn: 'Analytics' },
     { divider: true },
-    { id: 'themes', icon: LayoutTemplate, labelAr: 'القوالب والتصميم', labelFr: 'Thèmes & Design' },
-    { id: 'builder', icon: Palette, labelAr: 'تعديل الواجهة', labelFr: 'Éditeur Visuel' },
+    { id: 'themes', icon: LayoutTemplate, labelAr: 'القوالب والتصميم', labelFr: 'Thèmes & Design', labelEn: 'Themes & Design' },
+    { id: 'builder', icon: Palette, labelAr: 'تعديل الواجهة', labelFr: 'Éditeur Visuel', labelEn: 'Visual Editor' },
     { divider: true },
-    { id: 'settings', icon: Settings, labelAr: 'الإعدادات', labelFr: 'Paramètres' },
+    { id: 'settings', icon: Settings, labelAr: 'الإعدادات', labelFr: 'Paramètres', labelEn: 'Settings' },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex" dir={isAr ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-slate-50 flex" dir={lang === 'ar' ? 'rtl' : lang === 'en' ? 'ltr' : 'ltr'}>
       
       {/* Sidebar - Apple Style Minimalist */}
-      <aside className="w-64 bg-[#F5F5F7] text-slate-900 flex flex-col hidden md:flex transition-all duration-300 relative border-r border-slate-200" dir={isAr ? 'rtl' : 'ltr'}>
+      <aside className="w-64 bg-[#F5F5F7] text-slate-900 flex flex-col hidden md:flex transition-all duration-300 relative border-r border-slate-200" dir={lang === 'ar' ? 'rtl' : lang === 'en' ? 'ltr' : 'ltr'}>
         {/* Logo Area */}
         <div className="h-16 flex items-center px-6 border-b border-slate-200 bg-[#F5F5F7]/80 backdrop-blur-xl sticky top-0 z-10 cursor-pointer" onClick={() => navigate('/')}>
           <div className="flex items-center gap-2" dir="ltr">
@@ -75,12 +117,24 @@ export default function GZeedDashboard() {
 
         {/* Store Selector */}
         <div className="p-4 border-b border-slate-200">
-          <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:shadow-sm transition-all">
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-slate-500">{isAr ? 'متجرك الحالي' : 'Boutique actuelle'}</span>
-              <span className="text-sm font-black text-slate-900">متجر الأناقة</span>
+          <div 
+            onClick={() => window.open(getThemePreviewUrl(activeThemeId), '_blank')}
+            className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:shadow-md hover:border-cyan-300 transition-all group/storebox"
+          >
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-[10px] uppercase font-bold text-slate-500 mb-0.5">{lang === 'ar' ? 'متجرك الحالي' : lang === 'en' ? 'Current Store' : 'Boutique actuelle'}</span>
+              <span className="text-sm font-black text-slate-900 leading-tight truncate">{storeName}</span>
+              <a 
+                href={getThemePreviewUrl(activeThemeId)}
+                target="_blank" 
+                onClick={(e) => e.stopPropagation()}
+                className="text-[11px] font-bold text-cyan-600 hover:text-cyan-700 mt-1 flex items-center gap-1 group/link w-max truncate"
+              >
+                {domainName}
+                <ExternalLink className="w-3 h-3 group-hover/link:translate-x-0.5 transition-transform shrink-0" />
+              </a>
             </div>
-            <ChevronRight className={`w-4 h-4 text-slate-400 ${isAr ? 'rotate-180' : ''}`} />
+            <ChevronRight className={`w-5 h-5 text-slate-300 group-hover/storebox:text-cyan-500 transition-colors shrink-0 ${isAr ? 'rotate-180' : ''}`} />
           </div>
         </div>
 
@@ -105,7 +159,7 @@ export default function GZeedDashboard() {
                     }`}
                 >
                   <Icon className={`w-5 h-5 ${isActive ? 'text-black' : 'text-slate-400 group-hover:text-slate-600 transition-colors'}`} />
-                  {isAr ? item.labelAr : item.labelFr}
+                  {lang === 'ar' ? item.labelAr : lang === 'en' ? item.labelEn : item.labelFr}
                 </button>
               );
             })}
@@ -115,12 +169,12 @@ export default function GZeedDashboard() {
         {/* Upgrade Card - Minimalist */}
         <div className="p-4">
           <div className="bg-white border border-slate-200 rounded-2xl p-4 text-slate-900 shadow-sm relative overflow-hidden">
-            <h4 className="font-black text-sm mb-1">{isAr ? 'خطتك الحالية: مجانية' : 'Plan actuel: Gratuit'}</h4>
+            <h4 className="font-black text-sm mb-1">{lang === 'ar' ? 'خطتك الحالية: مجانية' : lang === 'en' ? 'Current Plan: Free' : 'Plan actuel: Gratuit'}</h4>
             <p className="text-xs font-medium text-slate-500 mb-4 leading-relaxed">
-              {isAr ? 'قم بالترقية للحصول على نطاق مخصص (gzeed.com).' : 'Passez au niveau supérieur pour un domaine personnalisé.'}
+              {lang === 'ar' ? 'قم بالترقية للحصول على نطاق مخصص (gzeed.com).' : lang === 'en' ? 'Upgrade to get a custom domain.' : 'Passez au niveau supérieur pour un domaine personnalisé.'}
             </p>
             <button className="w-full py-2.5 bg-black text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow-md">
-              {isAr ? 'ترقية الآن' : 'Mettre à niveau'}
+              {lang === 'ar' ? 'ترقية الآن' : lang === 'en' ? 'Upgrade' : 'Mettre à niveau'}
             </button>
           </div>
         </div>
@@ -136,9 +190,9 @@ export default function GZeedDashboard() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
                 type="text"
-                placeholder={isAr ? 'ابحث عن منتجات، طلبات، أو إعدادات...' : 'Rechercher des produits, commandes...'}
+                placeholder={lang === 'ar' ? 'ابحث عن منتجات، طلبات، أو إعدادات...' : lang === 'en' ? 'Search products, orders...' : 'Rechercher des produits, commandes...'}
                 className="w-full bg-slate-100 border-none rounded-lg pl-10 pr-4 py-2 text-sm font-medium focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
-                dir={isAr ? 'rtl' : 'ltr'}
+                dir={lang === 'ar' ? 'rtl' : lang === 'en' ? 'ltr' : 'ltr'}
               />
             </div>
           </div>
@@ -172,7 +226,7 @@ export default function GZeedDashboard() {
                   className="w-full text-start px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"
                 >
                   <Settings className="w-4 h-4 text-slate-400" />
-                  {isAr ? 'الإعدادات' : 'Paramètres'}
+                  {lang === 'ar' ? 'الإعدادات' : lang === 'en' ? 'Settings' : 'Paramètres'}
                 </button>
                 <button 
                   onClick={() => {
@@ -182,7 +236,7 @@ export default function GZeedDashboard() {
                   className="w-full text-start px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  {isAr ? 'تسجيل الخروج' : 'Déconnexion'}
+                  {lang === 'ar' ? 'تسجيل الخروج' : lang === 'en' ? 'Logout' : 'Déconnexion'}
                 </button>
               </div>
             )}
@@ -198,20 +252,36 @@ export default function GZeedDashboard() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
                 <h1 className="text-3xl font-black text-slate-900 mb-1">
-                  {isAr ? 'مرحباً بك في GZeed 👋' : 'Bienvenue sur GZeed 👋'}
+                  {lang === 'ar' ? 'مرحباً بك في GZeed 👋' : lang === 'en' ? 'Welcome to GZeed 👋' : 'Bienvenue sur GZeed 👋'}
                 </h1>
                 <p className="text-slate-500 font-medium">
-                  {isAr ? 'لنقم بإعداد مشروعك وإطلاقه للعالم.' : 'Configurons votre projet pour le lancer.'}
+                  {lang === 'ar' ? 'لنقم بإعداد مشروعك وإطلاقه للعالم.' : lang === 'en' ? "Let's set up your project for launch." : "Configurons votre projet pour le lancer."}
                 </p>
               </div>
               <div className="flex gap-3">
-                <button className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
+                <button 
+                  onClick={() => window.open('#/demo/ecommerce/abaya', '_blank')}
+                  className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
+                >
                   <MonitorPlay className="w-4 h-4" />
-                  {isAr ? 'عرض المتجر' : 'Voir la boutique'}
+                  {lang === 'ar' ? 'عرض المتجر' : lang === 'en' ? 'View Store' : 'Voir la boutique'}
+                </button>
+                <button 
+                  onClick={() => {
+                    setTasksCompleted(prev => ({ ...prev, product: true }));
+                    showToastAndNavigate(
+                      lang === 'ar' ? 'تم إضافة المنتج بنجاح!' : lang === 'en' ? 'Product added successfully!' : 'Produit ajouté avec succès !',
+                      'products'
+                    );
+                  }}
+                  className="px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  {lang === 'ar' ? 'إضافة منتج' : lang === 'en' ? 'Add Product' : 'Ajouter un produit'}
                 </button>
                 <button onClick={() => setActiveTab('products')} className="px-4 py-2.5 bg-black text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-md flex items-center gap-2">
                   <Plus className="w-4 h-4" />
-                  {isAr ? 'إضافة منتج' : 'Ajouter un produit'}
+                  {lang === 'ar' ? 'إضافة منتج' : lang === 'en' ? 'Add Product' : 'Ajouter un produit'}
                 </button>
               </div>
             </div>
@@ -223,53 +293,80 @@ export default function GZeedDashboard() {
               <div className="relative z-10 flex flex-col md:flex-row justify-between gap-8">
                 <div className="flex-1">
                   <h2 className="text-xl font-black text-slate-900 mb-2">
-                    {isAr ? 'دليل الإعداد السريع' : 'Guide de configuration rapide'}
+                    {lang === 'ar' ? 'دليل الإعداد السريع' : lang === 'en' ? 'Quick Setup Guide' : 'Guide de configuration rapide'}
                   </h2>
                   <p className="text-slate-500 text-sm font-medium mb-6">
-                    {isAr ? 'أكمل هذه الخطوات لبدء البيع واستقبال الزوار.' : 'Complétez ces étapes pour commencer à vendre.'}
+                    {lang === 'ar' ? 'أكمل هذه الخطوات لبدء البيع واستقبال الزوار.' : lang === 'en' ? 'Complete these steps to start selling.' : 'Complétez ces étapes pour commencer à vendre.'}
                   </p>
                   
                   <div className="space-y-4">
                     {/* Task 1 */}
-                    <div onClick={() => setActiveTab('settings')} className="flex items-start gap-4 p-4 rounded-xl border border-cyan-100 bg-cyan-50/50 hover:bg-cyan-50 transition-colors cursor-pointer group">
-                      <div className="w-6 h-6 rounded-full border-2 border-cyan-500 flex items-center justify-center shrink-0 mt-0.5 bg-white">
-                        <div className="w-2 h-2 rounded-full bg-cyan-500" />
-                      </div>
+                    <div onClick={() => setActiveTab('settings')} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer group ${tasksCompleted.name ? 'border-emerald-100 bg-emerald-50/50' : 'border-cyan-100 bg-cyan-50/50 hover:bg-cyan-50'}`}>
+                      {tasksCompleted.name ? (
+                        <div className="w-6 h-6 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5"><Check className="w-3.5 h-3.5" /></div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-cyan-500 flex items-center justify-center shrink-0 mt-0.5 bg-white"><div className="w-2 h-2 rounded-full bg-cyan-500" /></div>
+                      )}
                       <div>
                         <h3 className="font-bold text-slate-900 mb-1 group-hover:text-cyan-700 transition-colors">
-                          {isAr ? 'اختر اسماً لمشروعك' : 'Choisissez un nom pour votre projet'}
+                          {lang === 'ar' ? 'اختر اسماً لمشروعك' : lang === 'en' ? 'Choose a name for your project' : 'Choisissez un nom pour votre projet'}
                         </h3>
                         <p className="text-sm text-slate-600 font-medium">
-                          {isAr ? 'لم تقم بتسمية متجرك بعد. اختر اسماً يمثل علامتك التجارية.' : 'Vous n\'avez pas encore nommé votre boutique.'}
+                          {lang === 'ar' ? 'لم تقم بتسمية متجرك بعد. اختر اسماً يمثل علامتك التجارية.' : lang === 'en' ? "You haven't named your store yet." : "Vous n'avez pas encore nommé votre boutique."}
                         </p>
                         <button className="mt-3 text-sm font-bold text-cyan-600 hover:text-cyan-700">
-                          {isAr ? 'إضافة اسم →' : 'Ajouter un nom →'}
+                          {lang === 'ar' ? 'إضافة اسم →' : lang === 'en' ? 'Add name →' : 'Ajouter un nom →'}
                         </button>
                       </div>
                     </div>
 
                     {/* Task 2 */}
-                    <div onClick={() => setActiveTab('themes')} className="flex items-start gap-4 p-4 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
-                      <div className="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 bg-white" />
+                    <div onClick={() => setActiveTab('themes')} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer group ${tasksCompleted.theme ? 'border-emerald-100 bg-emerald-50/50' : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'}`}>
+                      {tasksCompleted.theme ? (
+                        <div className="w-6 h-6 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5"><Check className="w-3.5 h-3.5" /></div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 bg-white" />
+                      )}
                       <div>
                         <h3 className="font-bold text-slate-900 mb-1 group-hover:text-cyan-700 transition-colors">
-                          {isAr ? 'تخصيص الواجهة والقوالب' : 'Personnaliser l\'apparence'}
+                          {lang === 'ar' ? 'تخصيص الواجهة والقوالب' : lang === 'en' ? "Customize appearance" : "Personnaliser l'apparence"}
                         </h3>
                         <p className="text-sm text-slate-600 font-medium">
-                          {isAr ? 'اختر قالباً يناسبك وعدله بسهولة باستخدام أداة السحب والإفلات.' : 'Choisissez un thème et modifiez-le facilement.'}
+                          {lang === 'ar' ? 'اختر قالباً يناسبك وعدله بسهولة باستخدام أداة السحب والإفلات.' : lang === 'en' ? 'Choose a theme and customize it easily.' : 'Choisissez un thème et modifiez-le facilement.'}
                         </p>
                       </div>
                     </div>
 
                     {/* Task 3 */}
-                    <div onClick={() => setActiveTab('products')} className="flex items-start gap-4 p-4 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
-                      <div className="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 bg-white" />
+                    <div onClick={() => setActiveTab('products')} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer group ${tasksCompleted.product ? 'border-emerald-100 bg-emerald-50/50' : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'}`}>
+                      {tasksCompleted.product ? (
+                        <div className="w-6 h-6 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5"><Check className="w-3.5 h-3.5" /></div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 bg-white" />
+                      )}
                       <div>
                         <h3 className="font-bold text-slate-900 mb-1 group-hover:text-cyan-700 transition-colors">
-                          {isAr ? 'أضف أول منتج لك' : 'Ajoutez votre premier produit'}
+                          {lang === 'ar' ? 'أضف أول منتج لك' : lang === 'en' ? 'Add your first product' : 'Ajoutez votre premier produit'}
                         </h3>
                         <p className="text-sm text-slate-600 font-medium">
-                          {isAr ? 'ارفع صوراً ووصفاً لمنتجك ليراه عملاؤك.' : 'Téléchargez des images et une description.'}
+                          {lang === 'ar' ? 'ارفع صوراً ووصفاً لمنتجك ليراه عملاؤك.' : lang === 'en' ? 'Upload images and a description.' : 'Téléchargez des images et une description.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Task 4 */}
+                    <div onClick={() => setActiveTab('settings')} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer group ${tasksCompleted.domain ? 'border-emerald-100 bg-emerald-50/50' : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'}`}>
+                      {tasksCompleted.domain ? (
+                        <div className="w-6 h-6 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5"><Check className="w-3.5 h-3.5" /></div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 bg-white" />
+                      )}
+                      <div>
+                        <h3 className="font-bold text-slate-900 mb-1 group-hover:text-cyan-700 transition-colors">
+                          {lang === 'ar' ? 'ربط اسم النطاق' : lang === 'en' ? 'Connect a domain' : 'Connecter un domaine'}
+                        </h3>
+                        <p className="text-sm text-slate-600 font-medium">
+                          {lang === 'ar' ? 'قم بربط نطاقك الخاص للبدء في استقبال الزوار.' : lang === 'en' ? 'Connect your custom domain to start receiving visitors.' : 'Connectez votre domaine personnalisé pour commencer à recevoir des visiteurs.'}
                         </p>
                       </div>
                     </div>
@@ -281,17 +378,17 @@ export default function GZeedDashboard() {
                   <div className="relative w-32 h-32 flex items-center justify-center mb-4">
                     <svg className="w-full h-full transform -rotate-90">
                       <circle cx="64" cy="64" r="60" className="stroke-slate-200 fill-none" strokeWidth="8" />
-                      <circle cx="64" cy="64" r="60" className="stroke-cyan-500 fill-none" strokeWidth="8" strokeDasharray="377" strokeDashoffset="282.75" strokeLinecap="round" />
+                      <circle cx="64" cy="64" r="60" className="stroke-cyan-500 fill-none stroke-[8px] transition-all duration-1000 ease-out" strokeDasharray="377" strokeDashoffset={progressOffset} strokeLinecap="round" />
                     </svg>
                     <div className="absolute text-3xl font-black text-slate-900">
-                      1<span className="text-xl text-slate-400">/4</span>
+                      {completedCount}<span className="text-xl text-slate-400">/4</span>
                     </div>
                   </div>
                   <h4 className="font-bold text-slate-900 text-center mb-1">
-                    {isAr ? 'أنت في الطريق الصحيح!' : 'Vous êtes sur la bonne voie !'}
+                    {lang === 'ar' ? 'أنت في الطريق الصحيح!' : lang === 'en' ? 'You are on the right track!' : 'Vous êtes sur la bonne voie !'}
                   </h4>
                   <p className="text-xs font-medium text-slate-500 text-center">
-                    {isAr ? 'أكمل الإعداد لإطلاق مشروعك' : 'Terminez la configuration pour lancer votre projet'}
+                    {lang === 'ar' ? 'أكمل الإعداد لإطلاق مشروعك' : lang === 'en' ? 'Finish setup to launch your project' : 'Terminez la configuration pour lancer votre projet'}
                   </p>
                 </div>
               </div>
@@ -300,7 +397,7 @@ export default function GZeedDashboard() {
             {/* Platform Options (Site, App, E-commerce) */}
             <div>
               <h3 className="text-xl font-black text-slate-900 mb-4">
-                {isAr ? 'ماذا تريد أن تبني اليوم؟' : 'Que voulez-vous construire aujourd\'hui ?'}
+                {lang === 'ar' ? 'ماذا تريد أن تبني اليوم؟' : lang === 'en' ? "What do you want to build today?" : "Que voulez-vous construire aujourd'hui ?"}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
@@ -310,12 +407,12 @@ export default function GZeedDashboard() {
                   <div className="w-12 h-12 bg-cyan-100 text-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <ShoppingBag className="w-6 h-6" />
                   </div>
-                  <h4 className="text-lg font-black text-slate-900 mb-2">{isAr ? 'متجر إلكتروني' : 'Boutique E-commerce'}</h4>
+                  <h4 className="text-lg font-black text-slate-900 mb-2">{lang === 'ar' ? 'متجر إلكتروني' : lang === 'en' ? 'E-commerce Store' : 'Boutique E-commerce'}</h4>
                   <p className="text-sm font-medium text-slate-500 mb-4">
-                    {isAr ? 'منصة متكاملة لبيع منتجاتك مع سلة مشتريات ووسائل دفع.' : 'Plateforme complète pour vendre vos produits avec panier.'}
+                    {lang === 'ar' ? 'منصة متكاملة لبيع منتجاتك مع سلة مشتريات ووسائل دفع.' : lang === 'en' ? 'Complete platform to sell your products with a cart.' : 'Plateforme complète pour vendre vos produits avec panier.'}
                   </p>
                   <span className="text-sm font-bold text-cyan-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-                    {isAr ? 'استكشاف القوالب' : 'Explorer les thèmes'} <ArrowRight className="w-4 h-4" />
+                    {lang === 'ar' ? 'استكشاف القوالب' : lang === 'en' ? 'Explore Themes' : 'Explorer les thèmes'} <ArrowRight className="w-4 h-4" />
                   </span>
                 </div>
 
@@ -325,12 +422,12 @@ export default function GZeedDashboard() {
                   <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Globe className="w-6 h-6" />
                   </div>
-                  <h4 className="text-lg font-black text-slate-900 mb-2">{isAr ? 'موقع تعريفي' : 'Site Vitrine'}</h4>
+                  <h4 className="text-lg font-black text-slate-900 mb-2">{lang === 'ar' ? 'موقع تعريفي' : lang === 'en' ? 'Showcase Website' : 'Site Vitrine'}</h4>
                   <p className="text-sm font-medium text-slate-500 mb-4">
-                    {isAr ? 'موقع احترافي لشركتك، محفظة أعمالك، أو مدونتك الشخصية.' : 'Site professionnel pour votre entreprise ou portfolio.'}
+                    {lang === 'ar' ? 'موقع احترافي لشركتك، محفظة أعمالك، أو مدونتك الشخصية.' : lang === 'en' ? 'Professional site for your business or portfolio.' : 'Site professionnel pour votre entreprise ou portfolio.'}
                   </p>
                   <span className="text-sm font-bold text-indigo-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-                    {isAr ? 'استكشاف القوالب' : 'Explorer les thèmes'} <ArrowRight className="w-4 h-4" />
+                    {lang === 'ar' ? 'استكشاف القوالب' : lang === 'en' ? 'Explore Themes' : 'Explorer les thèmes'} <ArrowRight className="w-4 h-4" />
                   </span>
                 </div>
 
@@ -340,12 +437,12 @@ export default function GZeedDashboard() {
                   <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Smartphone className="w-6 h-6" />
                   </div>
-                  <h4 className="text-lg font-black text-slate-900 mb-2">{isAr ? 'تطبيق هاتف (قريباً)' : 'Application Mobile'}</h4>
+                  <h4 className="text-lg font-black text-slate-900 mb-2">{lang === 'ar' ? 'تطبيق هاتف (قريباً)' : lang === 'en' ? 'Mobile App' : 'Application Mobile'}</h4>
                   <p className="text-sm font-medium text-slate-500 mb-4">
-                    {isAr ? 'حول مشروعك إلى تطبيق احترافي لأجهزة الآيفون والأندرويد.' : 'Transformez votre projet en application professionnelle.'}
+                    {lang === 'ar' ? 'حول مشروعك إلى تطبيق احترافي لأجهزة الآيفون والأندرويد.' : lang === 'en' ? 'Turn your project into a professional app.' : 'Transformez votre projet en application professionnelle.'}
                   </p>
                   <span className="text-sm font-bold text-emerald-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-                    {isAr ? 'اشترك في قائمة الانتظار' : 'S\'inscrire à la liste'} <ArrowRight className="w-4 h-4" />
+                    {lang === 'ar' ? 'اشترك في قائمة الانتظار' : lang === 'en' ? "Join the waitlist" : "S'inscrire à la liste"} <ArrowRight className="w-4 h-4" />
                   </span>
                 </div>
 
@@ -359,18 +456,18 @@ export default function GZeedDashboard() {
             <div className="max-w-5xl mx-auto animate-fade-in">
               <div className="flex justify-between items-center mb-8">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-900">{isAr ? 'الطلبات' : 'Commandes'}</h2>
-                  <p className="text-slate-500 font-medium">{isAr ? 'إدارة وتتبع جميع طلبات متجرك.' : 'Gérez et suivez toutes vos commandes.'}</p>
+                  <h2 className="text-2xl font-black text-slate-900">{lang === 'ar' ? 'الطلبات' : lang === 'en' ? 'Orders' : 'Commandes'}</h2>
+                  <p className="text-slate-500 font-medium">{lang === 'ar' ? 'إدارة وتتبع جميع طلبات متجرك.' : lang === 'en' ? 'Manage and track all your orders.' : 'Gérez et suivez toutes vos commandes.'}</p>
                 </div>
               </div>
               <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                   <ShoppingBag className="w-10 h-10 text-slate-300" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 mb-2">{isAr ? 'لا توجد طلبات بعد' : 'Aucune commande pour le moment'}</h3>
-                <p className="text-slate-500 font-medium mb-6 max-w-md">{isAr ? 'عندما يقوم العملاء بالشراء من متجرك، ستظهر طلباتهم هنا.' : 'Lorsque les clients achèteront sur votre boutique, leurs commandes apparaîtront ici.'}</p>
+                <h3 className="text-xl font-black text-slate-900 mb-2">{lang === 'ar' ? 'لا توجد طلبات بعد' : lang === 'en' ? 'No orders yet' : 'Aucune commande pour le moment'}</h3>
+                <p className="text-slate-500 font-medium mb-6 max-w-md">{lang === 'ar' ? 'عندما يقوم العملاء بالشراء من متجرك، ستظهر طلباتهم هنا.' : lang === 'en' ? 'When clients buy from your store, their orders will appear here.' : 'Lorsque les clients achèteront sur votre boutique, leurs commandes apparaîtront ici.'}</p>
                 <button className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition-all">
-                  {isAr ? 'كيف أزيد مبيعاتي؟' : 'Comment augmenter mes ventes ?'}
+                  {lang === 'ar' ? 'كيف أزيد مبيعاتي؟' : lang === 'en' ? 'How to increase my sales?' : 'Comment augmenter mes ventes ?'}
                 </button>
               </div>
             </div>
@@ -380,20 +477,23 @@ export default function GZeedDashboard() {
             <div className="max-w-5xl mx-auto animate-fade-in">
               <div className="flex justify-between items-center mb-8">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-900">{isAr ? 'المنتجات' : 'Produits'}</h2>
-                  <p className="text-slate-500 font-medium">{isAr ? 'أضف منتجاتك وابدأ البيع.' : 'Ajoutez vos produits et commencez à vendre.'}</p>
+                  <h2 className="text-2xl font-black text-slate-900">{lang === 'ar' ? 'المنتجات' : lang === 'en' ? 'Products' : 'Produits'}</h2>
+                  <p className="text-slate-500 font-medium">{lang === 'ar' ? 'أضف منتجاتك وابدأ البيع.' : lang === 'en' ? 'Add your products and start selling.' : 'Ajoutez vos produits et commencez à vendre.'}</p>
                 </div>
-                <button className="px-5 py-2.5 bg-cyan-600 text-white rounded-xl font-bold shadow-md hover:bg-cyan-500 transition-all flex items-center gap-2">
+                <button 
+                  onClick={() => setActiveTab('add-product')}
+                  className="px-5 py-2.5 bg-cyan-600 text-white rounded-xl font-bold shadow-md hover:bg-cyan-500 transition-all flex items-center gap-2"
+                >
                   <Plus className="w-5 h-5" />
-                  {isAr ? 'إضافة منتج' : 'Ajouter un produit'}
+                  {lang === 'ar' ? 'إضافة منتج' : lang === 'en' ? 'Add Product' : 'Ajouter un produit'}
                 </button>
               </div>
               <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
                 <div className="w-20 h-20 bg-cyan-50 rounded-full flex items-center justify-center mb-4 border border-cyan-100">
                   <Box className="w-10 h-10 text-cyan-400" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 mb-2">{isAr ? 'أضف أول منتج لك' : 'Ajoutez votre premier produit'}</h3>
-                <p className="text-slate-500 font-medium mb-6 max-w-md">{isAr ? 'قم بإعداد منتجاتك، أسعارك، وصورك لتبدأ استقبال العملاء.' : 'Configurez vos produits, prix et images pour commencer.'}</p>
+                <h3 className="text-xl font-black text-slate-900 mb-2">{lang === 'ar' ? 'أضف أول منتج لك' : lang === 'en' ? 'Add your first product' : 'Ajoutez votre premier produit'}</h3>
+                <p className="text-slate-500 font-medium mb-6 max-w-md">{lang === 'ar' ? 'قم بإعداد منتجاتك، أسعارك، وصورك لتبدأ استقبال العملاء.' : lang === 'en' ? 'Configure your products, prices, and images to get started.' : 'Configurez vos produits, prix et images pour commencer.'}</p>
               </div>
             </div>
           )}
@@ -402,17 +502,17 @@ export default function GZeedDashboard() {
             <div className="max-w-6xl mx-auto animate-fade-in">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-900">{isAr ? 'القوالب والتصميم' : 'Thèmes & Design'}</h2>
-                  <p className="text-slate-500 font-medium">{isAr ? 'اختر القالب المناسب لنوع باقتك ومشروعك.' : 'Choisissez le thème adapté à votre forfait.'}</p>
+                  <h2 className="text-2xl font-black text-slate-900">{lang === 'ar' ? 'القوالب والتصميم' : lang === 'en' ? 'Themes & Design' : 'Thèmes & Design'}</h2>
+                  <p className="text-slate-500 font-medium">{lang === 'ar' ? 'اختر القالب المناسب لنوع باقتك ومشروعك.' : lang === 'en' ? 'Choose the theme that fits your plan.' : 'Choisissez le thème adapté à votre forfait.'}</p>
                 </div>
                 
                 {/* Theme Filters */}
                 <div className="flex bg-slate-200/50 p-1 rounded-xl">
                   {[
-                    { id: 'all', label: isAr ? 'الكل' : 'Tous' },
-                    { id: 'store', label: isAr ? 'متاجر إلكترونية' : 'E-commerce' },
-                    { id: 'website', label: isAr ? 'مواقع تعريفية' : 'Sites Vitrine' },
-                    { id: 'dev', label: isAr ? 'للمطورين' : 'Développeurs' }
+                    { id: 'all', label: lang === 'ar' ? 'الكل' : lang === 'en' ? 'All' : 'Tous' },
+                    { id: 'store', label: lang === 'ar' ? 'متاجر إلكترونية' : lang === 'en' ? 'E-commerce' : 'E-commerce' },
+                    { id: 'website', label: lang === 'ar' ? 'مواقع تعريفية' : lang === 'en' ? 'Showcase Sites' : 'Sites Vitrine' },
+                    { id: 'dev', label: lang === 'ar' ? 'للمطورين' : lang === 'en' ? 'Developers' : 'Développeurs' }
                   ].map(filter => (
                     <button
                       key={filter.id}
@@ -431,25 +531,46 @@ export default function GZeedDashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
-                  { id: 'minimalist', category: 'store', name: isAr ? 'أزياء مينيماليست' : 'Minimalist Fashion', image: '/images/themes/tech.png', desc: isAr ? 'متجر إلكتروني للملابس' : 'Boutique E-commerce Mode' },
-                  { id: 'abaya', category: 'store', name: isAr ? 'أزياء عباية' : 'Abaya Fashion', image: '/images/themes/abaya.png', desc: isAr ? 'متجر إلكتروني للعبايات' : 'Boutique E-commerce Abayas' },
-                  { id: 'perfume', category: 'store', name: isAr ? 'عطور فاخرة' : 'Luxury Perfume', image: '/images/themes/perfume.png', desc: isAr ? 'متجر إلكتروني للعطور' : 'Boutique E-commerce Parfums' },
-                  { id: 'digital', category: 'store', name: isAr ? 'منتجات رقمية' : 'Digital Store', image: '/demo-assets/digital.png', desc: isAr ? 'لبيع الاشتراكات والبرامج' : 'Pour vendre des abonnements' },
-                  { id: 'dentist', category: 'website', name: isAr ? 'عيادة أسنان' : 'Dentist Clinic', image: '/images/themes/dentist.png', desc: isAr ? 'موقع تعريفي لعيادة' : 'Site vitrine pour clinique' },
-                  { id: 'omra', category: 'website', name: isAr ? 'عمرة وسياحة' : 'Omra & Tours', image: '/images/themes/tourism_1.png', desc: isAr ? 'موقع لوكالة أسفار' : 'Site pour agence de voyage' },
-                  { id: 'blank', category: 'dev', name: isAr ? 'قالب فارغ (للمطورين)' : 'Thème Vide (Dev)', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop', desc: isAr ? 'ابنِ موقعك من الصفر بالكود' : 'Créez depuis zéro avec du code' },
+                  { id: 'minimalist', category: 'store', name: lang === 'ar' ? 'أزياء مينيماليست' : lang === 'en' ? 'Minimalist Fashion' : 'Minimalist Fashion', image: '/images/themes/tech.png', desc: lang === 'ar' ? 'متجر إلكتروني للملابس' : lang === 'en' ? 'Fashion E-commerce Store' : 'Boutique E-commerce Mode' },
+                  { id: 'abaya', category: 'store', name: lang === 'ar' ? 'أزياء عباية' : lang === 'en' ? 'Abaya Fashion' : 'Abaya Fashion', image: '/images/themes/abaya.png', desc: lang === 'ar' ? 'متجر إلكتروني للعبايات' : lang === 'en' ? 'Abayas E-commerce Store' : 'Boutique E-commerce Abayas' },
+                  { id: 'perfume', category: 'store', name: lang === 'ar' ? 'عطور فاخرة' : lang === 'en' ? 'Luxury Perfume' : 'Luxury Perfume', image: '/images/themes/perfume.png', desc: lang === 'ar' ? 'متجر إلكتروني للعطور' : lang === 'en' ? 'Perfume E-commerce Store' : 'Boutique E-commerce Parfums' },
+                  { id: 'digital', category: 'store', name: lang === 'ar' ? 'منتجات رقمية' : lang === 'en' ? 'Digital Store' : 'Digital Store', image: '/demo-assets/digital.png', desc: lang === 'ar' ? 'لبيع الاشتراكات والبرامج' : lang === 'en' ? 'To sell subscriptions' : 'Pour vendre des abonnements' },
+                  { id: 'dentist', category: 'website', name: lang === 'ar' ? 'عيادة أسنان' : lang === 'en' ? 'Dentist Clinic' : 'Dentist Clinic', image: '/images/themes/dentist.png', desc: lang === 'ar' ? 'موقع تعريفي لعيادة' : lang === 'en' ? 'Showcase site for clinic' : 'Site vitrine pour clinique' },
+                  { id: 'omra', category: 'website', name: lang === 'ar' ? 'عمرة وسياحة' : lang === 'en' ? 'Omra & Tours' : 'Omra & Tours', image: '/images/themes/tourism_1.png', desc: lang === 'ar' ? 'موقع لوكالة أسفار' : lang === 'en' ? 'Travel agency site' : 'Site pour agence de voyage' },
+                  { id: 'blank', category: 'dev', name: lang === 'ar' ? 'قالب فارغ (للمطورين)' : lang === 'en' ? 'Blank Theme (Dev)' : 'Thème Vide (Dev)', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop', desc: lang === 'ar' ? 'ابنِ موقعك من الصفر بالكود' : lang === 'en' ? 'Create from scratch with code' : 'Créez depuis zéro avec du code' },
                 ]
                 .filter(theme => themeFilter === 'all' || theme.category === themeFilter)
                 .map((theme) => (
-                  <div key={theme.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden group cursor-pointer hover:shadow-xl hover:border-cyan-300 transition-all">
+                  <div 
+                    key={theme.id} 
+                    onClick={() => {
+                      setActiveThemeId(theme.id);
+                      setTasksCompleted(prev => ({ ...prev, theme: true }));
+                      showToastAndNavigate(
+                        lang === 'ar' 
+                          ? `تم تفعيل قالب ${theme.name} بنجاح!` 
+                          : lang === 'en' 
+                            ? `Theme ${theme.name} applied successfully!` 
+                            : `Thème ${theme.name} appliqué avec succès !`,
+                        'builder'
+                      );
+                    }}
+                    className={`bg-white rounded-2xl border overflow-hidden group cursor-pointer hover:shadow-xl hover:border-cyan-300 transition-all ${activeThemeId === theme.id ? 'border-2 border-emerald-500 shadow-md ring-4 ring-emerald-50' : 'border-slate-200'}`}
+                  >
                     <div className="h-48 bg-slate-100 relative">
                       <img src={theme.image} alt={theme.name} className="w-full h-full object-cover object-top" onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=600&auto=format&fit=crop'; }} />
                       <div className="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full">
-                        {theme.category === 'store' ? (isAr ? 'متجر' : 'Store') : theme.category === 'website' ? (isAr ? 'موقع' : 'Site') : 'Dev'}
+                        {theme.category === 'store' ? (lang === 'ar' ? 'متجر' : lang === 'en' ? 'Store' : 'Store') : theme.category === 'website' ? (lang === 'ar' ? 'موقع' : lang === 'en' ? 'Site' : 'Site') : 'Dev'}
                       </div>
+                      {activeThemeId === theme.id && (
+                        <div className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-md">
+                          <Check className="w-3.5 h-3.5" />
+                          {lang === 'ar' ? 'مفعل' : lang === 'en' ? 'Active' : 'Actif'}
+                        </div>
+                      )}
                       <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                         <button className="px-6 py-2.5 bg-cyan-500 text-white rounded-lg font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all hover:bg-cyan-400">
-                          {isAr ? 'استخدام القالب' : 'Utiliser ce thème'}
+                          {lang === 'ar' ? 'استخدام القالب' : lang === 'en' ? 'Use this theme' : 'Utiliser ce thème'}
                         </button>
                       </div>
                     </div>
@@ -468,16 +589,16 @@ export default function GZeedDashboard() {
               <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-3xl flex items-center justify-center mb-6 shadow-2xl shadow-cyan-500/30">
                 <Palette className="w-12 h-12 text-white" />
               </div>
-              <h2 className="text-3xl font-black text-slate-900 mb-4">{isAr ? 'محرر الواجهة المرئي' : 'Éditeur Visuel'}</h2>
+              <h2 className="text-3xl font-black text-slate-900 mb-4">{lang === 'ar' ? 'محرر الواجهة المرئي' : lang === 'en' ? 'Visual Editor' : 'Éditeur Visuel'}</h2>
               <p className="text-slate-500 font-medium mb-8 max-w-lg mx-auto">
-                {isAr ? 'قم بتعديل كل جزء من موقعك باستخدام أداة السحب والإفلات السهلة. لا تحتاج لأي خبرة في البرمجة!' : 'Modifiez chaque partie de votre site avec notre outil glisser-déposer. Aucune expérience requise !'}
+                {lang === 'ar' ? 'قم بتعديل كل جزء من موقعك باستخدام أداة السحب والإفلات السهلة. لا تحتاج لأي خبرة في البرمجة!' : lang === 'en' ? 'Edit every part of your site with our drag-and-drop tool. No experience required!' : 'Modifiez chaque partie de votre site avec notre outil glisser-déposer. Aucune expérience requise !'}
               </p>
               <button 
-                onClick={() => navigate('/store-builder')}
+                onClick={() => navigate('/gzeed-builder')}
                 className="px-8 py-4 bg-slate-900 text-white rounded-xl font-black text-lg shadow-xl shadow-slate-900/20 hover:scale-105 transition-all flex items-center gap-3"
               >
                 <MonitorPlay className="w-6 h-6" />
-                {isAr ? 'افتح المحرر الآن' : 'Ouvrir l\'éditeur maintenant'}
+                {lang === 'ar' ? 'افتح المحرر الآن' : lang === 'en' ? "Open the editor now" : "Ouvrir l'éditeur maintenant"}
               </button>
             </div>
           )}
@@ -485,29 +606,88 @@ export default function GZeedDashboard() {
           {activeTab === 'settings' && (
             <div className="max-w-3xl mx-auto animate-fade-in space-y-6">
               <div className="mb-8">
-                <h2 className="text-2xl font-black text-slate-900">{isAr ? 'إعدادات المتجر' : 'Paramètres de la boutique'}</h2>
+                <h2 className="text-2xl font-black text-slate-900">{lang === 'ar' ? 'إعدادات المتجر' : lang === 'en' ? 'Store Settings' : 'Paramètres de la boutique'}</h2>
               </div>
               
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                <h3 className="text-lg font-bold text-slate-900 mb-4">{isAr ? 'المعلومات الأساسية' : 'Informations générales'}</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'اسم المتجر' : 'Nom de la boutique'}</label>
-                    <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-cyan-500 outline-none" defaultValue="متجر الأناقة" dir="auto" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'وصف المتجر' : 'Description de la boutique'}</label>
-                    <textarea className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-cyan-500 outline-none h-24" dir="auto"></textarea>
-                  </div>
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm transition-all overflow-hidden">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-slate-900">{lang === 'ar' ? 'المعلومات الأساسية' : lang === 'en' ? 'General Information' : 'Informations générales'}</h3>
+                  {!isBasicInfoEditing && (
+                    <button onClick={() => setIsBasicInfoEditing(true)} className="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5">
+                      <Settings className="w-3.5 h-3.5" />
+                      {lang === 'ar' ? 'تعديل المعلومات' : lang === 'en' ? 'Edit Info' : 'Modifier les infos'}
+                    </button>
+                  )}
                 </div>
+                
+                {!isBasicInfoEditing ? (
+                  <div className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center shadow-sm shrink-0">
+                        <span className="font-black text-slate-800 text-sm">متجر</span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 mb-0.5">{lang === 'ar' ? 'اسم المتجر' : lang === 'en' ? 'Store Name' : 'Nom de la boutique'}</p>
+                        <p className="font-bold text-slate-900">{storeName}</p>
+                      </div>
+                    </div>
+                    {storeDescription && (
+                      <div className="pt-2 border-t border-slate-200">
+                        <p className="text-xs font-bold text-slate-500 mb-1">{lang === 'ar' ? 'وصف المتجر' : lang === 'en' ? 'Store Description' : 'Description de la boutique'}</p>
+                        <p className="text-sm font-medium text-slate-700">{storeDescription}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4 animate-fade-in border border-slate-200 p-5 rounded-xl bg-slate-50">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'اسم المتجر' : lang === 'en' ? 'Store Name' : 'Nom de la boutique'}</label>
+                      <input 
+                        type="text" 
+                        className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-cyan-500 outline-none font-bold text-slate-900" 
+                        value={storeName}
+                        onChange={(e) => setStoreName(e.target.value)}
+                        dir="auto" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'وصف المتجر' : lang === 'en' ? 'Store Description' : 'Description de la boutique'}</label>
+                      <textarea 
+                        className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-cyan-500 outline-none h-24 font-medium text-slate-700" 
+                        value={storeDescription}
+                        onChange={(e) => setStoreDescription(e.target.value)}
+                        placeholder={lang === 'ar' ? 'أضف وصفاً قصيراً لمتجرك...' : lang === 'en' ? 'Add a short description...' : 'Ajoutez une courte description...'}
+                        dir="auto"
+                      ></textarea>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-2">
+                      <button 
+                        onClick={() => setIsBasicInfoEditing(false)} 
+                        className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors"
+                      >
+                        {lang === 'ar' ? 'إلغاء' : lang === 'en' ? 'Cancel' : 'Annuler'}
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setIsBasicInfoEditing(false);
+                          showToastAndNavigate(lang === 'ar' ? 'تم حفظ المعلومات بنجاح!' : lang === 'en' ? 'Information saved!' : 'Informations enregistrées !', 'settings');
+                        }}
+                        className="px-6 py-2 bg-cyan-600 text-white text-sm font-bold rounded-lg hover:bg-cyan-500 transition-colors"
+                      >
+                        {lang === 'ar' ? 'حفظ التغييرات' : lang === 'en' ? 'Save' : 'Enregistrer'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden transition-all">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-slate-900">{isAr ? 'النطاق (Domain)' : 'Domaine'}</h3>
+                  <h3 className="text-lg font-bold text-slate-900">{lang === 'ar' ? 'النطاق (Domain)' : lang === 'en' ? 'Domain' : 'Domaine'}</h3>
                   {!isDomainEditing && (
-                    <button onClick={() => setIsDomainEditing(true)} className="text-sm font-bold text-cyan-600 hover:text-cyan-700 bg-cyan-50 px-4 py-2 rounded-lg transition-colors">
-                      {isAr ? 'تعديل النطاق' : 'Modifier le domaine'}
+                    <button onClick={() => setIsDomainEditing(true)} className="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5">
+                      <Settings className="w-3.5 h-3.5" />
+                      {lang === 'ar' ? 'تعديل النطاق' : lang === 'en' ? 'Edit Domain' : 'Modifier le domaine'}
                     </button>
                   )}
                 </div>
@@ -519,7 +699,7 @@ export default function GZeedDashboard() {
                       <div>
                         <p className="font-bold text-slate-900" dir="ltr">{domainName}</p>
                         <p className="text-xs text-slate-500 font-medium">
-                          {domainName.includes('.gzeed.com') ? (isAr ? 'نطاق فرعي مجاني' : 'Sous-domaine gratuit') : (isAr ? 'نطاق مخصص PRO' : 'Domaine personnalisé PRO')}
+                          {domainName.includes('.gzeed.com') ? (lang === 'ar' ? 'نطاق فرعي مجاني' : lang === 'en' ? 'Free Subdomain' : 'Sous-domaine gratuit') : (lang === 'ar' ? 'نطاق مخصص PRO' : lang === 'en' ? 'Custom Domain PRO' : 'Domaine personnalisé PRO')}
                         </p>
                       </div>
                     </div>
@@ -531,13 +711,13 @@ export default function GZeedDashboard() {
                         onClick={() => setDomainTab('subdomain')}
                         className={`flex-1 py-3 text-sm font-bold transition-colors ${domainTab === 'subdomain' ? 'bg-white text-cyan-600 border-b-2 border-cyan-500' : 'text-slate-500 hover:bg-slate-100'}`}
                       >
-                        {isAr ? 'نطاق فرعي مجاني' : 'Sous-domaine gratuit'}
+                        {lang === 'ar' ? 'نطاق فرعي مجاني' : lang === 'en' ? 'Free Subdomain' : 'Sous-domaine gratuit'}
                       </button>
                       <button 
                         onClick={() => setDomainTab('custom')}
                         className={`flex-1 py-3 text-sm font-bold transition-colors flex items-center justify-center gap-2 ${domainTab === 'custom' ? 'bg-white text-indigo-600 border-b-2 border-indigo-500' : 'text-slate-500 hover:bg-slate-100'}`}
                       >
-                        {isAr ? 'نطاق مخصص PRO' : 'Domaine personnalisé PRO'}
+                        {lang === 'ar' ? 'نطاق مخصص PRO' : lang === 'en' ? 'Custom Domain PRO' : 'Domaine personnalisé PRO'}
                         <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full">PRO</span>
                       </button>
                     </div>
@@ -546,7 +726,7 @@ export default function GZeedDashboard() {
                       {domainTab === 'subdomain' && (
                         <div className="space-y-4 animate-fade-in">
                           <p className="text-sm font-medium text-slate-500 mb-4">
-                            {isAr ? 'اختر اسماً لمشروعك ليظهر قبل .gzeed.com' : 'Choisissez un nom pour votre projet avant .gzeed.com'}
+                            {lang === 'ar' ? 'اختر اسماً لمشروعك ليظهر قبل .gzeed.com' : lang === 'en' ? 'Choose a name for your project before .gzeed.com' : 'Choisissez un nom pour votre projet avant .gzeed.com'}
                           </p>
                           <div className="flex flex-col md:flex-row gap-3">
                             <div className="relative flex-1 flex items-center">
@@ -565,12 +745,12 @@ export default function GZeedDashboard() {
                                 if (subdomainInput.trim()) {
                                   setDomainName(`${subdomainInput.trim().toLowerCase()}.gzeed.com`);
                                   setIsDomainEditing(false);
-                                  showToastAndNavigate(isAr ? 'تم حفظ النطاق بنجاح! حان وقت اختيار قالبك.' : 'Domaine enregistré ! Choisissez maintenant votre thème.', 'themes');
+                                  showToastAndNavigate(lang === 'ar' ? 'تم حفظ النطاق بنجاح! حان وقت اختيار قالبك.' : lang === 'en' ? 'Domain saved! Now choose your theme.' : 'Domaine enregistré ! Choisissez maintenant votre thème.', 'themes');
                                 }
                               }}
                               className="px-6 py-3 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-500 transition-colors shrink-0"
                             >
-                              {isAr ? 'حفظ النطاق' : 'Enregistrer'}
+                              {lang === 'ar' ? 'حفظ النطاق' : lang === 'en' ? 'Save' : 'Enregistrer'}
                             </button>
                           </div>
                         </div>
@@ -579,7 +759,7 @@ export default function GZeedDashboard() {
                       {domainTab === 'custom' && (
                         <div className="space-y-4 animate-fade-in">
                           <p className="text-sm font-medium text-slate-500 mb-4">
-                            {isAr ? 'اربط نطاقك الخاص (مثال: www.mystore.com) لتبدو أكثر احترافية.' : 'Connectez votre propre domaine (ex: www.mystore.com).'}
+                            {lang === 'ar' ? 'اربط نطاقك الخاص (مثال: www.mystore.com) لتبدو أكثر احترافية.' : lang === 'en' ? 'Connect your custom domain (ex: www.mystore.com).' : 'Connectez votre propre domaine (ex: www.mystore.com).'}
                           </p>
                           <div className="flex flex-col md:flex-row gap-3 mb-6">
                             <input 
@@ -595,19 +775,19 @@ export default function GZeedDashboard() {
                                 if (customDomainInput.trim()) {
                                   setDomainName(customDomainInput.trim().toLowerCase());
                                   setIsDomainEditing(false);
-                                  showToastAndNavigate(isAr ? 'تم ربط النطاق بنجاح! حان وقت اختيار قالبك.' : 'Domaine connecté ! Choisissez maintenant votre thème.', 'themes');
+                                  showToastAndNavigate(lang === 'ar' ? 'تم ربط النطاق بنجاح! حان وقت اختيار قالبك.' : lang === 'en' ? 'Domain connected! Now choose your theme.' : 'Domaine connecté ! Choisissez maintenant votre thème.', 'themes');
                                 }
                               }}
                               className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-500 transition-colors shrink-0"
                             >
-                              {isAr ? 'ربط النطاق' : 'Connecter'}
+                              {lang === 'ar' ? 'ربط النطاق' : lang === 'en' ? 'Connect' : 'Connecter'}
                             </button>
                           </div>
                           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm font-medium text-indigo-900">
                             <h4 className="font-bold mb-2 flex items-center gap-2">
-                              <Settings className="w-4 h-4" /> {isAr ? 'إعدادات DNS المطلوبة:' : 'Paramètres DNS requis :'}
+                              <Settings className="w-4 h-4" /> {lang === 'ar' ? 'إعدادات DNS المطلوبة:' : lang === 'en' ? 'Required DNS Settings:' : 'Paramètres DNS requis :'}
                             </h4>
-                            <p className="mb-2 opacity-80">{isAr ? 'قم بإضافة هذا السجل في لوحة تحكم النطاق الخاص بك (Namecheap, GoDaddy...):' : 'Ajoutez cet enregistrement dans votre panneau de contrôle DNS :'}</p>
+                            <p className="mb-2 opacity-80">{lang === 'ar' ? 'قم بإضافة هذا السجل في لوحة تحكم النطاق الخاص بك (Namecheap, GoDaddy...):' : lang === 'en' ? 'Add this record in your DNS control panel:' : 'Ajoutez cet enregistrement dans votre panneau de contrôle DNS :'}</p>
                             <code className="block bg-white p-3 rounded-lg border border-indigo-200 font-mono text-xs text-left" dir="ltr">
                               Type: A <br/>
                               Name: @ <br/>
@@ -620,7 +800,7 @@ export default function GZeedDashboard() {
                     
                     <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
                       <button onClick={() => setIsDomainEditing(false)} className="text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">
-                        {isAr ? 'إلغاء' : 'Annuler'}
+                        {lang === 'ar' ? 'إلغاء' : lang === 'en' ? 'Cancel' : 'Annuler'}
                       </button>
                     </div>
                   </div>
@@ -632,11 +812,121 @@ export default function GZeedDashboard() {
           {['customers', 'analytics'].includes(activeTab) && (
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400 animate-fade-in">
               <Settings className="w-16 h-16 mb-4 animate-spin-slow opacity-20" />
-              <h2 className="text-xl font-bold text-slate-500">{isAr ? 'هذه الصفحة قيد التطوير' : 'Page en cours de développement'}</h2>
+              <h2 className="text-xl font-bold text-slate-500">{lang === 'ar' ? 'هذه الصفحة قيد التطوير' : lang === 'en' ? 'Page under development' : 'Page en cours de développement'}</h2>
             </div>
           )}
         </div>
       </main>
+
+          {activeTab === 'add-product' && (
+            <div className="max-w-6xl mx-auto animate-fade-in pb-12">
+              {/* Header */}
+              <div className="flex items-center gap-4 mb-8">
+                <button 
+                  onClick={() => setActiveTab('products')}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-colors shrink-0"
+                >
+                  <ArrowLeft className={`w-5 h-5 text-slate-600 ${isAr ? 'rotate-180' : ''}`} />
+                </button>
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900">{lang === 'ar' ? 'إضافة منتج جديد' : lang === 'en' ? 'Add New Product' : 'Ajouter un nouveau produit'}</h2>
+                  <p className="text-sm font-medium text-slate-500 mt-1">{lang === 'ar' ? 'أدخل تفاصيل منتجك لبدء بيعه.' : lang === 'en' ? 'Enter your product details to start selling.' : 'Entrez les détails de votre produit pour commencer à le vendre.'}</p>
+                </div>
+              </div>
+
+              {/* Main Form Area */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column (Forms) */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Basic Info */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 mb-6">{lang === 'ar' ? 'المعلومات الأساسية' : lang === 'en' ? 'Basic Information' : 'Informations de base'}</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'اسم المنتج' : lang === 'en' ? 'Product Name' : 'Nom du produit'}</label>
+                        <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900" placeholder={lang === 'ar' ? 'مثال: حذاء رياضي' : lang === 'en' ? 'e.g. Sneakers' : 'ex: Baskets'} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'وصف المنتج' : lang === 'en' ? 'Description' : 'Description'}</label>
+                        <textarea rows={4} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900 resize-none" placeholder={lang === 'ar' ? 'اكتب وصفاً جذاباً لمنتجك...' : lang === 'en' ? 'Write a catchy description...' : 'Écrivez une description accrocheuse...'}></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pricing */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 mb-6">{lang === 'ar' ? 'السعر والمخزون' : lang === 'en' ? 'Pricing & Inventory' : 'Prix & Inventaire'}</h3>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'السعر (درهم)' : lang === 'en' ? 'Price (MAD)' : 'Prix (MAD)'}</label>
+                        <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900" placeholder="0.00" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'السعر الأصلي (قبل التخفيض)' : lang === 'en' ? 'Compare at price' : 'Prix avant réduction'}</label>
+                        <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900" placeholder="0.00" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'الكمية المتوفرة (Stock)' : lang === 'en' ? 'Available Stock' : 'Stock disponible'}</label>
+                        <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900" placeholder="1" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column (Settings & Images) */}
+                <div className="space-y-6">
+                  {/* Type of Product */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 mb-4">{lang === 'ar' ? 'نوع المنتج' : lang === 'en' ? 'Product Type' : 'Type de produit'}</h3>
+                    <div className="space-y-3">
+                      {[
+                        { id: 'physical', icon: Package, title: lang === 'ar' ? 'منتج ملموس' : lang === 'en' ? 'Physical' : 'Physique', desc: lang === 'ar' ? 'ملابس، إلكترونيات، إلخ' : lang === 'en' ? 'Clothes, electronics, etc' : 'Vêtements, etc' },
+                        { id: 'digital', icon: DownloadCloud, title: lang === 'ar' ? 'منتج رقمي' : lang === 'en' ? 'Digital' : 'Numérique', desc: lang === 'ar' ? 'كتب، دورات، برامج' : lang === 'en' ? 'Books, courses, soft' : 'Livres, logiciels' }
+                      ].map(type => (
+                        <div 
+                          key={type.id}
+                          onClick={() => setProductType(type.id)}
+                          className={`p-3 rounded-xl border-2 cursor-pointer flex items-center gap-3 transition-all ${productType === type.id ? 'border-cyan-500 bg-cyan-50' : 'border-slate-100 hover:border-slate-200 bg-white'}`}
+                        >
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${productType === type.id ? 'bg-cyan-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                            <type.icon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900 text-sm">{type.title}</p>
+                            <p className="text-xs text-slate-500 font-medium">{type.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Images */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 mb-4">{lang === 'ar' ? 'الصور' : lang === 'en' ? 'Images' : 'Images'}</h3>
+                    <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-cyan-500 hover:bg-cyan-50 transition-all group">
+                      <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
+                        <UploadCloud className="w-6 h-6 text-cyan-500" />
+                      </div>
+                      <p className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'اسحب الصور وأفلتها هنا' : lang === 'en' ? 'Drag & drop images here' : 'Glissez & déposez vos images ici'}</p>
+                      <p className="text-xs font-medium text-slate-500 mt-1">{lang === 'ar' ? 'أو اضغط لتصفح الملفات' : lang === 'en' ? 'or click to browse' : 'ou cliquez pour parcourir'}</p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      setTasksCompleted(prev => ({ ...prev, product: true }));
+                      setActiveTab('products');
+                      showToastAndNavigate(lang === 'ar' ? 'تم إضافة المنتج بنجاح!' : lang === 'en' ? 'Product added successfully!' : 'Produit ajouté avec succès !', 'products');
+                    }}
+                    className="w-full py-4 bg-slate-900 text-white rounded-xl font-black text-lg shadow-xl shadow-slate-900/20 hover:scale-105 transition-transform flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-5 h-5" />
+                    {lang === 'ar' ? 'حفظ ونشر المنتج' : lang === 'en' ? 'Save & Publish Product' : 'Enregistrer le produit'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
       {/* Toast Notification */}
       {toastMessage && (
