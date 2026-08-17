@@ -83,9 +83,9 @@ export default function PlatformLanding() {
 
             {/* Icon Version */}
             <div className={`absolute left-0 transition-opacity duration-1000 ease-in-out ${showIcon ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg border transition-colors duration-300 ${scrolled ? 'bg-[#0b1121] border-slate-800/50' : 'bg-white border-white/20'}`}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg border bg-white border-slate-200/50">
                 <span className="text-2xl font-black tracking-tighter leading-none flex items-center">
-                  <span className={`transition-colors duration-300 ${scrolled ? 'text-white' : 'text-slate-900'}`}>G</span><span className="text-cyan-400">Z</span>
+                  <span className="text-slate-900">G</span><span className="text-cyan-400">Z</span>
                 </span>
               </div>
             </div>
