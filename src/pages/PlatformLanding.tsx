@@ -28,11 +28,11 @@ export default function PlatformLanding() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Alternate logo every 3 seconds
+  // Alternate logo every 6 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setShowIcon(prev => !prev);
-    }, 3000);
+    }, 6000);
     return () => clearInterval(interval);
   }, []);
 
