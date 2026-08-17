@@ -27,6 +27,11 @@ export default function GZeedDashboard() {
   const [themeFilter, setThemeFilter] = useState('all');
   const [isDomainEditing, setIsDomainEditing] = useState(false);
   const [domainTab, setDomainTab] = useState('subdomain');
+  
+  // Domain States
+  const [domainName, setDomainName] = useState('store-123.gzeed.com');
+  const [subdomainInput, setSubdomainInput] = useState('');
+  const [customDomainInput, setCustomDomainInput] = useState('');
 
   const navItems = [
     { id: 'home', icon: Home, labelAr: 'الرئيسية', labelFr: 'Accueil' },
@@ -464,8 +469,10 @@ export default function GZeedDashboard() {
                     <div className="flex items-center gap-3">
                       <Globe className="w-5 h-5 text-slate-400" />
                       <div>
-                        <p className="font-bold text-slate-900">store-123.gzeed.com</p>
-                        <p className="text-xs text-slate-500 font-medium">{isAr ? 'نطاق فرعي مجاني' : 'Sous-domaine gratuit'}</p>
+                        <p className="font-bold text-slate-900" dir="ltr">{domainName}</p>
+                        <p className="text-xs text-slate-500 font-medium">
+                          {domainName.includes('.gzeed.com') ? (isAr ? 'نطاق فرعي مجاني' : 'Sous-domaine gratuit') : (isAr ? 'نطاق مخصص PRO' : 'Domaine personnalisé PRO')}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -498,12 +505,22 @@ export default function GZeedDashboard() {
                               <input 
                                 type="text" 
                                 placeholder="my-awesome-store"
+                                value={subdomainInput}
+                                onChange={(e) => setSubdomainInput(e.target.value)}
                                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none font-bold text-slate-900 text-right md:text-left"
                                 dir="ltr"
                               />
                               <span className="absolute right-4 text-slate-400 font-bold bg-slate-50 pl-2">.gzeed.com</span>
                             </div>
-                            <button className="px-6 py-3 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-500 transition-colors shrink-0">
+                            <button 
+                              onClick={() => {
+                                if (subdomainInput.trim()) {
+                                  setDomainName(`${subdomainInput.trim().toLowerCase()}.gzeed.com`);
+                                  setIsDomainEditing(false);
+                                }
+                              }}
+                              className="px-6 py-3 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-500 transition-colors shrink-0"
+                            >
                               {isAr ? 'حفظ النطاق' : 'Enregistrer'}
                             </button>
                           </div>
@@ -519,10 +536,20 @@ export default function GZeedDashboard() {
                             <input 
                               type="text" 
                               placeholder="www.mystore.com"
+                              value={customDomainInput}
+                              onChange={(e) => setCustomDomainInput(e.target.value)}
                               className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-900 text-left"
                               dir="ltr"
                             />
-                            <button className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-500 transition-colors shrink-0">
+                            <button 
+                              onClick={() => {
+                                if (customDomainInput.trim()) {
+                                  setDomainName(customDomainInput.trim().toLowerCase());
+                                  setIsDomainEditing(false);
+                                }
+                              }}
+                              className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-500 transition-colors shrink-0"
+                            >
                               {isAr ? 'ربط النطاق' : 'Connecter'}
                             </button>
                           </div>
