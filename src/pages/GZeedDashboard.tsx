@@ -25,6 +25,8 @@ export default function GZeedDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
   const [themeFilter, setThemeFilter] = useState('all');
+  const [isDomainEditing, setIsDomainEditing] = useState(false);
+  const [domainTab, setDomainTab] = useState('subdomain');
 
   const navItems = [
     { id: 'home', icon: Home, labelAr: 'الرئيسية', labelFr: 'Accueil' },
@@ -447,18 +449,105 @@ export default function GZeedDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                <h3 className="text-lg font-bold text-slate-900 mb-4">{isAr ? 'النطاق (Domain)' : 'Domaine'}</h3>
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <div className="flex items-center gap-3">
-                    <Globe className="w-5 h-5 text-slate-400" />
-                    <div>
-                      <p className="font-bold text-slate-900">store-123.gzeed.com</p>
-                      <p className="text-xs text-slate-500 font-medium">{isAr ? 'نطاق مجاني' : 'Domaine gratuit'}</p>
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-slate-900">{isAr ? 'النطاق (Domain)' : 'Domaine'}</h3>
+                  {!isDomainEditing && (
+                    <button onClick={() => setIsDomainEditing(true)} className="text-sm font-bold text-cyan-600 hover:text-cyan-700 bg-cyan-50 px-4 py-2 rounded-lg transition-colors">
+                      {isAr ? 'تعديل النطاق' : 'Modifier le domaine'}
+                    </button>
+                  )}
+                </div>
+                
+                {!isDomainEditing ? (
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <Globe className="w-5 h-5 text-slate-400" />
+                      <div>
+                        <p className="font-bold text-slate-900">store-123.gzeed.com</p>
+                        <p className="text-xs text-slate-500 font-medium">{isAr ? 'نطاق فرعي مجاني' : 'Sous-domaine gratuit'}</p>
+                      </div>
                     </div>
                   </div>
-                  <button className="text-sm font-bold text-cyan-600 hover:text-cyan-700">{isAr ? 'ربط نطاق مخصص' : 'Connecter un domaine'}</button>
-                </div>
+                ) : (
+                  <div className="animate-fade-in border border-slate-200 rounded-xl bg-slate-50 overflow-hidden">
+                    <div className="flex border-b border-slate-200">
+                      <button 
+                        onClick={() => setDomainTab('subdomain')}
+                        className={`flex-1 py-3 text-sm font-bold transition-colors ${domainTab === 'subdomain' ? 'bg-white text-cyan-600 border-b-2 border-cyan-500' : 'text-slate-500 hover:bg-slate-100'}`}
+                      >
+                        {isAr ? 'نطاق فرعي مجاني' : 'Sous-domaine gratuit'}
+                      </button>
+                      <button 
+                        onClick={() => setDomainTab('custom')}
+                        className={`flex-1 py-3 text-sm font-bold transition-colors flex items-center justify-center gap-2 ${domainTab === 'custom' ? 'bg-white text-indigo-600 border-b-2 border-indigo-500' : 'text-slate-500 hover:bg-slate-100'}`}
+                      >
+                        {isAr ? 'نطاق مخصص PRO' : 'Domaine personnalisé PRO'}
+                        <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full">PRO</span>
+                      </button>
+                    </div>
+
+                    <div className="p-6 bg-white">
+                      {domainTab === 'subdomain' && (
+                        <div className="space-y-4 animate-fade-in">
+                          <p className="text-sm font-medium text-slate-500 mb-4">
+                            {isAr ? 'اختر اسماً لمشروعك ليظهر قبل .gzeed.com' : 'Choisissez un nom pour votre projet avant .gzeed.com'}
+                          </p>
+                          <div className="flex flex-col md:flex-row gap-3">
+                            <div className="relative flex-1 flex items-center">
+                              <input 
+                                type="text" 
+                                placeholder="my-awesome-store"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none font-bold text-slate-900 text-right md:text-left"
+                                dir="ltr"
+                              />
+                              <span className="absolute right-4 text-slate-400 font-bold bg-slate-50 pl-2">.gzeed.com</span>
+                            </div>
+                            <button className="px-6 py-3 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-500 transition-colors shrink-0">
+                              {isAr ? 'حفظ النطاق' : 'Enregistrer'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {domainTab === 'custom' && (
+                        <div className="space-y-4 animate-fade-in">
+                          <p className="text-sm font-medium text-slate-500 mb-4">
+                            {isAr ? 'اربط نطاقك الخاص (مثال: www.mystore.com) لتبدو أكثر احترافية.' : 'Connectez votre propre domaine (ex: www.mystore.com).'}
+                          </p>
+                          <div className="flex flex-col md:flex-row gap-3 mb-6">
+                            <input 
+                              type="text" 
+                              placeholder="www.mystore.com"
+                              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-900 text-left"
+                              dir="ltr"
+                            />
+                            <button className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-500 transition-colors shrink-0">
+                              {isAr ? 'ربط النطاق' : 'Connecter'}
+                            </button>
+                          </div>
+                          <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm font-medium text-indigo-900">
+                            <h4 className="font-bold mb-2 flex items-center gap-2">
+                              <Settings className="w-4 h-4" /> {isAr ? 'إعدادات DNS المطلوبة:' : 'Paramètres DNS requis :'}
+                            </h4>
+                            <p className="mb-2 opacity-80">{isAr ? 'قم بإضافة هذا السجل في لوحة تحكم النطاق الخاص بك (Namecheap, GoDaddy...):' : 'Ajoutez cet enregistrement dans votre panneau de contrôle DNS :'}</p>
+                            <code className="block bg-white p-3 rounded-lg border border-indigo-200 font-mono text-xs text-left" dir="ltr">
+                              Type: A <br/>
+                              Name: @ <br/>
+                              Value: 76.76.21.21
+                            </code>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+                      <button onClick={() => setIsDomainEditing(false)} className="text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">
+                        {isAr ? 'إلغاء' : 'Annuler'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
