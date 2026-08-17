@@ -117,6 +117,7 @@ export default function PlatformLanding() {
         {/* Video Background */}
         <div className="absolute inset-0 w-full h-full overflow-hidden">
           <video
+            key={settings.heroVideoUrl}
             autoPlay
             loop
             muted
