@@ -2,6 +2,13 @@ import React from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLang } from '../contexts/LangContext';
+import { usePlatformSettings } from '../contexts/PlatformSettingsContext';
+
+const PricingPlanDefinition = [
+  { id: 'lite', title: { ar: 'LITE', fr: 'LITE' }, desc: { ar: 'أسهل طريقة لبناء موقعك', fr: 'Le plus simple pour démarrer' }, oldPrice: '149' },
+  { id: 'pro', title: { ar: 'PRO', fr: 'PRO' }, desc: { ar: 'مرونة كاملة وسهولة فائقة في الاستخدام', fr: 'Flexibilité totale et simplicité' }, oldPrice: '299', isPopular: true },
+  { id: 'agency', title: { ar: 'AGENCY', fr: 'AGENCY' }, desc: { ar: 'للوكالات والمطورين المحترفين', fr: 'Pour les agences et développeurs' }, oldPrice: '799' },
+];
 
 export function PricingSection({
   bgClass = "bg-slate-50",
@@ -11,9 +18,7 @@ export function PricingSection({
   titleClass?: string;
 }) {
   const { isAr } = useLang();
-  
-  const proPrice = '199';
-  const premiumPrice = '499';
+  const { settings } = usePlatformSettings();
 
   return (
     <section className={`py-32 relative ${bgClass}`} id="pricing">
@@ -32,38 +37,23 @@ export function PricingSection({
         </div>
 
         <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6 lg:gap-8 max-w-7xl mx-auto items-stretch" dir={isAr ? "rtl" : "ltr"}>
-          
-          {/* PRO Plan */}
-          <div className="bg-white rounded-[2rem] p-6 md:p-8 border border-slate-200 hover:border-slate-300 transition-all hover:shadow-xl relative flex flex-col h-full lg:mt-4">
-            <div className={`absolute top-6 ${isAr ? 'right-6' : 'left-6'}`}>
-              <span className="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">
-                {isAr ? 'بدون اشتراك حتى تبيع' : 'Gratuit jusqu\'à la 1ère vente'}
-              </span>
-            </div>
-
-            <div className="mt-6 text-center sm:text-start">
-              <h3 className="text-2xl font-black text-slate-900 mb-1 uppercase tracking-tight">PRO</h3>
-              <p className="text-slate-500 mb-6 font-medium text-xs">{isAr ? 'للمبتدئين في التجارة الإلكترونية' : 'Création autonome'}</p>
-            </div>
-            
-            <div className="mb-6 flex flex-col pb-6 border-b border-slate-100 items-center sm:items-start">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg font-bold text-slate-400 line-through decoration-2">299</span>
+                <span className="text-lg font-bold text-slate-400 line-through decoration-2">149</span>
                 <span className="text-[9px] font-black text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full uppercase tracking-wider">{isAr ? 'خصم' : 'PROMO'}</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-black text-slate-900 tracking-tighter">{proPrice}</span>
+                <span className="text-5xl font-black text-slate-900 tracking-tighter">{settings.litePrice}</span>
                 <span className="text-slate-500 font-bold text-xs">MAD / {isAr ? 'شهر' : 'mois'}</span>
               </div>
             </div>
             
             <ul className="space-y-3.5 mb-8 flex-1 text-sm">
               {[
-                isAr ? 'متجر إلكتروني واحد' : '1 Boutique en ligne',
-                isAr ? 'منتجات غير محدودة و0% عمولة' : 'Produits illimités & 0% commision',
-                isAr ? 'استضافة مجانية وسريعة' : 'Hébergement rapide et gratuit',
-                isAr ? 'تطبيقات لزيادة المبيعات' : 'Apps de conversion (Upsell)',
-                isAr ? 'دعم فني قياسي' : 'Support standard',
+                isAr ? 'واجهة احترافية تزيد من مصداقيتك' : 'Site vitrine ultra professionnel',
+                isAr ? 'صمم موقعك بنفسك في 5 دقائق' : 'Créez votre site en 5 minutes',
+                isAr ? 'موقع سريع جداً لا يتوقف أبداً' : 'Site ultra-rapide et toujours en ligne',
+                isAr ? 'جاهز للعمل بدون أي خبرة سابقة' : 'Prêt à l\'emploi sans expérience',
+                isAr ? 'دعم فني يرافقك خطوة بخطوة' : 'Support technique à vos côtés',
               ].map((f, i) => (
                 <li key={i} className="flex items-center gap-3 text-slate-700 font-medium">
                   <CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0 bg-indigo-50 rounded-full" />
@@ -71,59 +61,59 @@ export function PricingSection({
                 </li>
               ))}
             </ul>
-            <Link to="/store-signup?plan=PRO" className="block w-full py-3.5 text-center rounded-2xl font-bold text-sm bg-slate-50 text-slate-900 hover:bg-slate-100 border border-slate-200 transition-all">
-              {isAr ? 'ابدأ الآن' : 'Créer ma boutique'}
+            <Link to="/store-signup?plan=LITE" className="block w-full py-3.5 text-center rounded-2xl font-bold text-sm bg-slate-50 text-slate-900 hover:bg-slate-100 border border-slate-200 transition-all">
+              {isAr ? 'ابدأ موقعك الآن' : 'Créer mon site'}
             </Link>
           </div>
 
-          {/* ZIRORISK Plan (Highlighted) */}
+          {/* PRO Plan (Highlighted) */}
           <div className="bg-[#0b1120] text-white rounded-[2rem] p-6 md:p-8 border border-slate-800 shadow-2xl relative flex flex-col h-full transform hover:-translate-y-2 transition-all duration-300 z-10 lg:-translate-y-4">
             <div className={`absolute top-6 ${isAr ? 'right-6' : 'left-6'}`}>
-              <span className="bg-amber-500 text-slate-900 text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">
-                {isAr ? 'الأكثر مبيعاً' : 'Le plus populaire'}
+              <span className="bg-cyan-500 text-slate-900 text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">
+                {isAr ? 'الأكثر اختياراً' : 'Le plus populaire'}
               </span>
             </div>
             
             <div className="mt-6 text-center sm:text-start">
-              <h3 className="text-2xl font-black text-white mb-1 uppercase tracking-tight">ZIRORISK</h3>
-              <p className="text-slate-400 mb-6 font-medium text-xs">{isAr ? 'بيزنس جاهز، حنا نصاوبو كولشي' : 'Business clé en main'}</p>
+              <h3 className="text-2xl font-black text-white mb-1 uppercase tracking-tight">PRO</h3>
+              <p className="text-slate-400 mb-6 font-medium text-xs">{isAr ? 'مرونة كاملة وسهولة فائقة في الاستخدام' : 'Flexibilité totale et simplicité'}</p>
             </div>
             
             <div className="mb-6 flex flex-col pb-6 border-b border-slate-800 items-center sm:items-start">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg font-bold text-slate-500 line-through decoration-2">1,500</span>
-                <span className="text-[9px] font-black text-rose-400 bg-rose-400/10 border border-rose-400/20 px-2 py-0.5 rounded-full uppercase tracking-wider">{isAr ? 'عرض' : 'PROMO'}</span>
+                <span className="text-lg font-bold text-slate-500 line-through decoration-2">299</span>
+                <span className="text-[9px] font-black text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 px-2 py-0.5 rounded-full uppercase tracking-wider">{isAr ? 'عرض' : 'PROMO'}</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-black text-white tracking-tighter">699</span>
-                <span className="text-slate-400 font-bold text-xs">MAD / {isAr ? 'مرة واحدة (Setup)' : 'Une fois (Setup)'}</span>
+                <span className="text-5xl font-black text-white tracking-tighter">{settings.proPrice}</span>
+                <span className="text-slate-400 font-bold text-xs">MAD / {isAr ? 'شهر' : 'mois'}</span>
               </div>
             </div>
             
             <ul className="space-y-3.5 mb-8 flex-1 text-sm">
               {[
-                isAr ? 'تصميم متجر احترافي + شراء دومين (.com)' : 'Création boutique + Domaine PRO (.com)',
-                isAr ? 'إعداد تطبيقات المبيعات (Upsell) جاهزة' : 'Configuration des apps de vente (Upsell)',
-                isAr ? 'ربط أوتوماتيكي مع منصة eGrow' : 'Liaison automatique avec eGrow',
-                isAr ? 'الاشتراك (199) يبدأ بعد أول مبيعة' : 'Abonnement (199) après la 1ère vente',
-                isAr ? 'تسليم بيزنس جاهز للعمل 100%' : 'Business 100% prêt à vendre',
+                isAr ? 'متجر إلكتروني متكامل واحترافي' : 'Boutique en ligne professionnelle',
+                isAr ? 'تصميم مخصص 100% يعكس هويتك' : 'Design 100% personnalisé et modifiable',
+                isAr ? 'أدوات ذكية تضاعف مبيعاتك أوتوماتيكياً' : 'Outils marketing qui doublent vos ventes',
+                isAr ? 'إدارة سهلة لطلبياتك من هاتفك فقط' : 'Gestion facile depuis votre téléphone',
+                isAr ? 'سرعة فائقة تتحمل آلاف الزوار بثبات' : 'Vitesse extrême pour des milliers de visiteurs',
               ].map((f, i) => (
                 <li key={i} className="flex items-center gap-3 text-slate-200 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 bg-amber-500/10 rounded-full" />
+                  <CheckCircle2 className="w-4 h-4 text-cyan-500 shrink-0 bg-cyan-500/10 rounded-full" />
                   <span>{f}</span>
                 </li>
               ))}
             </ul>
-            <Link to="/store-signup?plan=ZIRORISK" className="block w-full py-3.5 text-center rounded-2xl font-bold text-sm bg-indigo-500 text-white hover:bg-indigo-600 transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)]">
-              {isAr ? 'احجز متجرك الآن' : 'Réserver ma boutique'}
+            <Link to="/store-signup?plan=PRO" className="block w-full py-3.5 text-center rounded-2xl font-bold text-sm bg-cyan-600 text-white hover:bg-cyan-700 transition-all shadow-[0_0_20px_rgba(8,145,178,0.3)] hover:shadow-[0_0_25px_rgba(8,145,178,0.5)]">
+              {isAr ? 'احجز متجرك الآن' : 'Créer ma boutique PRO'}
             </Link>
           </div>
           
-          {/* PREMIUM Plan */}
+          {/* AGENCY Plan */}
           <div className="bg-white rounded-[2rem] p-6 md:p-8 border border-slate-200 hover:border-slate-300 transition-all hover:shadow-xl relative flex flex-col h-full lg:mt-4">
             <div className="text-center sm:text-start mt-6">
-              <h3 className="text-2xl font-black text-slate-900 mb-1 uppercase tracking-tight">PREMIUM</h3>
-              <p className="text-slate-500 mb-6 font-medium text-xs">{isAr ? 'للشركات والعلامات الكبرى' : 'Pour les multi-marques'}</p>
+              <h3 className="text-2xl font-black text-slate-900 mb-1 uppercase tracking-tight">AGENCY</h3>
+              <p className="text-slate-500 mb-6 font-medium text-xs">{isAr ? 'للوكالات والمطورين المحترفين' : 'Pour les agences et développeurs'}</p>
             </div>
             
             <div className="mb-6 flex flex-col pb-6 border-b border-slate-100 items-center sm:items-start">
@@ -132,18 +122,18 @@ export function PricingSection({
                 <span className="text-[9px] font-black text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full uppercase tracking-wider">{isAr ? 'خصم' : 'PROMO'}</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-black text-slate-900 tracking-tighter">{premiumPrice}</span>
+                <span className="text-5xl font-black text-slate-900 tracking-tighter">{settings.agencyPrice}</span>
                 <span className="text-slate-500 font-bold text-xs">MAD / {isAr ? 'شهر' : 'mois'}</span>
               </div>
             </div>
             
             <ul className="space-y-3.5 mb-8 flex-1 text-sm">
               {[
-                isAr ? 'حتى 5 متاجر إلكترونية' : 'Jusqu\'à 5 Boutiques',
-                isAr ? '0% عمولة على المبيعات' : '0% de frais de transaction',
-                isAr ? 'أولوية في التصنيع والشحن' : 'Priorité de confection',
-                isAr ? 'مدير حساب شخصي' : 'Account manager dédié',
-                isAr ? 'إضافات متقدمة مجانية' : 'Extensions premium gratuites',
+                isAr ? 'برمج تطبيقات ومواقع وبعها لعملائك' : 'Créez et vendez vos propres applications',
+                isAr ? 'عمولة مستمرة من اشتراكات عملائك الشهرية' : 'Commissions sur les abonnements de vos clients',
+                isAr ? 'لوحة تحكم مركزية لإدارة عملائك وأرباحك' : 'Tableau de bord centralisé clients & revenus',
+                isAr ? 'واجهة بيضاء (White-Label) باسمك وشعارك' : 'Plateforme en Marque Blanche (White-Label)',
+                isAr ? 'بنية تحتية مرنة للمطورين (API/Webhooks)' : 'Infrastructure flexible (API/Webhooks)',
               ].map((f, i) => (
                 <li key={i} className="flex items-center gap-3 text-slate-700 font-medium">
                   <CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0 bg-indigo-50 rounded-full" />
@@ -151,12 +141,35 @@ export function PricingSection({
                 </li>
               ))}
             </ul>
-            <Link to="/store-signup?plan=PREMIUM" className="block w-full py-3.5 text-center rounded-2xl font-bold text-sm bg-slate-50 text-slate-900 hover:bg-slate-100 border border-slate-200 transition-all">
+            <Link to="/store-signup?plan=AGENCY" className="block w-full py-3.5 text-center rounded-2xl font-bold text-sm bg-slate-50 text-slate-900 hover:bg-slate-100 border border-slate-200 transition-all">
               {isAr ? 'تواصل معنا' : 'S\'abonner maintenant'}
             </Link>
           </div>
 
         </div>
+
+        {/* Custom Solutions Banner */}
+        <div className="mt-16 bg-slate-50 rounded-3xl p-8 md:p-12 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8 z-10" dir={isAr ? "rtl" : "ltr"}>
+          
+          <div className="max-w-3xl text-center sm:text-start">
+            <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">
+              {isAr ? 'نظام متكامل خاص بشركتك أو مشروعك' : 'Système sur-mesure pour votre entreprise ou projet'}
+            </h3>
+            
+            <p className="text-slate-600 text-lg leading-relaxed">
+              {isAr 
+                ? 'سواء كنت تدير شركة أو مشروعاً كبيراً، نقوم بتحويل عملك إلى نظام رقمي متكامل. منصة واحدة مخصصة لك لتسيير عملياتك، موظفيك، وحساباتك بكل سهولة واحترافية.' 
+                : 'Que vous dirigiez une entreprise ou un grand projet, nous transformons votre activité en un système numérique complet pour gérer vos opérations et employés en toute simplicité.'}
+            </p>
+          </div>
+
+          <div className="flex-shrink-0 w-full sm:w-auto mt-4 md:mt-0">
+            <Link to="/contact" className="block w-full sm:w-auto px-8 py-4 bg-slate-900 text-white hover:bg-slate-800 font-bold rounded-xl text-center transition-all shadow-md">
+              {isAr ? 'تواصل معنا لدراسة مشروعك' : 'Étudions votre projet'}
+            </Link>
+          </div>
+        </div>
+
       </div>
     </section>
   );
