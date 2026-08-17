@@ -113,18 +113,36 @@ export default function PlatformLanding() {
           </p>
 
           <form onSubmit={(e) => { e.preventDefault(); navigate('/store-signup'); }} className="relative max-w-2xl mx-auto mb-8 transform transition-all hover:scale-[1.02] duration-300 z-10">
-            <div className="flex items-center bg-white rounded-2xl p-2 shadow-2xl border border-slate-100">
-              <Mail className="w-6 h-6 text-slate-400 ml-4 hidden sm:block" />
+            {/* Desktop View */}
+            <div className="hidden sm:flex items-center bg-white rounded-2xl p-2 shadow-2xl border border-slate-100">
+              <Mail className="w-6 h-6 text-slate-400 mx-4" />
               <input
                 type="email"
                 required
                 placeholder={isAr ? "أدخل بريدك الإلكتروني للبدء..." : "Entrez votre adresse e-mail..."}
-                className="flex-1 bg-transparent border-none focus:ring-0 text-lg px-4 font-medium text-slate-900 placeholder:text-slate-400"
+                className="flex-1 bg-transparent border-none focus:ring-0 text-lg px-2 font-medium text-slate-900 placeholder:text-slate-400"
                 dir={isAr ? "rtl" : "ltr"}
               />
               <button type="submit" className="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group whitespace-nowrap shadow-[0_0_20px_rgba(8,145,178,0.3)] hover:shadow-[0_0_30px_rgba(8,145,178,0.5)]">
                 {isAr ? 'أنشئ متجرك مجاناً' : 'Créer ma boutique'}
-                <ArrowRight className={`w-5 h-5 transition-transform ${isAr ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`} />
+                <ArrowRight className={`w-5 h-5 transition-transform shrink-0 ${isAr ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`} />
+              </button>
+            </div>
+
+            {/* Mobile View */}
+            <div className="flex sm:hidden flex-col gap-3 w-full">
+              <div className="bg-white rounded-xl shadow-lg flex items-center border border-slate-200 overflow-hidden">
+                <input
+                  type="email"
+                  required
+                  placeholder={isAr ? "أدخل بريدك الإلكتروني للبدء..." : "Entrez votre e-mail..."}
+                  className="flex-1 bg-transparent border-none focus:ring-0 text-base px-4 py-4 font-medium text-slate-900 placeholder:text-slate-400 w-full"
+                  dir={isAr ? "rtl" : "ltr"}
+                />
+              </div>
+              <button type="submit" className="w-full justify-center bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group shadow-[0_0_20px_rgba(8,145,178,0.3)]">
+                {isAr ? 'أنشئ متجرك مجاناً' : 'Créer ma boutique'}
+                <ArrowRight className={`w-5 h-5 transition-transform shrink-0 ${isAr ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`} />
               </button>
             </div>
           </form>
