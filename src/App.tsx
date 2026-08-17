@@ -64,6 +64,7 @@ const ListeAttente    = lazy(() => import('./pages/ListeAttente'));
 const Notifications   = lazy(() => import('./pages/Notifications'));
 const GZeedSignup     = lazy(() => import('./pages/GZeedSignup'));
 const GZeedDashboard  = lazy(() => import('./pages/GZeedDashboard'));
+const GZeedLogin      = lazy(() => import('./pages/GZeedLogin'));
 const AISpace         = lazy(() => import('./pages/AISpace'));
 const Achats          = lazy(() => import('./pages/Achats'));
 const Fournisseurs    = lazy(() => import('./pages/Fournisseurs'));
@@ -579,7 +580,7 @@ function AppContent() {
           <Route path="kiosk" element={<KioskScanner />} />
           <Route path="fast-scanner" element={<FastScanner />} />
         </Route>
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route path="/login" element={<Suspense fallback={<PageLoader />}><GZeedLogin /></Suspense>} />
         <Route path="/portal" element={<PortailClient />} />
         <Route path="/info" element={<ClientInfoRoute />} />
         <Route path="/meet" element={<PublicMeet />} />
