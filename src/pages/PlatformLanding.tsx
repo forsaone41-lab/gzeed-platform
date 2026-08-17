@@ -146,7 +146,7 @@ export default function PlatformLanding() {
           <div className="grid md:grid-cols-3 gap-6">
 
             {/* Service 1 */}
-            <div className="bg-white border border-slate-200 p-10 rounded-2xl hover:shadow-lg transition-all duration-300 group cursor-pointer">
+            <div onClick={() => navigate('/store-signup')} className="bg-white border border-slate-200 p-10 rounded-2xl hover:shadow-lg transition-all duration-300 group cursor-pointer">
               <Laptop className="w-12 h-12 text-slate-900 mb-6" />
               <h3 className="text-2xl font-black mb-3 text-slate-900">{txt('بناء أي موقع بحرية', 'Création de Sites Flexibles', 'Flexible Site Creation')}</h3>
               <p className="text-slate-600 leading-relaxed mb-6">
@@ -162,7 +162,7 @@ export default function PlatformLanding() {
             </div>
 
             {/* Service 2 */}
-            <div className="bg-white border border-slate-200 p-10 rounded-2xl hover:shadow-lg transition-all duration-300 group cursor-pointer">
+            <div onClick={() => navigate('/store-signup')} className="bg-white border border-slate-200 p-10 rounded-2xl hover:shadow-lg transition-all duration-300 group cursor-pointer">
               <TrendingUp className="w-12 h-12 text-slate-900 mb-6" />
               <h3 className="text-2xl font-black mb-3 text-slate-900">{txt('إدارة سهلة وبدون تعقيدات', 'Gestion facile et sans complexité', 'Easy & Hassle-free Management')}</h3>
               <p className="text-slate-600 leading-relaxed mb-6">
@@ -178,7 +178,7 @@ export default function PlatformLanding() {
             </div>
 
             {/* Service 3 */}
-            <div className="bg-white border border-slate-200 p-10 rounded-2xl hover:shadow-lg transition-all duration-300 group cursor-pointer">
+            <div onClick={() => navigate('/store-signup')} className="bg-white border border-slate-200 p-10 rounded-2xl hover:shadow-lg transition-all duration-300 group cursor-pointer">
               <Users className="w-12 h-12 text-slate-900 mb-6" />
               <h3 className="text-2xl font-black mb-3 text-slate-900">{txt('أكاديمية GZeed', 'GZeed Academy', 'GZeed Academy')}</h3>
               <p className="text-slate-600 leading-relaxed mb-6">
