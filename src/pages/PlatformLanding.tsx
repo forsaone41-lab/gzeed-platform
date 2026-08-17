@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLang } from '../contexts/LangContext';
-import { Play, TrendingUp, Users, Laptop, ArrowRight, ShieldCheck, Zap, Layers, ChevronRight, CheckCircle2, Search, Video } from 'lucide-react';
+import { Play, TrendingUp, Users, Laptop, ArrowRight, Search, Video, Mail } from 'lucide-react';
 import PublicFooter from '../components/PublicFooter';
 import { usePlatformSettings } from '../contexts/PlatformSettingsContext';
 
@@ -12,11 +12,8 @@ import { usePlatformSettings } from '../contexts/PlatformSettingsContext';
 export default function PlatformLanding() {
   const { lang, setLang, isAr } = useLang();
   const { settings } = usePlatformSettings();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
-  const [brandInput, setBrandInput] = useState("");
-  const [debouncedBrand, setDebouncedBrand] = useState("");
-  const [isSearchingDomain, setIsSearchingDomain] = useState(false);
-  const [domainResults, setDomainResults] = useState<{ ext: string, available: boolean }[]>([]);
   const [showIcon, setShowIcon] = useState(false);
 
   // Helper for 3-way translation
@@ -35,35 +32,6 @@ export default function PlatformLanding() {
     }, 10000);
     return () => clearInterval(interval);
   }, []);
-
-  // Debounce the input for domain search
-  useEffect(() => {
-    setIsSearchingDomain(true);
-    const timer = setTimeout(() => {
-      setDebouncedBrand(brandInput);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [brandInput]);
-
-  // Simulate Domain API Call
-  useEffect(() => {
-    if (!debouncedBrand) {
-      setDomainResults([]);
-      setIsSearchingDomain(false);
-      return;
-    }
-
-    // Fake logic: if word is very common or short (e.g. "google", "apple", < 4 chars), mark .com as taken
-    const isTaken = debouncedBrand.length < 5 || ['google', 'apple', 'amazon', 'facebook'].includes(debouncedBrand);
-
-    setDomainResults([
-      { ext: '.com', available: !isTaken },
-      { ext: '.ma', available: true },
-      { ext: '.store', available: true },
-    ]);
-    setIsSearchingDomain(false);
-
-  }, [debouncedBrand]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-cyan-500/20" dir={isAr ? 'rtl' : 'ltr'}>
@@ -144,62 +112,22 @@ export default function PlatformLanding() {
             )}
           </p>
 
-          {/* GoDaddy Style Search/Input Bar */}
-          <div className="max-w-3xl mx-auto bg-white p-2 rounded-xl flex flex-col sm:flex-row shadow-2xl relative z-20">
-            <div className="flex-1 flex items-center px-4 bg-white rounded-l-lg">
-              <Search className="w-6 h-6 text-slate-400 shrink-0" />
+          <form onSubmit={(e) => { e.preventDefault(); navigate('/store-signup'); }} className="relative max-w-2xl mx-auto mb-8 transform transition-all hover:scale-[1.02] duration-300 z-10">
+            <div className="flex items-center bg-white rounded-2xl p-2 shadow-2xl border border-slate-100">
+              <Mail className="w-6 h-6 text-slate-400 ml-4 hidden sm:block" />
               <input
-                type="text"
-                value={brandInput}
-                onChange={(e) => setBrandInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                placeholder={txt("شنو هي سمية المشروع ديالك؟ (مثال: mybrand)", "Quel est le nom de votre projet ?", "What is your project name?")}
-                className={`w-full py-4 px-4 outline-none text-xl font-medium text-slate-900 bg-transparent placeholder-slate-400 ${isAr ? 'text-right' : 'text-left'}`}
-                dir={isAr ? 'rtl' : 'ltr'}
+                type="email"
+                required
+                placeholder={isAr ? "أدخل بريدك الإلكتروني للبدء..." : "Entrez votre adresse e-mail..."}
+                className="flex-1 bg-transparent border-none focus:ring-0 text-lg px-4 font-medium text-slate-900 placeholder:text-slate-400"
+                dir={isAr ? "rtl" : "ltr"}
               />
+              <button type="submit" className="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group whitespace-nowrap shadow-[0_0_20px_rgba(8,145,178,0.3)] hover:shadow-[0_0_30px_rgba(8,145,178,0.5)]">
+                {isAr ? 'أنشئ متجرك مجاناً' : 'Créer ma boutique'}
+                <ArrowRight className={`w-5 h-5 transition-transform ${isAr ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`} />
+              </button>
             </div>
-            <button className="bg-cyan-600 hover:bg-cyan-700 text-white font-black text-xl px-10 py-4 rounded-lg transition-colors whitespace-nowrap mt-2 sm:mt-0 flex items-center justify-center gap-2 shadow-lg">
-              {txt('ابحث عن اسمك', 'Vérifier', 'Check Name')}
-              <ArrowRight className={`w-5 h-5 ${isAr ? 'rotate-180' : ''}`} />
-            </button>
-          </div>
-
-          {/* Dynamic URL & Domain Preview */}
-          {brandInput && (
-            <div className="max-w-3xl mx-auto mt-6 text-center animate-fade-in">
-              {/* Free Subdomain */}
-              <p className="text-white text-lg font-medium bg-black/40 inline-block px-6 py-2.5 rounded-full backdrop-blur-md border border-white/10 shadow-xl mb-4">
-                {txt('نطاقك المجاني:', 'Votre domaine gratuit:', 'Your free domain:')}
-                <span className="text-cyan-400 font-black ml-2 tracking-wide" dir="ltr">{brandInput}.gzeed.com</span>
-              </p>
-
-              {/* Premium Domains */}
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 max-w-2xl mx-auto">
-                <p className="text-slate-300 text-sm mb-3 font-medium">
-                  {isAr ? 'أو احجز نطاقاً احترافياً خاصاً بك:' : 'Ou réservez un domaine professionnel personnalisé :'}
-                </p>
-                <div className="flex flex-wrap justify-center gap-3 min-h-[40px]">
-                  {isSearchingDomain ? (
-                    <div className="flex items-center gap-3 text-slate-300">
-                      <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-sm font-medium">{isAr ? 'جاري فحص النطاقات في قواعد البيانات...' : 'Vérification dans les bases de données...'}</span>
-                    </div>
-                  ) : (
-                    domainResults.map((domain, idx) => (
-                      <div key={idx} className={`bg-white text-slate-900 px-4 py-2 rounded-xl font-bold flex items-center gap-3 text-sm shadow-sm transition-transform ${domain.available ? 'cursor-pointer hover:-translate-y-1' : 'opacity-80'}`}>
-                        <span dir="ltr">{debouncedBrand}{domain.ext}</span>
-                        {domain.available ? (
-                          <span className="text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">{isAr ? 'متاح' : 'Dispo'}</span>
-                        ) : (
-                          <span className="text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">{isAr ? 'مأخوذ' : 'Pris'}</span>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
+          </form>
           <p className="text-sm text-slate-300 mt-6 font-medium">
             {txt('تسجيل مجاني · لا تحتاج بطاقة بنكية · دعم 24/7', 'Inscription gratuite · Sans carte bancaire · Support 24/7', 'Free signup · No credit card required · 24/7 Support')}
           </p>
