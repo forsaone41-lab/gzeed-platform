@@ -39,7 +39,7 @@ export default function PublicLayout() {
                </div>
                <div className={`absolute left-0 transition-opacity duration-700 ease-in-out ${showIcon ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                  <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.1)]">
-                    <span className="text-2xl font-black text-cyan-500">G</span>
+                    <span className="text-2xl font-black flex items-center"><span className="text-white">G</span><span className="text-cyan-500">Z</span></span>
                  </div>
                </div>
             </div>

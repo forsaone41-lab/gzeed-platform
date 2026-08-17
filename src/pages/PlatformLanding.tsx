@@ -73,7 +73,7 @@ export default function PlatformLanding() {
             <Link to="/login" className={`text-sm font-semibold transition-colors hidden sm:block ${scrolled ? 'text-slate-900 hover:text-cyan-600' : 'text-white hover:text-cyan-300'}`}>
               {txt('تسجيل الدخول', 'Se Connecter', 'Log In')}
             </Link>
-            <Link to="/academy" className="px-6 py-2.5 rounded-md bg-cyan-600 text-white font-bold text-sm hover:bg-cyan-700 transition-all shadow-md">
+            <Link to="/store-signup" className="px-6 py-2.5 rounded-md bg-cyan-600 text-white font-bold text-sm hover:bg-cyan-700 transition-all shadow-md">
               {txt('ابدأ الآن', 'Commencer', 'Get Started')}
             </Link>
           </div>

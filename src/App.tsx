@@ -62,6 +62,7 @@ const Agenda           = lazy(() => import('./pages/Agenda'));
 const Recrutement     = lazy(() => import('./pages/Recrutement'));
 const ListeAttente    = lazy(() => import('./pages/ListeAttente'));
 const Notifications   = lazy(() => import('./pages/Notifications'));
+const GZeedSignup     = lazy(() => import('./pages/GZeedSignup'));
 const AISpace         = lazy(() => import('./pages/AISpace'));
 const Achats          = lazy(() => import('./pages/Achats'));
 const Fournisseurs    = lazy(() => import('./pages/Fournisseurs'));
@@ -864,6 +865,7 @@ function AppContent() {
         <Route path="/store-landing-v4" element={<StoreLandingV4 />} />
         <Route path="/setup" element={<SetupLanding />} />
         <Route path="/platform-demo" element={<PlatformLanding />} />
+        <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
         <Route path="/demo/tourism" element={<TourismDemo />} />
         <Route path="/demo/vacation-deals" element={<VacationDealsDemo />} />
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
