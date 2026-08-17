@@ -37,6 +37,15 @@ export function PricingSection({
         </div>
 
         <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6 lg:gap-8 max-w-7xl mx-auto items-stretch" dir={isAr ? "rtl" : "ltr"}>
+          
+          {/* LITE Plan */}
+          <div className="bg-white rounded-[2rem] p-6 md:p-8 border border-slate-200 hover:border-slate-300 transition-all hover:shadow-xl relative flex flex-col h-full lg:mt-4">
+            <div className="text-center sm:text-start mt-6">
+              <h3 className="text-2xl font-black text-slate-900 mb-1 uppercase tracking-tight">LITE</h3>
+              <p className="text-slate-500 mb-6 font-medium text-xs">{isAr ? 'أسهل طريقة لبناء موقعك' : 'Le plus simple pour démarrer'}</p>
+            </div>
+            
+            <div className="mb-6 flex flex-col pb-6 border-b border-slate-100 items-center sm:items-start">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg font-bold text-slate-400 line-through decoration-2">149</span>
                 <span className="text-[9px] font-black text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full uppercase tracking-wider">{isAr ? 'خصم' : 'PROMO'}</span>
