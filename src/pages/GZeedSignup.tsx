@@ -34,9 +34,9 @@ export default function GZeedSignup() {
       setTimeout(() => {
         setLoading(false);
         setStep(3);
-        // After success, navigate to the builder
+        // After success, navigate to the dashboard
         setTimeout(() => {
-          navigate('/store-builder');
+          navigate('/dashboard');
         }, 3000);
       }, 1500);
     }
