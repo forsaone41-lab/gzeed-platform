@@ -48,6 +48,8 @@ export default function GZeedDashboard() {
   const [domainName, setDomainName] = useState(() => localStorage.getItem('gzeed_domain_name') || 'store-123.gzeed.com');
   const [subdomainInput, setSubdomainInput] = useState('');
   const [customDomainInput, setCustomDomainInput] = useState('');
+  const [isVerifyingDomain, setIsVerifyingDomain] = useState(false);
+  const [domainError, setDomainError] = useState<string | null>(null);
   
   // Task Progress State
   const [tasksCompleted, setTasksCompleted] = useState(() => {
@@ -85,6 +87,34 @@ export default function GZeedDashboard() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
     setActiveTab(nextTab);
+  };
+
+  const handleSaveSubdomain = () => {
+    if (!subdomainInput.trim()) return;
+    const input = subdomainInput.trim().toLowerCase();
+    
+    if (input.length < 3) {
+      setDomainError(lang === 'ar' ? 'الاسم قصير جداً (أقل من 3 أحرف)' : lang === 'en' ? 'Name too short' : 'Nom trop court');
+      return;
+    }
+    
+    // Simulate real backend validation
+    const taken = ['shop', 'store', 'admin', 'gzeed', 'app'];
+    
+    setIsVerifyingDomain(true);
+    setDomainError(null);
+    
+    setTimeout(() => {
+      if (taken.includes(input)) {
+        setDomainError(lang === 'ar' ? 'هذا النطاق مستخدم مسبقاً من متجر آخر، يرجى اختيار اسم مختلف.' : lang === 'en' ? 'This domain is already taken, please choose another.' : 'Ce domaine est déjà pris, veuillez en choisir un autre.');
+        setIsVerifyingDomain(false);
+      } else {
+        setDomainName(`${input}.gzeed.com`);
+        setIsDomainEditing(false);
+        setIsVerifyingDomain(false);
+        showToastAndNavigate(lang === 'ar' ? 'تم إنشاء وحجز النطاق بنجاح! 🎉' : lang === 'en' ? 'Domain created successfully! 🎉' : 'Domaine créé avec succès ! 🎉', 'themes');
+      }
+    }, 2000); // 2 second mock delay for "creating" the domain
   };
 
   const navItems = [
@@ -718,30 +748,40 @@ export default function GZeedDashboard() {
                           <p className="text-sm font-medium text-slate-500 mb-4">
                             {lang === 'ar' ? 'اختر اسماً لمشروعك ليظهر قبل .gzeed.com' : lang === 'en' ? 'Choose a name for your project before .gzeed.com' : 'Choisissez un nom pour votre projet avant .gzeed.com'}
                           </p>
-                          <div className="flex flex-col md:flex-row gap-3">
-                            <div className="relative flex-1 flex items-center">
-                              <input 
-                                type="text" 
-                                placeholder="my-awesome-store"
-                                value={subdomainInput}
-                                onChange={(e) => setSubdomainInput(e.target.value)}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none font-bold text-slate-900 text-right md:text-left"
-                                dir="ltr"
-                              />
-                              <span className="absolute right-4 text-slate-400 font-bold bg-slate-50 pl-2">.gzeed.com</span>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex flex-col md:flex-row gap-3">
+                              <div className="relative flex-1 flex items-center">
+                                <input 
+                                  type="text" 
+                                  placeholder="my-awesome-store"
+                                  value={subdomainInput}
+                                  onChange={(e) => {
+                                    setSubdomainInput(e.target.value);
+                                    setDomainError(null);
+                                  }}
+                                  className={`w-full bg-slate-50 border rounded-lg px-4 py-3 focus:ring-2 outline-none font-bold text-slate-900 text-right md:text-left transition-all ${domainError ? 'border-red-400 focus:ring-red-200' : 'border-slate-200 focus:ring-cyan-500'}`}
+                                  dir="ltr"
+                                />
+                                <span className="absolute right-4 text-slate-400 font-bold bg-slate-50 pl-2">.gzeed.com</span>
+                              </div>
+                              <button 
+                                onClick={handleSaveSubdomain}
+                                disabled={isVerifyingDomain || !subdomainInput.trim()}
+                                className="px-6 py-3 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-500 transition-colors shrink-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed min-w-[140px]"
+                              >
+                                {isVerifyingDomain ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    {lang === 'ar' ? 'جاري الإنشاء...' : lang === 'en' ? 'Creating...' : 'Création...'}
+                                  </>
+                                ) : (
+                                  lang === 'ar' ? 'إنشاء النطاق' : lang === 'en' ? 'Create' : 'Créer'
+                                )}
+                              </button>
                             </div>
-                            <button 
-                              onClick={() => {
-                                if (subdomainInput.trim()) {
-                                  setDomainName(`${subdomainInput.trim().toLowerCase()}.gzeed.com`);
-                                  setIsDomainEditing(false);
-                                  showToastAndNavigate(lang === 'ar' ? 'تم حفظ النطاق بنجاح! حان وقت اختيار قالبك.' : lang === 'en' ? 'Domain saved! Now choose your theme.' : 'Domaine enregistré ! Choisissez maintenant votre thème.', 'themes');
-                                }
-                              }}
-                              className="px-6 py-3 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-500 transition-colors shrink-0"
-                            >
-                              {lang === 'ar' ? 'حفظ النطاق' : lang === 'en' ? 'Save' : 'Enregistrer'}
-                            </button>
+                            {domainError && (
+                              <p className="text-red-500 text-xs font-bold px-1 animate-fade-in">{domainError}</p>
+                            )}
                           </div>
                         </div>
                       )}
