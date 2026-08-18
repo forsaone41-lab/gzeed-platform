@@ -927,27 +927,7 @@ export default function GZeedDashboard() {
                   <p className="text-slate-500 font-medium">{lang === 'ar' ? 'اختر القالب المناسب لنوع باقتك ومشروعك.' : lang === 'en' ? 'Choose the theme that fits your plan.' : 'Choisissez le thème adapté à votre forfait.'}</p>
                 </div>
                 
-                {/* Theme Filters */}
-                <div className="flex bg-slate-200/50 p-1 rounded-xl">
-                  {[
-                    { id: 'all', label: lang === 'ar' ? 'الكل' : lang === 'en' ? 'All' : 'Tous' },
-                    { id: 'store', label: lang === 'ar' ? 'متاجر إلكترونية' : lang === 'en' ? 'E-commerce' : 'E-commerce' },
-                    { id: 'website', label: lang === 'ar' ? 'مواقع تعريفية' : lang === 'en' ? 'Showcase Sites' : 'Sites Vitrine' },
-                    { id: 'dev', label: lang === 'ar' ? 'للمطورين' : lang === 'en' ? 'Developers' : 'Développeurs' }
-                  ].map(filter => (
-                    <button
-                      key={filter.id}
-                      onClick={() => setThemeFilter(filter.id)}
-                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                        themeFilter === filter.id 
-                          ? 'bg-white text-slate-900 shadow-sm' 
-                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                      }`}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
-                </div>
+                {/* Theme Filters Removed based on user request */}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -960,7 +940,7 @@ export default function GZeedDashboard() {
                   { id: 'omra', category: 'website', name: lang === 'ar' ? 'عمرة وسياحة' : lang === 'en' ? 'Omra & Tours' : 'Omra & Tours', image: '/images/themes/tourism_1.png', desc: lang === 'ar' ? 'موقع لوكالة أسفار' : lang === 'en' ? 'Travel agency site' : 'Site pour agence de voyage' },
                   { id: 'blank', category: 'dev', name: lang === 'ar' ? 'قالب فارغ (للمطورين)' : lang === 'en' ? 'Blank Theme (Dev)' : 'Thème Vide (Dev)', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop', desc: lang === 'ar' ? 'ابنِ موقعك من الصفر بالكود' : lang === 'en' ? 'Create from scratch with code' : 'Créez depuis zéro avec du code' },
                 ]
-                .filter(theme => themeFilter === 'all' || theme.category === themeFilter)
+                .filter(theme => theme.category === 'store')
                 .map((theme) => (
                   <div 
                     key={theme.id} 
