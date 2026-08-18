@@ -14,7 +14,8 @@ import {
   Undo,
   Redo,
   Box,
-  Plus
+  Plus,
+  ExternalLink
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
@@ -90,6 +91,13 @@ export default function GZeedBuilder() {
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-1 mr-2 text-slate-400">
+            <button 
+              onClick={() => window.open(getThemePreviewUrl(activeThemeId), '_blank')}
+              className="px-4 py-2 mr-2 bg-slate-50 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-100 hover:text-slate-900 transition-all flex items-center gap-2 border border-slate-200"
+            >
+              <span className="hidden sm:block">{lang === 'ar' ? 'زيارة المتجر' : lang === 'en' ? 'Visit Store' : 'Visiter la boutique'}</span>
+              <ExternalLink className="w-4 h-4" />
+            </button>
             <button className="p-2 hover:text-slate-900 transition-colors"><Undo className="w-4 h-4" /></button>
             <button className="p-2 hover:text-slate-900 transition-colors"><Redo className="w-4 h-4" /></button>
           </div>
