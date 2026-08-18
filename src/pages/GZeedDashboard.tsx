@@ -821,16 +821,38 @@ export default function GZeedDashboard() {
                   <p className="text-slate-500 font-medium">{lang === 'ar' ? 'إدارة وتتبع جميع طلبات متجرك.' : lang === 'en' ? 'Manage and track all your orders.' : 'Gérez et suivez toutes vos commandes.'}</p>
                 </div>
               </div>
-              <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                  <ShoppingBag className="w-10 h-10 text-slate-300" />
+              {isLoadingOrders ? (
+                <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
+                  <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 mb-2">{lang === 'ar' ? 'لا توجد طلبات بعد' : lang === 'en' ? 'No orders yet' : 'Aucune commande pour le moment'}</h3>
-                <p className="text-slate-500 font-medium mb-6 max-w-md">{lang === 'ar' ? 'عندما يقوم العملاء بالشراء من متجرك، ستظهر طلباتهم هنا.' : lang === 'en' ? 'When clients buy from your store, their orders will appear here.' : 'Lorsque les clients achèteront sur votre boutique, leurs commandes apparaîtront ici.'}</p>
-                <button className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition-all">
-                  {lang === 'ar' ? 'كيف أزيد مبيعاتي؟' : lang === 'en' ? 'How to increase my sales?' : 'Comment augmenter mes ventes ?'}
-                </button>
-              </div>
+              ) : orders.length === 0 ? (
+                <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
+                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                    <ShoppingBag className="w-10 h-10 text-slate-300" />
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 mb-2">{lang === 'ar' ? 'لا توجد طلبات بعد' : lang === 'en' ? 'No orders yet' : 'Aucune commande pour le moment'}</h3>
+                  <p className="text-slate-500 font-medium mb-6 max-w-md">{lang === 'ar' ? 'عندما يقوم العملاء بالشراء من متجرك، ستظهر طلباتهم هنا.' : lang === 'en' ? 'When clients buy from your store, their orders will appear here.' : 'Lorsque les clients achèteront sur votre boutique, leurs commandes apparaîtront ici.'}</p>
+                  <button className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition-all">
+                    {lang === 'ar' ? 'كيف أزيد مبيعاتي؟' : lang === 'en' ? 'How to increase my sales?' : 'Comment augmenter mes ventes ?'}
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                  <div className="divide-y divide-slate-100">
+                    {orders.map((o) => (
+                      <div key={o.id} className="p-5 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-slate-900 truncate">{o.clientName || (lang === 'ar' ? 'عميل' : 'Client')}</p>
+                          <p className="text-sm text-slate-500 font-medium truncate">{o.modele} · {o.quantite} {lang === 'ar' ? 'قطعة' : 'pcs'} {o.city ? `· ${o.city}` : ''}</p>
+                        </div>
+                        <div className="text-sm text-slate-500 font-medium shrink-0 hidden sm:block">{o.clientPhone}</div>
+                        <div className="font-black text-slate-900 shrink-0">{o.prix} {lang === 'ar' ? 'درهم' : 'MAD'}</div>
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full shrink-0 ${o.statusColor}`}>{o.statut}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
