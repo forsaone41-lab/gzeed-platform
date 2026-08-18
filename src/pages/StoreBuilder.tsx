@@ -1001,7 +1001,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
            // Fetch the exact domain config first, OR by storeName if provided via url parameter
            let query = supabase.from('stores').select('config_json');
            if (storeNameUrl) {
-              query = query.eq('domain', `${storeNameUrl}.beyacreative.com`);
+              query = query.eq('domain', `${storeNameUrl}.gzeed.com`);
            } else {
               query = query.eq('domain', currentDomain);
            }
@@ -1280,8 +1280,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
   const getStoreDomain = () => {
      if (customDomain) return customDomain;
      if (storeName.toLowerCase().includes('fashlow') || (storeSlug && storeSlug.toLowerCase().includes('fashlow'))) return 'fashlow.store';
-     if (storeSlug) return `${storeSlug}.beyacreative.com`;
-     return `${storeName.toLowerCase().replace(/\s+/g, '')}.beyacreative.com`;
+     if (storeSlug) return `${storeSlug}.gzeed.com`;
+     return `${storeName.toLowerCase().replace(/\s+/g, '')}.gzeed.com`;
   };
 
   // Plan (Normal/PRO/Premier) comes straight from the stores table so it can only be
@@ -6319,7 +6319,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                              className="flex-1 px-3 py-2 text-sm font-bold text-slate-800 bg-transparent focus:outline-none"
                            />
                            <div className="px-3 py-2 bg-slate-50 border-l border-slate-200 text-slate-500 font-medium text-sm select-none" dir="ltr">
-                             .beyacreative.com
+                             .gzeed.com
                            </div>
                          </div>
                          <button onClick={handleLinkSubdomain} disabled={isLinkingSubdomain} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50">
@@ -7049,7 +7049,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                      <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2"><Globe className="w-4 h-4 text-slate-400" /> Aperçu SEO</h4>
                      <div className="space-y-1">
                         <p className="text-lg text-blue-600 font-medium truncate hover:underline cursor-pointer">{pageForm.title} - {storeName}</p>
-                        <p className="text-sm text-green-700 truncate">https://{storeName.toLowerCase().replace(/\s+/g, '')}.beyacreative.com/{pageForm.isDefault ? pageForm.id : pageForm.title.toLowerCase().replace(/\s+/g, '-')}</p>
+                        <p className="text-sm text-green-700 truncate">https://{storeName.toLowerCase().replace(/\s+/g, '')}.gzeed.com/{pageForm.isDefault ? pageForm.id : pageForm.title.toLowerCase().replace(/\s+/g, '-')}</p>
                         <p className="text-xs text-slate-600 line-clamp-2">{pageForm.content ? pageForm.content.substring(0, 150) : "Description automatique générée à partir du contenu de la page pour les moteurs de recherche..."}</p>
                      </div>
                   </div>
@@ -8415,7 +8415,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                      <Globe className="w-5 h-5 text-indigo-600 shrink-0" />
                      <div className="flex-1 text-left overflow-hidden">
                         <p className="text-xs font-bold text-slate-400 uppercase mb-1">Lien de démonstration (Provisoire)</p>
-                        <p className="text-sm font-medium text-slate-800 truncate">https://{storeName.toLowerCase().replace(/\s+/g, '')}.beyacreative.com</p>
+                        <p className="text-sm font-medium text-slate-800 truncate">https://{storeName.toLowerCase().replace(/\s+/g, '')}.gzeed.com</p>
                      </div>
                      <button 
                         onClick={() => {

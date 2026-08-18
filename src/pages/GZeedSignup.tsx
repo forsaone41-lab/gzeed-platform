@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Store, ArrowRight, CheckCircle2, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
 export default function GZeedSignup() {
   const { isAr } = useLang();
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefilledEmail = (location.state as { email?: string } | null)?.email || '';
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    email: prefilledEmail,
     firstName: '',
     lastName: '',
     storeName: '',

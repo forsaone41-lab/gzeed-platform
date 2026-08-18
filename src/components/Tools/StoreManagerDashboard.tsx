@@ -70,7 +70,7 @@ export default function StoreManagerDashboard({ onSelectStore, onOpenAI, storeIs
                   .map((st: any) => ({
                      id: st.id,
                      name: st.name || 'Boutique Sans Nom',
-                     url: st.domain || `${st.id}.beyacreative.com`,
+                     url: st.domain || `${st.id}.gzeed.com`,
                      plan: (isAdminOrOwner && localStorage.getItem('beya_godmode_simulated_plan'))
                            ? localStorage.getItem('beya_godmode_simulated_plan')!
                            : (st.subscription_tier || st.config_json?.plan || 'NORMAL'),

@@ -364,10 +364,14 @@ function AppContent() {
   }, [location.pathname, company?.metaPixelId]);
 
   const hostname = window.location.hostname;
-  // Always true in this repository since it's the dedicated GZeed platform
+  // Always true in this repository since it's the dedicated GZeed platform (controls branding/copy only)
   const isGZeed = true;
-  const isSaaSDomain = hostname === 'beyacreative.com' || hostname === 'www.beyacreative.com' || hostname === 'app.beyacreative.com' || isGZeed || hostname === 'localhost' || hostname.includes('vercel.app');
-  const isSubdomain = hostname.includes('.beyacreative.com') && !isSaaSDomain;
+  // isSaaSDomain must be based purely on hostname - NOT on isGZeed - otherwise every
+  // hostname (including real tenant subdomains like foo.gzeed.com) is misclassified as
+  // the main platform domain and live storefronts never render.
+  const saasHostnames = ['gzeed.com', 'www.gzeed.com', 'app.gzeed.com', 'beyacreative.com', 'www.beyacreative.com', 'app.beyacreative.com', 'localhost'];
+  const isSaaSDomain = saasHostnames.includes(hostname) || hostname.includes('vercel.app');
+  const isSubdomain = (hostname.endsWith('.gzeed.com') || hostname.endsWith('.beyacreative.com')) && !isSaaSDomain;
   const isCustomDomain = !isSaaSDomain;
   const isLiveStore = isSubdomain || isCustomDomain;
 

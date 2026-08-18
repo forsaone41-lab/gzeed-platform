@@ -3,7 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useLang } from '../contexts/LangContext';
 import { Play, TrendingUp, Users, Laptop, ArrowRight, Search, Video, Mail } from 'lucide-react';
 import PublicFooter from '../components/PublicFooter';
+import { PricingSection } from '../components/PricingSection';
 import { usePlatformSettings } from '../contexts/PlatformSettingsContext';
+import { saveRecord } from '../types';
 
 // ==========================================
 // 🎥 VIDEO BACKGROUND IS MANAGED VIA CMS
@@ -15,6 +17,33 @@ export default function PlatformLanding() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [showIcon, setShowIcon] = useState(false);
+  const [heroEmail, setHeroEmail] = useState('');
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+
+  const handleHeroSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = heroEmail.trim();
+    if (!email || isSubmittingLead) return;
+    setIsSubmittingLead(true);
+    // Capture the lead immediately so we never lose it, even if the visitor
+    // abandons the signup flow right after this - previously this email was
+    // typed and thrown away with no record kept anywhere.
+    try {
+      await saveRecord('leads', {
+        id: `lead-${Date.now()}`,
+        name: email,
+        email,
+        type: 'GZeed Landing - Hero Signup',
+        status: 'new',
+        date: new Date().toISOString(),
+      }, true);
+    } catch (err) {
+      // Don't block the signup flow if the lead write fails
+      console.warn('Failed to save landing lead:', err);
+    }
+    setIsSubmittingLead(false);
+    navigate('/store-signup', { state: { email } });
+  };
 
   // Helper for 3-way translation
   const txt = (ar: string, fr: string, en: string) => lang === 'ar' ? ar : lang === 'en' ? en : fr;
@@ -112,18 +141,20 @@ export default function PlatformLanding() {
             )}
           </p>
 
-          <form onSubmit={(e) => { e.preventDefault(); navigate('/store-signup'); }} className="relative max-w-2xl mx-auto mb-8 transform transition-all hover:scale-[1.02] duration-300 z-10">
+          <form onSubmit={handleHeroSubmit} className="relative max-w-2xl mx-auto mb-8 transform transition-all hover:scale-[1.02] duration-300 z-10">
             {/* Desktop View */}
             <div className="hidden sm:flex items-center bg-white rounded-2xl p-2 shadow-2xl border border-slate-100">
               <Mail className="w-6 h-6 text-slate-400 mx-4" />
               <input
                 type="email"
                 required
+                value={heroEmail}
+                onChange={(e) => setHeroEmail(e.target.value)}
                 placeholder={isAr ? "أدخل بريدك الإلكتروني للبدء..." : "Entrez votre adresse e-mail..."}
                 className="flex-1 bg-transparent border-none focus:ring-0 text-lg px-2 font-medium text-slate-900 placeholder:text-slate-400"
                 dir={isAr ? "rtl" : "ltr"}
               />
-              <button type="submit" className="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group whitespace-nowrap shadow-[0_0_20px_rgba(8,145,178,0.3)] hover:shadow-[0_0_30px_rgba(8,145,178,0.5)]">
+              <button type="submit" disabled={isSubmittingLead} className="bg-cyan-600 hover:bg-cyan-700 disabled:opacity-60 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group whitespace-nowrap shadow-[0_0_20px_rgba(8,145,178,0.3)] hover:shadow-[0_0_30px_rgba(8,145,178,0.5)]">
                 {isAr ? 'أنشئ متجرك مجاناً' : 'Créer ma boutique'}
                 <ArrowRight className={`w-5 h-5 transition-transform shrink-0 ${isAr ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`} />
               </button>
@@ -135,12 +166,14 @@ export default function PlatformLanding() {
                 <input
                   type="email"
                   required
+                  value={heroEmail}
+                  onChange={(e) => setHeroEmail(e.target.value)}
                   placeholder={isAr ? "أدخل بريدك الإلكتروني للبدء..." : "Entrez votre e-mail..."}
                   className="flex-1 bg-transparent border-none focus:ring-0 text-base px-4 py-4 font-medium text-slate-900 placeholder:text-slate-400 w-full"
                   dir={isAr ? "rtl" : "ltr"}
                 />
               </div>
-              <button type="submit" className="w-full justify-center bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group shadow-[0_0_20px_rgba(8,145,178,0.3)]">
+              <button type="submit" disabled={isSubmittingLead} className="w-full justify-center bg-cyan-600 hover:bg-cyan-700 disabled:opacity-60 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group shadow-[0_0_20px_rgba(8,145,178,0.3)]">
                 {isAr ? 'أنشئ متجرك مجاناً' : 'Créer ma boutique'}
                 <ArrowRight className={`w-5 h-5 transition-transform shrink-0 ${isAr ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`} />
               </button>
@@ -149,6 +182,9 @@ export default function PlatformLanding() {
           <p className="text-sm text-slate-300 mt-6 font-medium">
             {txt('تسجيل مجاني · لا تحتاج بطاقة بنكية · دعم 24/7', 'Inscription gratuite · Sans carte bancaire · Support 24/7', 'Free signup · No credit card required · 24/7 Support')}
           </p>
+          <Link to="/pricing" className="inline-block text-sm text-cyan-300 hover:text-cyan-200 underline underline-offset-4 mt-2 font-medium">
+            {txt('شوف الأثمنة والخدمات قبل ما تبدأ', 'Voir les tarifs et services avant de commencer', 'See pricing and services before you start')}
+          </Link>
 
         </div>
       </section>
@@ -252,6 +288,9 @@ export default function PlatformLanding() {
         </div>
       </section>
       )}
+
+      {/* Pricing - shown up-front so visitors know costs before building a store */}
+      <PricingSection bgClass="bg-slate-50" titleClass="text-slate-900" />
 
       {/* Footer */}
       <PublicFooter />

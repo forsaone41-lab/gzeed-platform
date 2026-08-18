@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabase';
 
 export default function GZeedDashboard() {
   const { isAr, toggle, lang } = useLang();
@@ -89,32 +90,78 @@ export default function GZeedDashboard() {
     setActiveTab(nextTab);
   };
 
-  const handleSaveSubdomain = () => {
+  const handleSaveSubdomain = async () => {
     if (!subdomainInput.trim()) return;
     const input = subdomainInput.trim().toLowerCase();
-    
+
     if (input.length < 3) {
       setDomainError(lang === 'ar' ? 'الاسم قصير جداً (أقل من 3 أحرف)' : lang === 'en' ? 'Name too short' : 'Nom trop court');
       return;
     }
-    
-    // Simulate real backend validation
-    const taken = ['shop', 'store', 'admin', 'gzeed', 'app'];
-    
+
+    const reserved = ['shop', 'store', 'admin', 'gzeed', 'app', 'www'];
+    const newDomain = `${input}.gzeed.com`;
+
     setIsVerifyingDomain(true);
     setDomainError(null);
-    
-    setTimeout(() => {
-      if (taken.includes(input)) {
+
+    try {
+      if (reserved.includes(input)) {
+        setDomainError(lang === 'ar' ? 'هذا الاسم محجوز، يرجى اختيار اسم مختلف.' : lang === 'en' ? 'This name is reserved, please choose another.' : 'Ce nom est réservé, veuillez en choisir un autre.');
+        setIsVerifyingDomain(false);
+        return;
+      }
+
+      // Check real availability against the stores table (the same table StoreBuilder
+      // reads from for live-store domain resolution).
+      const { data: existing } = await supabase
+        .from('stores')
+        .select('domain')
+        .eq('domain', newDomain)
+        .maybeSingle();
+
+      if (existing) {
         setDomainError(lang === 'ar' ? 'هذا النطاق مستخدم مسبقاً من متجر آخر، يرجى اختيار اسم مختلف.' : lang === 'en' ? 'This domain is already taken, please choose another.' : 'Ce domaine est déjà pris, veuillez en choisir un autre.');
         setIsVerifyingDomain(false);
-      } else {
-        setDomainName(`${input}.gzeed.com`);
-        setIsDomainEditing(false);
-        setIsVerifyingDomain(false);
-        showToastAndNavigate(lang === 'ar' ? 'تم إنشاء وحجز النطاق بنجاح! 🎉' : lang === 'en' ? 'Domain created successfully! 🎉' : 'Domaine créé avec succès ! 🎉', 'themes');
+        return;
       }
-    }, 2000); // 2 second mock delay for "creating" the domain
+
+      // Load whatever config this browser's store already has (if any) so we don't
+      // clobber products/theme saved by StoreBuilder under the previous domain/slug.
+      let existingConfig: any = {};
+      try {
+        const raw = localStorage.getItem('beya_store_config');
+        if (raw) existingConfig = JSON.parse(raw);
+      } catch (e) { /* ignore malformed local config */ }
+
+      const storeConfig = { ...existingConfig, storeName, storeSlug: input };
+
+      await supabase.from('stores').upsert({
+        domain: newDomain,
+        config_json: storeConfig,
+        name: storeName,
+        updated_at: new Date(),
+      }, { onConflict: 'domain' });
+
+      // Keep the 'latest_saved_store' fallback in sync so local/dev preview still works.
+      await supabase.from('stores').upsert({
+        domain: 'latest_saved_store',
+        config_json: storeConfig,
+        name: storeName,
+        updated_at: new Date(),
+      }, { onConflict: 'domain' });
+
+      localStorage.setItem('beya_store_config', JSON.stringify(storeConfig));
+
+      setDomainName(newDomain);
+      setIsDomainEditing(false);
+      setIsVerifyingDomain(false);
+      setTasksCompleted((prev: any) => ({ ...prev, domain: true }));
+      showToastAndNavigate(lang === 'ar' ? 'تم إنشاء وحجز النطاق بنجاح! 🎉' : lang === 'en' ? 'Domain created successfully! 🎉' : 'Domaine créé avec succès ! 🎉', 'themes');
+    } catch (err) {
+      setDomainError(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى.' : lang === 'en' ? 'Something went wrong, please try again.' : 'Une erreur est survenue, veuillez réessayer.');
+      setIsVerifyingDomain(false);
+    }
   };
 
   const navItems = [
