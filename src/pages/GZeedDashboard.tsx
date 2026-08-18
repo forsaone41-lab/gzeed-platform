@@ -24,7 +24,8 @@ import {
   ArrowLeft,
   UploadCloud,
   Package,
-  DownloadCloud
+  DownloadCloud,
+  Loader2
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useNavigate } from 'react-router-dom';
@@ -59,6 +60,21 @@ export default function GZeedDashboard() {
   });
   
   const [productType, setProductType] = useState('physical');
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    description: '',
+    price: '',
+    comparePrice: '',
+    stock: '',
+  });
+  const [productImages, setProductImages] = useState<string[]>([]);
+  const [productSizes, setProductSizes] = useState<string[]>([]);
+  const [productColors, setProductColors] = useState<string[]>([]);
+  const [sizeInput, setSizeInput] = useState('');
+  const [colorInput, setColorInput] = useState('');
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const productFileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isDraggingImages, setIsDraggingImages] = useState(false);
   const [projectType, setProjectType] = useState<string | null>(() => localStorage.getItem('gzeed_project_type') || null);
   const [isLoadingProject, setIsLoadingProject] = useState(true);
 
@@ -207,6 +223,144 @@ export default function GZeedDashboard() {
     } catch (err) {
       setDomainError(lang === 'ar' ? 'حدث خطأ، حاول مرة أخرى.' : lang === 'en' ? 'Something went wrong, please try again.' : 'Une erreur est survenue, veuillez réessayer.');
       setIsVerifyingDomain(false);
+    }
+  };
+
+  // Reads/writes a File as a resized base64 JPEG so previews and Supabase storage
+  // both stay small (mirrors the image-compression pattern used elsewhere in the app).
+  const readImageFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX = 1000;
+          let w = img.width, h = img.height;
+          if (w > h && w > MAX) { h = h * MAX / w; w = MAX; }
+          else if (h > MAX) { w = w * MAX / h; h = MAX; }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.75));
+          } else {
+            resolve(ev.target?.result as string);
+          }
+        };
+        img.onerror = reject;
+        img.src = ev.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const addProductImages = async (files: FileList | File[]) => {
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) return;
+    const encoded = await Promise.all(imageFiles.map(readImageFile));
+    setProductImages(prev => [...prev, ...encoded]);
+  };
+
+  const removeProductImage = (index: number) => {
+    setProductImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const addTag = (kind: 'size' | 'color') => {
+    const raw = kind === 'size' ? sizeInput : colorInput;
+    const value = raw.trim();
+    if (!value) return;
+    if (kind === 'size') {
+      setProductSizes(prev => prev.includes(value) ? prev : [...prev, value]);
+      setSizeInput('');
+    } else {
+      setProductColors(prev => prev.includes(value) ? prev : [...prev, value]);
+      setColorInput('');
+    }
+  };
+
+  const removeTag = (kind: 'size' | 'color', value: string) => {
+    if (kind === 'size') setProductSizes(prev => prev.filter(s => s !== value));
+    else setProductColors(prev => prev.filter(c => c !== value));
+  };
+
+  const resetProductForm = () => {
+    setNewProduct({ name: '', description: '', price: '', comparePrice: '', stock: '' });
+    setProductImages([]);
+    setProductSizes([]);
+    setProductColors([]);
+    setSizeInput('');
+    setColorInput('');
+    setProductType('physical');
+  };
+
+  const handleSaveProduct = async () => {
+    if (!newProduct.name.trim() || !newProduct.price) {
+      setToastMessage(lang === 'ar' ? 'خاصك تعمر اسم المنتج والسعر على الأقل.' : lang === 'en' ? 'Product name and price are required.' : 'Le nom et le prix du produit sont requis.');
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
+
+    setIsSavingProduct(true);
+    try {
+      const domain = domainName || 'latest_saved_store';
+
+      // Load whatever config already exists for this store so we append to its
+      // product list instead of clobbering theme/domain settings saved elsewhere.
+      let existingConfig: any = {};
+      try {
+        const raw = localStorage.getItem('beya_store_config');
+        if (raw) existingConfig = JSON.parse(raw);
+      } catch (e) { /* ignore malformed local config */ }
+
+      const product = {
+        id: `prod-${Date.now()}`,
+        name: newProduct.name.trim(),
+        description: newProduct.description.trim(),
+        price: Number(newProduct.price) || 0,
+        comparePrice: newProduct.comparePrice ? Number(newProduct.comparePrice) : undefined,
+        stock: newProduct.stock ? Number(newProduct.stock) : 0,
+        type: productType,
+        sizes: productSizes,
+        colors: productColors,
+        image: productImages[0] || '',
+        images: productImages,
+        category: 'General',
+      };
+
+      const storeConfig = {
+        ...existingConfig,
+        storeName,
+        storeProducts: [...(existingConfig.storeProducts || []), product],
+      };
+
+      await supabase.from('stores').upsert({
+        domain,
+        config_json: storeConfig,
+        name: storeName,
+        updated_at: new Date(),
+      }, { onConflict: 'domain' });
+
+      // Keep the local-preview fallback in sync too.
+      await supabase.from('stores').upsert({
+        domain: 'latest_saved_store',
+        config_json: storeConfig,
+        name: storeName,
+        updated_at: new Date(),
+      }, { onConflict: 'domain' });
+
+      localStorage.setItem('beya_store_config', JSON.stringify(storeConfig));
+
+      setTasksCompleted((prev: any) => ({ ...prev, product: true }));
+      resetProductForm();
+      setActiveTab('products');
+      showToastAndNavigate(lang === 'ar' ? 'تم إضافة المنتج بنجاح!' : lang === 'en' ? 'Product added successfully!' : 'Produit ajouté avec succès !', 'products');
+    } catch (err) {
+      setToastMessage(lang === 'ar' ? 'حدث خطأ أثناء الحفظ، حاول مرة أخرى.' : lang === 'en' ? 'Something went wrong, please try again.' : 'Une erreur est survenue, veuillez réessayer.');
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
+      setIsSavingProduct(false);
     }
   };
 
@@ -968,11 +1122,23 @@ export default function GZeedDashboard() {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'اسم المنتج' : lang === 'en' ? 'Product Name' : 'Nom du produit'}</label>
-                        <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900" placeholder={lang === 'ar' ? 'مثال: حذاء رياضي' : lang === 'en' ? 'e.g. Sneakers' : 'ex: Baskets'} />
+                        <input
+                          type="text"
+                          value={newProduct.name}
+                          onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900"
+                          placeholder={lang === 'ar' ? 'مثال: حذاء رياضي' : lang === 'en' ? 'e.g. Sneakers' : 'ex: Baskets'}
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'وصف المنتج' : lang === 'en' ? 'Description' : 'Description'}</label>
-                        <textarea rows={4} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900 resize-none" placeholder={lang === 'ar' ? 'اكتب وصفاً جذاباً لمنتجك...' : lang === 'en' ? 'Write a catchy description...' : 'Écrivez une description accrocheuse...'}></textarea>
+                        <textarea
+                          rows={4}
+                          value={newProduct.description}
+                          onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900 resize-none"
+                          placeholder={lang === 'ar' ? 'اكتب وصفاً جذاباً لمنتجك...' : lang === 'en' ? 'Write a catchy description...' : 'Écrivez une description accrocheuse...'}
+                        />
                       </div>
                     </div>
                   </div>
@@ -983,15 +1149,97 @@ export default function GZeedDashboard() {
                     <div className="grid grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'السعر (درهم)' : lang === 'en' ? 'Price (MAD)' : 'Prix (MAD)'}</label>
-                        <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900" placeholder="0.00" />
+                        <input
+                          type="number"
+                          value={newProduct.price}
+                          onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900"
+                          placeholder="0.00"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'السعر الأصلي (قبل التخفيض)' : lang === 'en' ? 'Compare at price' : 'Prix avant réduction'}</label>
-                        <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900" placeholder="0.00" />
+                        <input
+                          type="number"
+                          value={newProduct.comparePrice}
+                          onChange={(e) => setNewProduct({ ...newProduct, comparePrice: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900"
+                          placeholder="0.00"
+                        />
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'الكمية المتوفرة (Stock)' : lang === 'en' ? 'Available Stock' : 'Stock disponible'}</label>
-                        <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900" placeholder="1" />
+                        <input
+                          type="number"
+                          value={newProduct.stock}
+                          onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900"
+                          placeholder="1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Variants: Size / Color - WooCommerce style tag inputs */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 mb-6">{lang === 'ar' ? 'المقاسات والألوان' : lang === 'en' ? 'Sizes & Colors' : 'Tailles & Couleurs'}</h3>
+                    <div className="space-y-5">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'المقاسات (Tailles)' : lang === 'en' ? 'Sizes' : 'Tailles'}</label>
+                        <div className="flex gap-2 mb-3">
+                          <input
+                            type="text"
+                            value={sizeInput}
+                            onChange={(e) => setSizeInput(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag('size'); } }}
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900"
+                            placeholder={lang === 'ar' ? 'مثال: S, M, L...' : lang === 'en' ? 'e.g. S, M, L...' : 'ex: S, M, L...'}
+                          />
+                          <button type="button" onClick={() => addTag('size')} className="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors shrink-0">
+                            <Plus className="w-5 h-5" />
+                          </button>
+                        </div>
+                        {productSizes.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {productSizes.map(size => (
+                              <span key={size} className="inline-flex items-center gap-1.5 bg-cyan-50 text-cyan-700 border border-cyan-200 rounded-full px-3 py-1 text-sm font-bold">
+                                {size}
+                                <button type="button" onClick={() => removeTag('size', size)} className="hover:text-cyan-900">
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">{lang === 'ar' ? 'الألوان (Couleurs)' : lang === 'en' ? 'Colors' : 'Couleurs'}</label>
+                        <div className="flex gap-2 mb-3">
+                          <input
+                            type="text"
+                            value={colorInput}
+                            onChange={(e) => setColorInput(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag('color'); } }}
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900"
+                            placeholder={lang === 'ar' ? 'مثال: أحمر، أزرق، أسود...' : lang === 'en' ? 'e.g. Red, Blue, Black...' : 'ex: Rouge, Bleu, Noir...'}
+                          />
+                          <button type="button" onClick={() => addTag('color')} className="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors shrink-0">
+                            <Plus className="w-5 h-5" />
+                          </button>
+                        </div>
+                        {productColors.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {productColors.map(color => (
+                              <span key={color} className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full px-3 py-1 text-sm font-bold">
+                                {color}
+                                <button type="button" onClick={() => removeTag('color', color)} className="hover:text-indigo-900">
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1027,24 +1275,56 @@ export default function GZeedDashboard() {
                   {/* Images */}
                   <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-900 mb-4">{lang === 'ar' ? 'الصور' : lang === 'en' ? 'Images' : 'Images'}</h3>
-                    <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-cyan-500 hover:bg-cyan-50 transition-all group">
+                    <input
+                      ref={productFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => { if (e.target.files) addProductImages(e.target.files); e.target.value = ''; }}
+                    />
+                    <div
+                      onClick={() => productFileInputRef.current?.click()}
+                      onDragOver={(e) => { e.preventDefault(); setIsDraggingImages(true); }}
+                      onDragLeave={() => setIsDraggingImages(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDraggingImages(false);
+                        if (e.dataTransfer.files) addProductImages(e.dataTransfer.files);
+                      }}
+                      className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all group ${isDraggingImages ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200 hover:border-cyan-500 hover:bg-cyan-50'}`}
+                    >
                       <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                         <UploadCloud className="w-6 h-6 text-cyan-500" />
                       </div>
                       <p className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'اسحب الصور وأفلتها هنا' : lang === 'en' ? 'Drag & drop images here' : 'Glissez & déposez vos images ici'}</p>
                       <p className="text-xs font-medium text-slate-500 mt-1">{lang === 'ar' ? 'أو اضغط لتصفح الملفات' : lang === 'en' ? 'or click to browse' : 'ou cliquez pour parcourir'}</p>
                     </div>
+
+                    {productImages.length > 0 && (
+                      <div className="grid grid-cols-3 gap-3 mt-4">
+                        {productImages.map((img, idx) => (
+                          <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-slate-200">
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => removeProductImage(idx)}
+                              className="absolute top-1 right-1 w-6 h-6 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  <button 
-                    onClick={() => {
-                      setTasksCompleted(prev => ({ ...prev, product: true }));
-                      setActiveTab('products');
-                      showToastAndNavigate(lang === 'ar' ? 'تم إضافة المنتج بنجاح!' : lang === 'en' ? 'Product added successfully!' : 'Produit ajouté avec succès !', 'products');
-                    }}
-                    className="w-full py-4 bg-slate-900 text-white rounded-xl font-black text-lg shadow-xl shadow-slate-900/20 hover:scale-105 transition-transform flex items-center justify-center gap-2"
+                  <button
+                    onClick={handleSaveProduct}
+                    disabled={isSavingProduct}
+                    className="w-full py-4 bg-slate-900 text-white rounded-xl font-black text-lg shadow-xl shadow-slate-900/20 hover:scale-105 disabled:opacity-60 disabled:hover:scale-100 transition-transform flex items-center justify-center gap-2"
                   >
-                    <Check className="w-5 h-5" />
+                    {isSavingProduct ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
                     {lang === 'ar' ? 'حفظ ونشر المنتج' : lang === 'en' ? 'Save & Publish Product' : 'Enregistrer le produit'}
                   </button>
                 </div>
