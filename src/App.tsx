@@ -146,6 +146,14 @@ const __IS_RECOVERY_REDIRECT__ = __INITIAL_HASH__.includes('type=recovery') || _
 // BEFORE we clean the URL. Supabase's createClient auto-detects hash tokens on init.
 // After a brief delay, we'll clean the URL in the useEffect below.
 
+// Auto-correct missing hash for direct language/funnel links
+if (window.location.pathname && window.location.pathname !== '/' && !window.location.hash) {
+  const p = window.location.pathname.toLowerCase();
+  if (p === '/ar' || p === '/fr' || p === '/en' || p.startsWith('/funnel')) {
+    window.history.replaceState({}, '', '/#' + window.location.pathname + window.location.search);
+  }
+}
+
 const AUTH_KEY = 'textrack_auth';
 
 const MobileLogoWithFallback = ({ src, alt }: { src: string; alt: string }) => {
@@ -684,6 +692,12 @@ function AppContent() {
         </Route>
 
         <Route path="/" element={isGZeed ? <PlatformLanding /> : <LandingPage />} />
+        <Route path="/ar" element={<LandingPage />} />
+        <Route path="/fr" element={<LandingPage />} />
+        <Route path="/en" element={<LandingPage />} />
+        <Route path="/AR" element={<LandingPage />} />
+        <Route path="/FR" element={<LandingPage />} />
+        <Route path="/EN" element={<LandingPage />} />
         <Route path="/beya-old" element={<LandingPage />} />
           <Route path="/funnel" element={<BeyaFunnel />} />
           <Route path="/funnel/:lang" element={<BeyaFunnel />} />

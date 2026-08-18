@@ -62,24 +62,30 @@ export default function GZeedDashboard() {
   const [storeProducts, setStoreProducts] = useState<any[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
+  // Single source of truth for "what's already saved for this store" - always
+  // reads fresh from Supabase. Previously several save paths read a stale
+  // localStorage snapshot instead, which silently overwrote/erased whatever
+  // another save (e.g. a new product) had just written to the server.
+  const loadCurrentStoreConfig = React.useCallback(async (): Promise<any> => {
+    let { data } = await supabase.from('stores').select('config_json').eq('domain', domainName).maybeSingle();
+    if (!data) {
+      const fallback = await supabase.from('stores').select('config_json').eq('domain', 'latest_saved_store').maybeSingle();
+      data = fallback.data;
+    }
+    return data?.config_json || {};
+  }, [domainName]);
+
   const fetchStoreProducts = React.useCallback(async () => {
     setIsLoadingProducts(true);
     try {
-      // domainName defaults to a placeholder until the merchant actually
-      // registers one via the Domain tab, so that row may not exist yet -
-      // 'latest_saved_store' is the fallback every save also writes to.
-      let { data } = await supabase.from('stores').select('config_json').eq('domain', domainName).maybeSingle();
-      if (!data) {
-        const fallback = await supabase.from('stores').select('config_json').eq('domain', 'latest_saved_store').maybeSingle();
-        data = fallback.data;
-      }
-      setStoreProducts(data?.config_json?.storeProducts || []);
+      const config = await loadCurrentStoreConfig();
+      setStoreProducts(config.storeProducts || []);
     } catch (e) {
       setStoreProducts([]);
     } finally {
       setIsLoadingProducts(false);
     }
-  }, [domainName]);
+  }, [loadCurrentStoreConfig]);
 
   React.useEffect(() => {
     fetchStoreProducts();
@@ -216,12 +222,7 @@ export default function GZeedDashboard() {
 
       // Load whatever config this browser's store already has (if any) so we don't
       // clobber products/theme saved by StoreBuilder under the previous domain/slug.
-      let existingConfig: any = {};
-      try {
-        const raw = localStorage.getItem('beya_store_config');
-        if (raw) existingConfig = JSON.parse(raw);
-      } catch (e) { /* ignore malformed local config */ }
-
+      const existingConfig = await loadCurrentStoreConfig();
       const storeConfig = { ...existingConfig, storeName, storeSlug: input };
 
       await supabase.from('stores').upsert({
@@ -334,11 +335,7 @@ export default function GZeedDashboard() {
 
       // Load whatever config already exists for this store so we append to its
       // product list instead of clobbering theme/domain settings saved elsewhere.
-      let existingConfig: any = {};
-      try {
-        const raw = localStorage.getItem('beya_store_config');
-        if (raw) existingConfig = JSON.parse(raw);
-      } catch (e) { /* ignore malformed local config */ }
+      const existingConfig = await loadCurrentStoreConfig();
 
       const product = {
         id: `prod-${Date.now()}`,
