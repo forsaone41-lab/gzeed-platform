@@ -849,7 +849,7 @@ export default function GZeedDashboard() {
       </main>
 
           {activeTab === 'add-product' && (
-            <div className="max-w-6xl mx-auto animate-fade-in pb-12">
+            <div className="w-full max-w-6xl animate-fade-in pb-12">
               {/* Header */}
               <div className="flex items-center gap-4 mb-8">
                 <button 
