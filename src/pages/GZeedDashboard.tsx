@@ -59,6 +59,32 @@ export default function GZeedDashboard() {
     return saved ? JSON.parse(saved) : { name: false, theme: false, product: false, domain: false };
   });
   
+  const [storeProducts, setStoreProducts] = useState<any[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+
+  const fetchStoreProducts = React.useCallback(async () => {
+    setIsLoadingProducts(true);
+    try {
+      // domainName defaults to a placeholder until the merchant actually
+      // registers one via the Domain tab, so that row may not exist yet -
+      // 'latest_saved_store' is the fallback every save also writes to.
+      let { data } = await supabase.from('stores').select('config_json').eq('domain', domainName).maybeSingle();
+      if (!data) {
+        const fallback = await supabase.from('stores').select('config_json').eq('domain', 'latest_saved_store').maybeSingle();
+        data = fallback.data;
+      }
+      setStoreProducts(data?.config_json?.storeProducts || []);
+    } catch (e) {
+      setStoreProducts([]);
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  }, [domainName]);
+
+  React.useEffect(() => {
+    fetchStoreProducts();
+  }, [fetchStoreProducts]);
+
   const [productType, setProductType] = useState('physical');
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -355,6 +381,7 @@ export default function GZeedDashboard() {
       setTasksCompleted((prev: any) => ({ ...prev, product: true }));
       resetProductForm();
       setActiveTab('products');
+      await fetchStoreProducts();
       showToastAndNavigate(lang === 'ar' ? 'تم إضافة المنتج بنجاح!' : lang === 'en' ? 'Product added successfully!' : 'Produit ajouté avec succès !', 'products');
     } catch (err) {
       setToastMessage(lang === 'ar' ? 'حدث خطأ أثناء الحفظ، حاول مرة أخرى.' : lang === 'en' ? 'Something went wrong, please try again.' : 'Une erreur est survenue, veuillez réessayer.');
@@ -765,13 +792,51 @@ export default function GZeedDashboard() {
                   {lang === 'ar' ? 'إضافة منتج' : lang === 'en' ? 'Add Product' : 'Ajouter un produit'}
                 </button>
               </div>
-              <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
-                <div className="w-20 h-20 bg-cyan-50 rounded-full flex items-center justify-center mb-4 border border-cyan-100">
-                  <Box className="w-10 h-10 text-cyan-400" />
+              {isLoadingProducts ? (
+                <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
+                  <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 mb-2">{lang === 'ar' ? 'أضف أول منتج لك' : lang === 'en' ? 'Add your first product' : 'Ajoutez votre premier produit'}</h3>
-                <p className="text-slate-500 font-medium mb-6 max-w-md">{lang === 'ar' ? 'قم بإعداد منتجاتك، أسعارك، وصورك لتبدأ استقبال العملاء.' : lang === 'en' ? 'Configure your products, prices, and images to get started.' : 'Configurez vos produits, prix et images pour commencer.'}</p>
-              </div>
+              ) : storeProducts.length === 0 ? (
+                <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
+                  <div className="w-20 h-20 bg-cyan-50 rounded-full flex items-center justify-center mb-4 border border-cyan-100">
+                    <Box className="w-10 h-10 text-cyan-400" />
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 mb-2">{lang === 'ar' ? 'أضف أول منتج لك' : lang === 'en' ? 'Add your first product' : 'Ajoutez votre premier produit'}</h3>
+                  <p className="text-slate-500 font-medium mb-6 max-w-md">{lang === 'ar' ? 'قم بإعداد منتجاتك، أسعارك، وصورك لتبدأ استقبال العملاء.' : lang === 'en' ? 'Configure your products, prices, and images to get started.' : 'Configurez vos produits, prix et images pour commencer.'}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {storeProducts.map((p: any) => (
+                    <div key={p.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                      <div className="aspect-square bg-slate-50 flex items-center justify-center overflow-hidden">
+                        {p.image ? (
+                          <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Box className="w-10 h-10 text-slate-300" />
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <h4 className="font-bold text-slate-900 truncate">{p.name}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="font-black text-cyan-600">{p.price} {lang === 'ar' ? 'درهم' : 'MAD'}</span>
+                          {p.comparePrice ? <span className="text-xs text-slate-400 line-through">{p.comparePrice}</span> : null}
+                        </div>
+                        {(p.sizes?.length > 0 || p.colors?.length > 0) && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {(p.sizes || []).map((s: string) => (
+                              <span key={s} className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{s}</span>
+                            ))}
+                            {(p.colors || []).map((c: string) => (
+                              <span key={c} className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">{c}</span>
+                            ))}
+                          </div>
+                        )}
+                        <p className="text-xs text-slate-400 font-medium mt-2">{lang === 'ar' ? 'المخزون' : 'Stock'}: {p.stock ?? 0}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

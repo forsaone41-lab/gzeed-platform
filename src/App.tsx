@@ -686,6 +686,7 @@ function AppContent() {
         <Route path="/" element={isGZeed ? <PlatformLanding /> : <LandingPage />} />
         <Route path="/beya-old" element={<LandingPage />} />
           <Route path="/funnel" element={<BeyaFunnel />} />
+          <Route path="/funnel/:lang" element={<BeyaFunnel />} />
           <Route path="/app" element={<DownloadApp />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
