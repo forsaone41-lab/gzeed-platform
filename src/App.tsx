@@ -50,6 +50,7 @@ const Settings         = lazy(() => import('./pages/Settings'));
 const Profil           = lazy(() => import('./pages/Profil'));
 const Login            = lazy(() => import('./pages/Login'));
 const LandingPage      = lazy(() => import('./pages/LandingPage'));
+const Ecosystem        = lazy(() => import('./pages/Ecosystem'));
 const BeyaFunnel       = lazy(() => import('./pages/BeyaFunnel'));
 const DownloadApp      = lazy(() => import('./pages/DownloadApp'));
 const AdsLanding       = lazy(() => import('./pages/AdsLanding'));
@@ -62,10 +63,6 @@ const Agenda           = lazy(() => import('./pages/Agenda'));
 const Recrutement     = lazy(() => import('./pages/Recrutement'));
 const ListeAttente    = lazy(() => import('./pages/ListeAttente'));
 const Notifications   = lazy(() => import('./pages/Notifications'));
-const GZeedSignup     = lazy(() => import('./pages/GZeedSignup'));
-const GZeedDashboard  = lazy(() => import('./pages/GZeedDashboard'));
-const GZeedBuilder    = lazy(() => import('./pages/GZeedBuilder'));
-const GZeedLogin      = lazy(() => import('./pages/GZeedLogin'));
 const AISpace         = lazy(() => import('./pages/AISpace'));
 const Achats          = lazy(() => import('./pages/Achats'));
 const Fournisseurs    = lazy(() => import('./pages/Fournisseurs'));
@@ -113,19 +110,10 @@ const MerchantDashboard = lazy(() => import('./pages/MerchantDashboard'));
 const Terms           = lazy(() => import('./pages/Terms'));
 const Partners        = lazy(() => import('./pages/Partners'));
 const Privacy         = lazy(() => import('./pages/Privacy'));
+const Cookies         = lazy(() => import('./pages/Cookies'));
 const SaaSAdminPage   = lazy(() => import('./pages/SaaSAdminPage'));
-const PricingPage     = lazy(() => import('./pages/PricingPage'));
-const ContactUs       = lazy(() => import('./pages/ContactUs'));
-const AboutUs         = lazy(() => import('./pages/AboutUs'));
-const SuperAdminLayout = lazy(() => import('./pages/SuperAdmin/SuperAdminLayout'));
-const SuperAdminLogin  = lazy(() => import('./pages/SuperAdmin/SuperAdminLogin'));
-const SuperAdminUsers  = lazy(() => import('./pages/SuperAdmin/SuperAdminUsers'));
-const SuperAdminCMS    = lazy(() => import('./pages/SuperAdmin/SuperAdminCMS'));
-
-import PublicLayout from './components/PublicLayout';
 import { PageLoader } from './components/PageLoader';
 
-import { PlatformSettingsProvider } from './contexts/PlatformSettingsContext';
 import { initMockData, User, loadPermissions, AppPage, loadCompanyProfile, syncCompanyProfile, loadData, saveRecord } from './types';
 import { LangProvider, useLang } from './contexts/LangContext';
 import { initFacebookPixel, trackPixelEvent } from './utils/pixel';
@@ -372,14 +360,9 @@ function AppContent() {
   }, [location.pathname, company?.metaPixelId]);
 
   const hostname = window.location.hostname;
-  // Always true in this repository since it's the dedicated GZeed platform (controls branding/copy only)
-  const isGZeed = true;
-  // isSaaSDomain must be based purely on hostname - NOT on isGZeed - otherwise every
-  // hostname (including real tenant subdomains like foo.gzeed.com) is misclassified as
-  // the main platform domain and live storefronts never render.
-  const saasHostnames = ['gzeed.com', 'www.gzeed.com', 'app.gzeed.com', 'beyacreative.com', 'www.beyacreative.com', 'app.beyacreative.com', 'localhost'];
-  const isSaaSDomain = saasHostnames.includes(hostname) || hostname.includes('vercel.app');
-  const isSubdomain = (hostname.endsWith('.gzeed.com') || hostname.endsWith('.beyacreative.com')) && !isSaaSDomain;
+  const isGZeed = hostname === 'gzeed.com' || hostname === 'www.gzeed.com';
+  const isSaaSDomain = hostname === 'beyacreative.com' || hostname === 'www.beyacreative.com' || hostname === 'app.beyacreative.com' || isGZeed || hostname === 'localhost' || hostname.includes('vercel.app');
+  const isSubdomain = hostname.includes('.beyacreative.com') && !isSaaSDomain;
   const isCustomDomain = !isSaaSDomain;
   const isLiveStore = isSubdomain || isCustomDomain;
 
@@ -523,11 +506,9 @@ function AppContent() {
 
   if (isLiveStore) {
      return (
-        <PlatformSettingsProvider>
         <Suspense fallback={<PageLoader />}>
            <StoreBuilder isLiveStore={true} />
         </Suspense>
-        </PlatformSettingsProvider>
      );
   }
 
@@ -585,7 +566,7 @@ function AppContent() {
 
   if (!currentUser) {
     return (
-      <PlatformSettingsProvider>
+      <>
         {recoveryModal}
         <Routes>
         <Route element={<PointageLayout />}>
@@ -593,7 +574,7 @@ function AppContent() {
           <Route path="kiosk" element={<KioskScanner />} />
           <Route path="fast-scanner" element={<FastScanner />} />
         </Route>
-        <Route path="/login" element={<Suspense fallback={<PageLoader />}><GZeedLogin /></Suspense>} />
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/portal" element={<PortailClient />} />
         <Route path="/info" element={<ClientInfoRoute />} />
         <Route path="/meet" element={<PublicMeet />} />
@@ -603,6 +584,7 @@ function AppContent() {
         <Route path="/recrut" element={<Navigate to="/recrutement" replace />} />
         <Route path="/devis-express" element={<AdsLanding />} />
         <Route path="/new" element={<NewLanding />} />
+        <Route path="/commencer" element={<NewLanding standalone />} />
         <Route path="/store-landing" element={<StoreLanding />} />
         <Route path="/store-landing-v2" element={<StoreLandingV2 />} />
         <Route path="/store-landing-v3" element={<StoreLandingV3 />} />
@@ -624,16 +606,7 @@ function AppContent() {
         <Route path="/demo/city-rentals" element={<CityRentalsDemo />} />
         <Route path="/demo/ecommerce/abaya" element={<AbayaDemo />} />
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
-        <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
-        <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
-        <Route path="/gzeed-builder" element={<Suspense fallback={<PageLoader />}><GZeedBuilder /></Suspense>} />
-        <Route path="/store-builder" element={
-          <Suspense fallback={<PageLoader />}>
-            <div className="min-h-screen bg-white">
-              <StoreBuilder />
-            </div>
-          </Suspense>
-        } />
+        <Route path="/store-signup" element={<StoreSignup onLogin={handleLogin} />} />
         <Route path="/partner-signup" element={
           <Suspense fallback={<PageLoader />}>
             <AffiliateSignup onLogin={handleLogin} />
@@ -659,6 +632,11 @@ function AppContent() {
             <Privacy />
           </Suspense>
         } />
+        <Route path="/cookies" element={
+          <Suspense fallback={<PageLoader />}>
+            <Cookies />
+          </Suspense>
+        } />
         <Route path="/saas-admin" element={
           <Suspense fallback={<PageLoader />}>
             <SaaSAdminPage />
@@ -669,28 +647,6 @@ function AppContent() {
             <SaaSAdminPage />
           </Suspense>
         } />
-        <Route element={<PublicLayout />}>
-          <Route path="/pricing" element={<Suspense fallback={<PageLoader />}><PricingPage /></Suspense>} />
-          <Route path="/contact" element={<Suspense fallback={<PageLoader />}><ContactUs /></Suspense>} />
-          <Route path="/about" element={<Suspense fallback={<PageLoader />}><AboutUs /></Suspense>} />
-        </Route>
-
-        {/* Super Admin Routes */}
-        <Route path="/super-admin/login" element={
-          <Suspense fallback={<PageLoader />}>
-            <SuperAdminLogin />
-          </Suspense>
-        } />
-        <Route path="/super-admin" element={
-          <Suspense fallback={<PageLoader />}>
-            <SuperAdminLayout />
-          </Suspense>
-        }>
-          <Route index element={<Navigate to="/super-admin/cms" replace />} />
-          <Route path="cms" element={<Suspense fallback={<PageLoader />}><SuperAdminCMS /></Suspense>} />
-          <Route path="users" element={<Suspense fallback={<PageLoader />}><SuperAdminUsers /></Suspense>} />
-        </Route>
-
         <Route path="/" element={isGZeed ? <PlatformLanding /> : <LandingPage />} />
         <Route path="/ar" element={<LandingPage />} />
         <Route path="/fr" element={<LandingPage />} />
@@ -699,20 +655,26 @@ function AppContent() {
         <Route path="/FR" element={<LandingPage />} />
         <Route path="/EN" element={<LandingPage />} />
         <Route path="/beya-old" element={<LandingPage />} />
+        <Route path="/ecosystem" element={
+          <Suspense fallback={<PageLoader />}>
+            <Ecosystem />
+          </Suspense>
+        } />
           <Route path="/funnel" element={<BeyaFunnel />} />
-          <Route path="/funnel/:lang" element={<BeyaFunnel />} />
+          <Route path="/funnel/ar" element={<BeyaFunnel />} />
+          <Route path="/funnel/fr" element={<BeyaFunnel />} />
+          <Route path="/funnel/en" element={<BeyaFunnel />} />
           <Route path="/app" element={<DownloadApp />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      </PlatformSettingsProvider>
+      </>
     );
   }
 
   if (currentUser.role === 'client') {
     return (
       <Routes>
-        <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
-        <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
+        <Route path="/store-signup" element={<StoreSignup onLogin={handleLogin} />} />
         <Route path="*" element={<PortailClient currentUser={currentUser} onLogout={handleLogout} />} />
       </Routes>
     );
@@ -795,22 +757,19 @@ function AppContent() {
 
   if (showClientPortal) {
     return (
-      <PlatformSettingsProvider>
       <div className="relative">
         <button
           onClick={() => setShowClientPortal(false)}
           className="fixed top-4 right-4 z-50 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700 transition shadow-lg"
         >
-          ? Retour  l'ERP
+          ? Retour � l'ERP
         </button>
         <PortailClient currentUser={currentUser} onLogout={() => setShowClientPortal(false)} />
       </div>
-      </PlatformSettingsProvider>
     );
   }
 
   return (
-    <PlatformSettingsProvider>
     <Routes>
       <Route
         path="/"
@@ -897,9 +856,6 @@ function AppContent() {
         <Route path="/store-landing-v4" element={<StoreLandingV4 />} />
         <Route path="/setup" element={<SetupLanding />} />
         <Route path="/platform-demo" element={<PlatformLanding />} />
-        <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
-        <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
-        <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="/demo/tourism" element={<TourismDemo />} />
         <Route path="/demo/vacation-deals" element={<VacationDealsDemo />} />
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
@@ -908,7 +864,6 @@ function AppContent() {
             <Partners />
           </Suspense>
         } />
-        <Route path="cms" element={can('cms') ? <SuperAdminCMS /> : <Navigate to="/" replace />} />
 
       </Route>
       <Route element={<PointageLayout />}>
@@ -925,7 +880,6 @@ function AppContent() {
       <Route path="/godmode" element={<Suspense fallback={<PageLoader />}><SaaSAdminPage /></Suspense>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-    </PlatformSettingsProvider>
   );
 }
 

@@ -91,6 +91,66 @@ export default function GZeedDashboard() {
     fetchStoreProducts();
   }, [fetchStoreProducts]);
 
+  const [orders, setOrders] = useState<any[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+
+  // Orders placed at checkout are written into `commandes` (see StoreBuilder's
+  // submitGlobalOrder) with the store name encoded into the `tissu` field as
+  // "Store: <name> - <city> - <address>", since there's no dedicated
+  // storefront-orders table yet. This mirrors StoreBuilder's own order-reading
+  // logic so both dashboards agree on what "this store's orders" means.
+  const fetchOrders = React.useCallback(async () => {
+    setIsLoadingOrders(true);
+    try {
+      const { data, error } = await supabase
+        .from('commandes')
+        .select('*')
+        .ilike('tissu', `Store: ${storeName}%`)
+        .order('dateCommande', { ascending: false });
+
+      if (error || !data) { setOrders([]); return; }
+
+      const mapped = data.map((cmd: any) => {
+        const clientRaw = cmd.client || '';
+        const clientPhoneMatch = clientRaw.match(/ - (\S+)$/);
+        const clientPhone = clientPhoneMatch ? clientPhoneMatch[1] : '';
+        const clientName = clientPhoneMatch ? clientRaw.slice(0, clientPhoneMatch.index) : clientRaw;
+
+        const tissuRaw = cmd.tissu || '';
+        const afterStore = tissuRaw.replace(/^Store:\s*[^-]*-\s*/, '');
+        const [tissuCity] = afterStore.split(' - ');
+
+        let statusColor = 'bg-slate-100 text-slate-700';
+        if (['Confirmé', 'Confirmée', 'Validée', 'Livrée', 'مؤكد', 'تم التوصيل'].includes(cmd.statut)) statusColor = 'bg-emerald-100 text-emerald-700';
+        if (['Refusé', 'Refusée', 'Annulée', 'Retour', 'مرفوض', 'ملغى'].includes(cmd.statut)) statusColor = 'bg-rose-100 text-rose-700';
+        if (['En attente', 'Nouveau'].includes(cmd.statut)) statusColor = 'bg-amber-100 text-amber-700';
+
+        return {
+          id: cmd.id,
+          date: cmd.dateCommande,
+          clientName,
+          clientPhone,
+          city: tissuCity || '',
+          modele: cmd.modele,
+          quantite: cmd.quantite || 1,
+          prix: cmd.prix ? parseFloat(cmd.prix.toString()) : 0,
+          statut: cmd.statut || 'En attente',
+          statusColor,
+        };
+      });
+
+      setOrders(mapped);
+    } catch (e) {
+      setOrders([]);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, [storeName]);
+
+  React.useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
   const [productType, setProductType] = useState('physical');
   const [newProduct, setNewProduct] = useState({
     name: '',
