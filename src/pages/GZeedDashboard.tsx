@@ -838,7 +838,6 @@ export default function GZeedDashboard() {
               </div>
             </div>
           )}
-          )}
 
           {activeTab === 'add-product' && (
             <div className="w-full max-w-6xl animate-fade-in pb-12">
