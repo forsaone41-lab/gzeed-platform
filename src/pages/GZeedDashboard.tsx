@@ -59,7 +59,53 @@ export default function GZeedDashboard() {
   });
   
   const [productType, setProductType] = useState('physical');
+  const [projectType, setProjectType] = useState<string | null>(() => localStorage.getItem('gzeed_project_type') || null);
+  const [isLoadingProject, setIsLoadingProject] = useState(true);
 
+  React.useEffect(() => {
+    const fetchProjectType = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('user_settings')
+            .select('project_type')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (data && data.project_type) {
+            setProjectType(data.project_type);
+            localStorage.setItem('gzeed_project_type', data.project_type);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching project type:', err);
+      } finally {
+        setIsLoadingProject(false);
+      }
+    };
+    fetchProjectType();
+  }, []);
+
+  const handleSelectProjectType = async (type: string) => {
+    setProjectType(type);
+    localStorage.setItem('gzeed_project_type', type);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('user_settings')
+          .upsert({ 
+            user_id: user.id, 
+            project_type: type, 
+            updated_at: new Date().toISOString() 
+          }, { onConflict: 'user_id' });
+      }
+    } catch (err) {
+      console.error('Error saving project type to DB:', err);
+    }
+  };
   React.useEffect(() => {
     if (activeThemeId) localStorage.setItem('gzeed_active_theme', activeThemeId);
     localStorage.setItem('gzeed_store_name', storeName);
@@ -325,6 +371,68 @@ export default function GZeedDashboard() {
           
           {activeTab === 'home' && (
             <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
+            {isLoadingProject ? (
+              <div className="py-32 flex flex-col items-center justify-center">
+                <div className="w-12 h-12 border-4 border-slate-200 border-t-cyan-500 rounded-full animate-spin mb-4" />
+                <p className="text-slate-500 font-medium">{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
+              </div>
+            ) : !projectType ? (
+              <div className="py-12 flex flex-col items-center justify-center text-center animate-fade-in">
+                <h3 className="text-3xl font-black text-slate-900 mb-3">
+                  {lang === 'ar' ? 'ماذا تريد أن تبني اليوم؟' : lang === 'en' ? "What do you want to build today?" : "Que voulez-vous construire aujourd'hui ?"}
+                </h3>
+                <p className="text-slate-500 font-medium mb-12 max-w-lg">
+                  {lang === 'ar' ? 'اختر نوع مشروعك للبدء، وسنوفر لك الأدوات المناسبة.' : lang === 'en' ? 'Choose your project type to start, we will provide the right tools.' : 'Choisissez votre type de projet pour commencer.'}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl text-start">
+                  {/* E-commerce */}
+                  <div onClick={() => handleSelectProjectType('store')} className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-cyan-300 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
+                    <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-cyan-100 to-transparent rounded-bl-full opacity-50" />
+                    <div className="w-12 h-12 bg-cyan-100 text-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <ShoppingBag className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-lg font-black text-slate-900 mb-2">{lang === 'ar' ? 'متجر إلكتروني' : lang === 'en' ? 'E-commerce Store' : 'Boutique E-commerce'}</h4>
+                    <p className="text-sm font-medium text-slate-500 mb-4">
+                      {lang === 'ar' ? 'منصة متكاملة لبيع منتجاتك مع سلة مشتريات ووسائل دفع.' : lang === 'en' ? 'Complete platform to sell your products with a cart.' : 'Plateforme complète pour vendre vos produits avec panier.'}
+                    </p>
+                    <span className="text-sm font-bold text-cyan-600 flex items-center gap-1 group-hover:gap-2 transition-all">
+                      {lang === 'ar' ? 'اختيار المتجر' : lang === 'en' ? 'Choose Store' : 'Choisir la boutique'} <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+
+                  {/* Website */}
+                  <div onClick={() => handleSelectProjectType('website')} className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-indigo-300 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
+                    <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-bl-full opacity-50" />
+                    <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Globe className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-lg font-black text-slate-900 mb-2">{lang === 'ar' ? 'موقع تعريفي' : lang === 'en' ? 'Showcase Website' : 'Site Vitrine'}</h4>
+                    <p className="text-sm font-medium text-slate-500 mb-4">
+                      {lang === 'ar' ? 'موقع احترافي لشركتك، محفظة أعمالك، أو مدونتك الشخصية.' : lang === 'en' ? 'Professional site for your business or portfolio.' : 'Site professionnel pour votre entreprise ou portfolio.'}
+                    </p>
+                    <span className="text-sm font-bold text-indigo-600 flex items-center gap-1 group-hover:gap-2 transition-all">
+                      {lang === 'ar' ? 'اختيار الموقع' : lang === 'en' ? 'Choose Website' : 'Choisir le site'} <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+
+                  {/* App */}
+                  <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-emerald-300 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
+                    <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-emerald-100 to-transparent rounded-bl-full opacity-50" />
+                    <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Smartphone className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-lg font-black text-slate-900 mb-2">{lang === 'ar' ? 'تطبيق هاتف (قريباً)' : lang === 'en' ? 'Mobile App' : 'Application Mobile'}</h4>
+                    <p className="text-sm font-medium text-slate-500 mb-4">
+                      {lang === 'ar' ? 'حول مشروعك إلى تطبيق احترافي لأجهزة الآيفون والأندرويد.' : lang === 'en' ? 'Turn your project into a professional app.' : 'Transformez votre projet en application professionnelle.'}
+                    </p>
+                    <span className="text-sm font-bold text-emerald-600 flex items-center gap-1 group-hover:gap-2 transition-all">
+                      {lang === 'ar' ? 'اشترك في قائمة الانتظار' : lang === 'en' ? "Join the waitlist" : "S'inscrire à la liste"} <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
             {/* Greeting */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
@@ -341,15 +449,17 @@ export default function GZeedDashboard() {
                   className="flex-1 md:flex-none justify-center px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
                 >
                   <MonitorPlay className="w-4 h-4" />
-                  {lang === 'ar' ? 'عرض المتجر' : lang === 'en' ? 'View Store' : 'Voir la boutique'}
+                  {lang === 'ar' ? 'عرض الواجهة' : lang === 'en' ? 'View Site' : 'Voir le site'}
                 </button>
-                <button 
-                  onClick={() => setActiveTab('add-product')}
-                  className="flex-1 md:flex-none justify-center px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-md flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  {lang === 'ar' ? 'إضافة منتج' : lang === 'en' ? 'Add Product' : 'Ajouter un produit'}
-                </button>
+                {projectType === 'store' && (
+                  <button 
+                    onClick={() => setActiveTab('add-product')}
+                    className="flex-1 md:flex-none justify-center px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-md flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {lang === 'ar' ? 'إضافة منتج' : lang === 'en' ? 'Add Product' : 'Ajouter un produit'}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -460,64 +570,10 @@ export default function GZeedDashboard() {
                 </div>
               </div>
             </div>
-
-            {/* Platform Options (Site, App, E-commerce) */}
-            <div>
-              <h3 className="text-xl font-black text-slate-900 mb-4">
-                {lang === 'ar' ? 'ماذا تريد أن تبني اليوم؟' : lang === 'en' ? "What do you want to build today?" : "Que voulez-vous construire aujourd'hui ?"}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                {/* E-commerce */}
-                <div onClick={() => { setActiveTab('themes'); setThemeFilter('store'); }} className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-cyan-300 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
-                  <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-cyan-100 to-transparent rounded-bl-full opacity-50" />
-                  <div className="w-12 h-12 bg-cyan-100 text-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <ShoppingBag className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-lg font-black text-slate-900 mb-2">{lang === 'ar' ? 'متجر إلكتروني' : lang === 'en' ? 'E-commerce Store' : 'Boutique E-commerce'}</h4>
-                  <p className="text-sm font-medium text-slate-500 mb-4">
-                    {lang === 'ar' ? 'منصة متكاملة لبيع منتجاتك مع سلة مشتريات ووسائل دفع.' : lang === 'en' ? 'Complete platform to sell your products with a cart.' : 'Plateforme complète pour vendre vos produits avec panier.'}
-                  </p>
-                  <span className="text-sm font-bold text-cyan-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-                    {lang === 'ar' ? 'استكشاف القوالب' : lang === 'en' ? 'Explore Themes' : 'Explorer les thèmes'} <ArrowRight className="w-4 h-4" />
-                  </span>
-                </div>
-
-                {/* Website */}
-                <div onClick={() => { setActiveTab('themes'); setThemeFilter('website'); }} className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-indigo-300 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
-                  <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-bl-full opacity-50" />
-                  <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Globe className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-lg font-black text-slate-900 mb-2">{lang === 'ar' ? 'موقع تعريفي' : lang === 'en' ? 'Showcase Website' : 'Site Vitrine'}</h4>
-                  <p className="text-sm font-medium text-slate-500 mb-4">
-                    {lang === 'ar' ? 'موقع احترافي لشركتك، محفظة أعمالك، أو مدونتك الشخصية.' : lang === 'en' ? 'Professional site for your business or portfolio.' : 'Site professionnel pour votre entreprise ou portfolio.'}
-                  </p>
-                  <span className="text-sm font-bold text-indigo-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-                    {lang === 'ar' ? 'استكشاف القوالب' : lang === 'en' ? 'Explore Themes' : 'Explorer les thèmes'} <ArrowRight className="w-4 h-4" />
-                  </span>
-                </div>
-
-                {/* App */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-emerald-300 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
-                  <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-emerald-100 to-transparent rounded-bl-full opacity-50" />
-                  <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Smartphone className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-lg font-black text-slate-900 mb-2">{lang === 'ar' ? 'تطبيق هاتف (قريباً)' : lang === 'en' ? 'Mobile App' : 'Application Mobile'}</h4>
-                  <p className="text-sm font-medium text-slate-500 mb-4">
-                    {lang === 'ar' ? 'حول مشروعك إلى تطبيق احترافي لأجهزة الآيفون والأندرويد.' : lang === 'en' ? 'Turn your project into a professional app.' : 'Transformez votre projet en application professionnelle.'}
-                  </p>
-                  <span className="text-sm font-bold text-emerald-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-                    {lang === 'ar' ? 'اشترك في قائمة الانتظار' : lang === 'en' ? "Join the waitlist" : "S'inscrire à la liste"} <ArrowRight className="w-4 h-4" />
-                  </span>
-                </div>
-
-              </div>
-            </div>
-
-            </div>
+            </>
           )}
+        </div>
+      )}
 
           {activeTab === 'orders' && (
             <div className="max-w-5xl mx-auto animate-fade-in">
