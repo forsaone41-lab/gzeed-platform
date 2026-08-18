@@ -838,15 +838,7 @@ export default function GZeedDashboard() {
               </div>
             </div>
           )}
-
-          {['customers', 'analytics'].includes(activeTab) && (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400 animate-fade-in">
-              <Settings className="w-16 h-16 mb-4 animate-spin-slow opacity-20" />
-              <h2 className="text-xl font-bold text-slate-500">{lang === 'ar' ? 'هذه الصفحة قيد التطوير' : lang === 'en' ? 'Page under development' : 'Page en cours de développement'}</h2>
-            </div>
           )}
-        </div>
-      </main>
 
           {activeTab === 'add-product' && (
             <div className="w-full max-w-6xl animate-fade-in pb-12">
@@ -957,6 +949,15 @@ export default function GZeedDashboard() {
               </div>
             </div>
           )}
+
+          {['customers', 'analytics'].includes(activeTab) && (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400 animate-fade-in">
+              <Settings className="w-16 h-16 mb-4 animate-spin-slow opacity-20" />
+              <h2 className="text-xl font-bold text-slate-500">{lang === 'ar' ? 'هذه الصفحة قيد التطوير' : lang === 'en' ? 'Page under development' : 'Page en cours de développement'}</h2>
+            </div>
+          )}
+        </div>
+      </main>
 
       {/* Toast Notification */}
       {toastMessage && (
