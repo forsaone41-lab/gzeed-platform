@@ -155,7 +155,7 @@ export default function PlatformLanding() {
                 dir={isAr ? "rtl" : "ltr"}
               />
               <button type="submit" disabled={isSubmittingLead} className="bg-cyan-600 hover:bg-cyan-700 disabled:opacity-60 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group whitespace-nowrap shadow-[0_0_20px_rgba(8,145,178,0.3)] hover:shadow-[0_0_30px_rgba(8,145,178,0.5)]">
-                {isAr ? 'أنشئ متجرك مجاناً' : 'Créer ma boutique'}
+                {isAr ? 'ابدأ مجاناً' : 'Commencer gratuitement'}
                 <ArrowRight className={`w-5 h-5 transition-transform shrink-0 ${isAr ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`} />
               </button>
             </div>
@@ -174,7 +174,7 @@ export default function PlatformLanding() {
                 />
               </div>
               <button type="submit" disabled={isSubmittingLead} className="w-full justify-center bg-cyan-600 hover:bg-cyan-700 disabled:opacity-60 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group shadow-[0_0_20px_rgba(8,145,178,0.3)]">
-                {isAr ? 'أنشئ متجرك مجاناً' : 'Créer ma boutique'}
+                {isAr ? 'ابدأ مجاناً' : 'Commencer gratuitement'}
                 <ArrowRight className={`w-5 h-5 transition-transform shrink-0 ${isAr ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`} />
               </button>
             </div>
