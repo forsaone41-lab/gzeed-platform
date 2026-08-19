@@ -14,6 +14,7 @@ export default function StoreSignup({ onLogin }: { onLogin?: (user: any) => void
 
   const { isAr } = useLang();
   const company = loadCompanyProfile();
+  const isGZeed = window.location.hostname.includes('gzeed');
   const premiumPrice = company.storePremiumPrice || '499';
 
   const [mode, setMode] = useState<'signup' | 'login' | 'recovery'>(initialMode);
@@ -225,8 +226,12 @@ export default function StoreSignup({ onLogin }: { onLogin?: (user: any) => void
               <Store className="w-5 h-5" />
             </div>
             <div className="flex flex-col justify-center text-left">
-              <span className="font-black text-[22px] leading-none tracking-tight text-[#0B1121]">BEYA</span>
-              <span className="font-bold text-[11px] leading-none tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500 mt-0.5 uppercase">STORES</span>
+              <span className="font-black text-[22px] leading-none tracking-tight text-[#0B1121]">
+                {isGZeed ? 'GZeed' : 'BEYA'}
+              </span>
+              <span className="font-bold text-[11px] leading-none tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500 mt-0.5 uppercase">
+                {isGZeed ? 'PLATFORM' : 'STORES'}
+              </span>
             </div>
           </Link>
           <h1 className="text-3xl font-extrabold text-slate-900 mb-2">
@@ -432,7 +437,7 @@ export default function StoreSignup({ onLogin }: { onLogin?: (user: any) => void
                           <a href="#/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">شروط الخدمة</a>{' '}
                           و{' '}
                           <a href="#/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">سياسة الخصوصية</a>{' '}
-                          الخاصة بمنصة بية كريتيف، وأؤكد أن جميع المعلومات المقدمة صحيحة.
+                          الخاصة بمنصة {isGZeed ? 'GZeed' : 'بية كريتيف'}، وأؤكد أن جميع المعلومات المقدمة صحيحة.
                         </>
                       ) : (
                         <>
@@ -440,7 +445,7 @@ export default function StoreSignup({ onLogin }: { onLogin?: (user: any) => void
                           <a href="#/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Conditions d'utilisation</a>{' '}
                           et la{' '}
                           <a href="#/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Politique de confidentialité</a>{' '}
-                          de BEYACREATIVE, et je certifie que toutes les informations fournies sont exactes.
+                          de {isGZeed ? 'GZeed' : 'BEYACREATIVE'}, et je certifie que toutes les informations fournies sont exactes.
                         </>
                       )}
                     </label>

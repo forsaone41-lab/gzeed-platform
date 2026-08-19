@@ -99,7 +99,7 @@ export default function PlatformLanding() {
               <option value="fr" className="text-slate-900">FR</option>
               <option value="en" className="text-slate-900">EN</option>
             </select>
-            <Link to="/login" className={`text-sm font-semibold transition-colors hidden sm:block ${scrolled ? 'text-slate-900 hover:text-cyan-600' : 'text-white hover:text-cyan-300'}`}>
+            <Link to="/store-signup?mode=login" className={`text-sm font-semibold transition-colors hidden sm:block ${scrolled ? 'text-slate-900 hover:text-cyan-600' : 'text-white hover:text-cyan-300'}`}>
               {txt('تسجيل الدخول', 'Se Connecter', 'Log In')}
             </Link>
             <Link to="/store-signup" className="px-6 py-2.5 rounded-md bg-cyan-600 text-white font-bold text-sm hover:bg-cyan-700 transition-all shadow-md">
