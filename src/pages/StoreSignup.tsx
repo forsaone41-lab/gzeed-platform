@@ -33,6 +33,27 @@ export default function StoreSignup({ onLogin }: { onLogin?: (user: any) => void
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
+  // Real-time subdomain availability check - this name becomes
+  // "<slug>.gzeed.com" later in onboarding, but nothing here ever checked
+  // whether that slug is already taken by another store, so any name typed
+  // "worked" whether or not it actually was available.
+  const storeSlug = storeName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+
+  useEffect(() => {
+    if (!storeSlug || storeSlug.length < 3) { setSlugStatus('idle'); return; }
+    setSlugStatus('checking');
+    const timer = setTimeout(async () => {
+      const { data } = await supabase
+        .from('stores')
+        .select('domain')
+        .eq('domain', `${storeSlug}.gzeed.com`)
+        .maybeSingle();
+      setSlugStatus(data ? 'taken' : 'available');
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [storeSlug]);
+
   // Affiliate referral attribution: capture ?ref=<code> and resolve it to an affiliate_id
   // so StoreBuilder can attribute the store once it's created.
   useEffect(() => {
@@ -58,6 +79,9 @@ export default function StoreSignup({ onLogin }: { onLogin?: (user: any) => void
         }
         if (password !== confirmPassword) {
           throw new Error(isAr ? 'كلمات السر غير متطابقة' : 'Les mots de passe ne correspondent pas');
+        }
+        if (slugStatus === 'taken') {
+          throw new Error(isAr ? `اسم المتجر "${storeName}" مستخدم من متجر آخر، يرجى اختيار اسم مختلف.` : `Le nom de boutique "${storeName}" est déjà pris, veuillez en choisir un autre.`);
         }
 
         // 1. Create secure Supabase Auth user
@@ -325,10 +349,17 @@ export default function StoreSignup({ onLogin }: { onLogin?: (user: any) => void
                         required
                         value={storeName}
                         onChange={e => setStoreName(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                        className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${slugStatus === 'taken' ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-100' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'}`}
                         placeholder={isAr ? 'متجري' : 'Ma Boutique'}
                       />
                     </div>
+                    {storeSlug.length >= 3 && (
+                      <p className={`text-xs font-bold mt-1.5 flex items-center gap-1.5 ${slugStatus === 'taken' ? 'text-rose-600' : slugStatus === 'available' ? 'text-emerald-600' : 'text-slate-400'}`}>
+                        {slugStatus === 'checking' && <><Loader2 className="w-3 h-3 animate-spin" /> {isAr ? 'جاري التحقق...' : 'Vérification...'}</>}
+                        {slugStatus === 'available' && <><CheckCircle className="w-3 h-3" /> {storeSlug}.gzeed.com {isAr ? 'متاح' : 'disponible'}</>}
+                        {slugStatus === 'taken' && <><AlertCircle className="w-3 h-3" /> {storeSlug}.gzeed.com {isAr ? 'مستخدم من متجر آخر، اختر اسماً مختلفاً' : 'déjà pris, choisissez un autre nom'}</>}
+                      </p>
+                    )}
                   </div>
                 )}
 

@@ -992,6 +992,11 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   }, [isLiveStore, storeName, storeLogo, storeFavicon, seoDescription, storeIsAr]);
 
   const [isLoadingLiveConfig, setIsLoadingLiveConfig] = useState(isLiveStore);
+  // True only when a real *.gzeed.com (or custom) domain was visited and no
+  // `stores` row matches it - previously this case silently fell through to
+  // StoreBuilder's own default/demo state, so ANY unregistered subdomain
+  // rendered a fully working-looking storefront that nobody ever created.
+  const [liveStoreNotFound, setLiveStoreNotFound] = useState(false);
 
   // Fetch from Supabase for live store to handle cross-domain loading
   useEffect(() => {
@@ -1030,6 +1035,10 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
               }
            }
            
+           if (!data && isCustomProductionDomain) {
+              setLiveStoreNotFound(true);
+           }
+
            if (data && data.config_json) {
               const conf = data.config_json;
               if (conf.storeLang) setStoreLang(conf.storeLang);
@@ -5186,6 +5195,23 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
        return (
           <div className="w-full h-screen bg-white flex flex-col items-center justify-center">
              <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+          </div>
+       );
+    }
+
+    if (liveStoreNotFound) {
+       return (
+          <div className="w-full h-screen flex flex-col items-center justify-center text-center px-6 bg-slate-50">
+             <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-6">
+                <Package className="w-8 h-8 text-slate-400" />
+             </div>
+             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">404</h1>
+             <p className="text-slate-500 font-medium max-w-md">
+                Aucune boutique n'existe à cette adresse ({window.location.hostname}).
+             </p>
+             <a href="https://gzeed.com" className="mt-8 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors">
+                Retour à GZeed
+             </a>
           </div>
        );
     }
