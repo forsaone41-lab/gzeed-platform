@@ -783,6 +783,16 @@ export default function GZeedDashboard() {
                         <p className="text-sm text-slate-600 font-medium">
                           {lang === 'ar' ? 'قم بربط نطاقك الخاص للبدء في استقبال الزوار.' : lang === 'en' ? 'Connect your custom domain to start receiving visitors.' : 'Connectez votre domaine personnalisé pour commencer à recevoir des visiteurs.'}
                         </p>
+                        {tasksCompleted.domain && domainName.includes('.gzeed.com') && (
+                          <p className="text-xs font-bold text-amber-600 mt-2 flex items-center gap-1">
+                            <Globe className="w-3.5 h-3.5 shrink-0" />
+                            {lang === 'ar'
+                              ? `متجرك حالياً على نطاق فرعي مجاني (${domainName}). رقّي لـ PRO للحصول على نطاقك الخاص (مثال: mystore.com) ومظهر أكثر احترافية.`
+                              : lang === 'en'
+                              ? `Your store is on a free subdomain (${domainName}). Upgrade to PRO to get your own domain (e.g. mystore.com) for a more professional look.`
+                              : `Votre boutique est sur un sous-domaine gratuit (${domainName}). Passez à PRO pour votre propre domaine et une image plus professionnelle.`}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1088,9 +1098,12 @@ export default function GZeedDashboard() {
                       >
                         {lang === 'ar' ? 'إلغاء' : lang === 'en' ? 'Cancel' : 'Annuler'}
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           setIsBasicInfoEditing(false);
+                          if (storeName.trim()) {
+                            setTasksCompleted((prev: any) => ({ ...prev, name: true }));
+                          }
                           showToastAndNavigate(lang === 'ar' ? 'تم حفظ المعلومات بنجاح!' : lang === 'en' ? 'Information saved!' : 'Informations enregistrées !', 'settings');
                         }}
                         className="px-6 py-2 bg-cyan-600 text-white text-sm font-bold rounded-lg hover:bg-cyan-500 transition-colors"
