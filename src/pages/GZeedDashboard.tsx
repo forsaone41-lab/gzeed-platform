@@ -91,66 +91,6 @@ export default function GZeedDashboard() {
     fetchStoreProducts();
   }, [fetchStoreProducts]);
 
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
-
-  // Orders placed at checkout are written into `commandes` (see StoreBuilder's
-  // submitGlobalOrder) with the store name encoded into the `tissu` field as
-  // "Store: <name> - <city> - <address>", since there's no dedicated
-  // storefront-orders table yet. This mirrors StoreBuilder's own order-reading
-  // logic so both dashboards agree on what "this store's orders" means.
-  const fetchOrders = React.useCallback(async () => {
-    setIsLoadingOrders(true);
-    try {
-      const { data, error } = await supabase
-        .from('commandes')
-        .select('*')
-        .ilike('tissu', `Store: ${storeName}%`)
-        .order('dateCommande', { ascending: false });
-
-      if (error || !data) { setOrders([]); return; }
-
-      const mapped = data.map((cmd: any) => {
-        const clientRaw = cmd.client || '';
-        const clientPhoneMatch = clientRaw.match(/ - (\S+)$/);
-        const clientPhone = clientPhoneMatch ? clientPhoneMatch[1] : '';
-        const clientName = clientPhoneMatch ? clientRaw.slice(0, clientPhoneMatch.index) : clientRaw;
-
-        const tissuRaw = cmd.tissu || '';
-        const afterStore = tissuRaw.replace(/^Store:\s*[^-]*-\s*/, '');
-        const [tissuCity] = afterStore.split(' - ');
-
-        let statusColor = 'bg-slate-100 text-slate-700';
-        if (['Confirmé', 'Confirmée', 'Validée', 'Livrée', 'مؤكد', 'تم التوصيل'].includes(cmd.statut)) statusColor = 'bg-emerald-100 text-emerald-700';
-        if (['Refusé', 'Refusée', 'Annulée', 'Retour', 'مرفوض', 'ملغى'].includes(cmd.statut)) statusColor = 'bg-rose-100 text-rose-700';
-        if (['En attente', 'Nouveau'].includes(cmd.statut)) statusColor = 'bg-amber-100 text-amber-700';
-
-        return {
-          id: cmd.id,
-          date: cmd.dateCommande,
-          clientName,
-          clientPhone,
-          city: tissuCity || '',
-          modele: cmd.modele,
-          quantite: cmd.quantite || 1,
-          prix: cmd.prix ? parseFloat(cmd.prix.toString()) : 0,
-          statut: cmd.statut || 'En attente',
-          statusColor,
-        };
-      });
-
-      setOrders(mapped);
-    } catch (e) {
-      setOrders([]);
-    } finally {
-      setIsLoadingOrders(false);
-    }
-  }, [storeName]);
-
-  React.useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
-
   const [productType, setProductType] = useState('physical');
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -236,6 +176,15 @@ export default function GZeedDashboard() {
     if (id === 'abaya') return '#/demo/ecommerce/abaya';
     if (id === 'minimalist') return '#/demo/ecommerce/minimalist';
     return `#/demo/ecommerce/${id}`;
+  };
+
+  // Real live storefront for this store (same Layout renderer used by the theme editor), not the generic theme demo gallery
+  const getLiveStoreUrl = () => {
+    if (domainName && domainName.toLowerCase().endsWith('.gzeed.com')) {
+      const slug = domainName.replace(/\.gzeed\.com$/i, '');
+      return `#/store/${slug}`;
+    }
+    return `https://${domainName}`;
   };
 
   const showToastAndNavigate = (msg: string, nextTab: string) => {
@@ -478,15 +427,15 @@ export default function GZeedDashboard() {
 
         {/* Store Selector */}
         <div className="p-4 border-b border-slate-200">
-          <div 
-            onClick={() => window.open(getThemePreviewUrl(activeThemeId), '_blank')}
+          <div
+            onClick={() => window.open(getLiveStoreUrl(), '_blank')}
             className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:shadow-md hover:border-cyan-300 transition-all group/storebox"
           >
             <div className="flex flex-col overflow-hidden">
               <span className="text-[10px] uppercase font-bold text-slate-500 mb-0.5">{lang === 'ar' ? 'متجرك الحالي' : lang === 'en' ? 'Current Store' : 'Boutique actuelle'}</span>
               <span className="text-sm font-black text-slate-900 leading-tight truncate">{storeName}</span>
-              <a 
-                href={getThemePreviewUrl(activeThemeId)}
+              <a
+                href={getLiveStoreUrl()}
                 target="_blank" 
                 onClick={(e) => e.stopPropagation()}
                 className="text-[11px] font-bold text-cyan-600 hover:text-cyan-700 mt-1 flex items-center gap-1 group/link w-max truncate"
@@ -682,8 +631,8 @@ export default function GZeedDashboard() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
-                <button 
-                  onClick={() => window.open(getThemePreviewUrl(activeThemeId), '_blank')}
+                <button
+                  onClick={() => window.open(getLiveStoreUrl(), '_blank')}
                   className="flex-1 md:flex-none justify-center px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
                 >
                   <MonitorPlay className="w-4 h-4" />
@@ -715,12 +664,32 @@ export default function GZeedDashboard() {
                   </p>
                   
                   <div className="space-y-4">
-                    {/* Task 1 */}
-                    <div onClick={() => setActiveTab('settings')} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer group ${tasksCompleted.name ? 'border-emerald-100 bg-emerald-50/50' : 'border-cyan-100 bg-cyan-50/50 hover:bg-cyan-50'}`}>
-                      {tasksCompleted.name ? (
+                    {/* Task 1: Domain */}
+                    <div onClick={() => setActiveTab('settings')} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer group ${tasksCompleted.domain ? 'border-emerald-100 bg-emerald-50/50' : 'border-cyan-100 bg-cyan-50/50 hover:bg-cyan-50'}`}>
+                      {tasksCompleted.domain ? (
                         <div className="w-6 h-6 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5"><Check className="w-3.5 h-3.5" /></div>
                       ) : (
                         <div className="w-6 h-6 rounded-full border-2 border-cyan-500 flex items-center justify-center shrink-0 mt-0.5 bg-white"><div className="w-2 h-2 rounded-full bg-cyan-500" /></div>
+                      )}
+                      <div>
+                        <h3 className="font-bold text-slate-900 mb-1 group-hover:text-cyan-700 transition-colors">
+                          {lang === 'ar' ? 'ربط اسم النطاق' : lang === 'en' ? 'Connect a domain' : 'Connecter un domaine'}
+                        </h3>
+                        <p className="text-sm text-slate-600 font-medium">
+                          {lang === 'ar' ? 'قم بربط نطاقك الخاص للبدء في استقبال الزوار.' : lang === 'en' ? 'Connect your custom domain to start receiving visitors.' : 'Connectez votre domaine personnalisé pour commencer à recevoir des visiteurs.'}
+                        </p>
+                        <button className="mt-3 text-sm font-bold text-cyan-600 hover:text-cyan-700">
+                          {lang === 'ar' ? 'إضافة نطاق →' : lang === 'en' ? 'Add domain →' : 'Ajouter un domaine →'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Task 2: Name */}
+                    <div onClick={() => setActiveTab('settings')} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer group ${tasksCompleted.name ? 'border-emerald-100 bg-emerald-50/50' : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'}`}>
+                      {tasksCompleted.name ? (
+                        <div className="w-6 h-6 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5"><Check className="w-3.5 h-3.5" /></div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 bg-white" />
                       )}
                       <div>
                         <h3 className="font-bold text-slate-900 mb-1 group-hover:text-cyan-700 transition-colors">
@@ -729,13 +698,10 @@ export default function GZeedDashboard() {
                         <p className="text-sm text-slate-600 font-medium">
                           {lang === 'ar' ? 'لم تقم بتسمية متجرك بعد. اختر اسماً يمثل علامتك التجارية.' : lang === 'en' ? "You haven't named your store yet." : "Vous n'avez pas encore nommé votre boutique."}
                         </p>
-                        <button className="mt-3 text-sm font-bold text-cyan-600 hover:text-cyan-700">
-                          {lang === 'ar' ? 'إضافة اسم →' : lang === 'en' ? 'Add name →' : 'Ajouter un nom →'}
-                        </button>
                       </div>
                     </div>
 
-                    {/* Task 2 */}
+                    {/* Task 3: Theme */}
                     <div onClick={() => setActiveTab('themes')} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer group ${tasksCompleted.theme ? 'border-emerald-100 bg-emerald-50/50' : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'}`}>
                       {tasksCompleted.theme ? (
                         <div className="w-6 h-6 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5"><Check className="w-3.5 h-3.5" /></div>
@@ -752,7 +718,7 @@ export default function GZeedDashboard() {
                       </div>
                     </div>
 
-                    {/* Task 3 */}
+                    {/* Task 4: Product */}
                     <div onClick={() => setActiveTab('products')} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer group ${tasksCompleted.product ? 'border-emerald-100 bg-emerald-50/50' : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'}`}>
                       {tasksCompleted.product ? (
                         <div className="w-6 h-6 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5"><Check className="w-3.5 h-3.5" /></div>
@@ -766,33 +732,6 @@ export default function GZeedDashboard() {
                         <p className="text-sm text-slate-600 font-medium">
                           {lang === 'ar' ? 'ارفع صوراً ووصفاً لمنتجك ليراه عملاؤك.' : lang === 'en' ? 'Upload images and a description.' : 'Téléchargez des images et une description.'}
                         </p>
-                      </div>
-                    </div>
-
-                    {/* Task 4 */}
-                    <div onClick={() => setActiveTab('settings')} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors cursor-pointer group ${tasksCompleted.domain ? 'border-emerald-100 bg-emerald-50/50' : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'}`}>
-                      {tasksCompleted.domain ? (
-                        <div className="w-6 h-6 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5"><Check className="w-3.5 h-3.5" /></div>
-                      ) : (
-                        <div className="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 bg-white" />
-                      )}
-                      <div>
-                        <h3 className="font-bold text-slate-900 mb-1 group-hover:text-cyan-700 transition-colors">
-                          {lang === 'ar' ? 'ربط اسم النطاق' : lang === 'en' ? 'Connect a domain' : 'Connecter un domaine'}
-                        </h3>
-                        <p className="text-sm text-slate-600 font-medium">
-                          {lang === 'ar' ? 'قم بربط نطاقك الخاص للبدء في استقبال الزوار.' : lang === 'en' ? 'Connect your custom domain to start receiving visitors.' : 'Connectez votre domaine personnalisé pour commencer à recevoir des visiteurs.'}
-                        </p>
-                        {tasksCompleted.domain && domainName.includes('.gzeed.com') && (
-                          <p className="text-xs font-bold text-amber-600 mt-2 flex items-center gap-1">
-                            <Globe className="w-3.5 h-3.5 shrink-0" />
-                            {lang === 'ar'
-                              ? `متجرك حالياً على نطاق فرعي مجاني (${domainName}). رقّي لـ PRO للحصول على نطاقك الخاص (مثال: mystore.com) ومظهر أكثر احترافية.`
-                              : lang === 'en'
-                              ? `Your store is on a free subdomain (${domainName}). Upgrade to PRO to get your own domain (e.g. mystore.com) for a more professional look.`
-                              : `Votre boutique est sur un sous-domaine gratuit (${domainName}). Passez à PRO pour votre propre domaine et une image plus professionnelle.`}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -831,38 +770,16 @@ export default function GZeedDashboard() {
                   <p className="text-slate-500 font-medium">{lang === 'ar' ? 'إدارة وتتبع جميع طلبات متجرك.' : lang === 'en' ? 'Manage and track all your orders.' : 'Gérez et suivez toutes vos commandes.'}</p>
                 </div>
               </div>
-              {isLoadingOrders ? (
-                <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
-                  <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+              <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                  <ShoppingBag className="w-10 h-10 text-slate-300" />
                 </div>
-              ) : orders.length === 0 ? (
-                <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
-                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                    <ShoppingBag className="w-10 h-10 text-slate-300" />
-                  </div>
-                  <h3 className="text-xl font-black text-slate-900 mb-2">{lang === 'ar' ? 'لا توجد طلبات بعد' : lang === 'en' ? 'No orders yet' : 'Aucune commande pour le moment'}</h3>
-                  <p className="text-slate-500 font-medium mb-6 max-w-md">{lang === 'ar' ? 'عندما يقوم العملاء بالشراء من متجرك، ستظهر طلباتهم هنا.' : lang === 'en' ? 'When clients buy from your store, their orders will appear here.' : 'Lorsque les clients achèteront sur votre boutique, leurs commandes apparaîtront ici.'}</p>
-                  <button className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition-all">
-                    {lang === 'ar' ? 'كيف أزيد مبيعاتي؟' : lang === 'en' ? 'How to increase my sales?' : 'Comment augmenter mes ventes ?'}
-                  </button>
-                </div>
-              ) : (
-                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                  <div className="divide-y divide-slate-100">
-                    {orders.map((o) => (
-                      <div key={o.id} className="p-5 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-slate-900 truncate">{o.clientName || (lang === 'ar' ? 'عميل' : 'Client')}</p>
-                          <p className="text-sm text-slate-500 font-medium truncate">{o.modele} · {o.quantite} {lang === 'ar' ? 'قطعة' : 'pcs'} {o.city ? `· ${o.city}` : ''}</p>
-                        </div>
-                        <div className="text-sm text-slate-500 font-medium shrink-0 hidden sm:block">{o.clientPhone}</div>
-                        <div className="font-black text-slate-900 shrink-0">{o.prix} {lang === 'ar' ? 'درهم' : 'MAD'}</div>
-                        <span className={`text-xs font-bold px-3 py-1 rounded-full shrink-0 ${o.statusColor}`}>{o.statut}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                <h3 className="text-xl font-black text-slate-900 mb-2">{lang === 'ar' ? 'لا توجد طلبات بعد' : lang === 'en' ? 'No orders yet' : 'Aucune commande pour le moment'}</h3>
+                <p className="text-slate-500 font-medium mb-6 max-w-md">{lang === 'ar' ? 'عندما يقوم العملاء بالشراء من متجرك، ستظهر طلباتهم هنا.' : lang === 'en' ? 'When clients buy from your store, their orders will appear here.' : 'Lorsque les clients achèteront sur votre boutique, leurs commandes apparaîtront ici.'}</p>
+                <button className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition-all">
+                  {lang === 'ar' ? 'كيف أزيد مبيعاتي؟' : lang === 'en' ? 'How to increase my sales?' : 'Comment augmenter mes ventes ?'}
+                </button>
+              </div>
             </div>
           )}
 
@@ -938,7 +855,7 @@ export default function GZeedDashboard() {
                 </div>
                 
                 {/* Theme Filters */}
-                <div className="flex bg-slate-200/50 p-1 rounded-xl overflow-x-auto hide-scrollbar max-w-full">
+                <div className="flex bg-slate-200/50 p-1 rounded-xl">
                   {[
                     { id: 'all', label: lang === 'ar' ? 'الكل' : lang === 'en' ? 'All' : 'Tous' },
                     { id: 'store', label: lang === 'ar' ? 'متاجر إلكترونية' : lang === 'en' ? 'E-commerce' : 'E-commerce' },
@@ -948,7 +865,7 @@ export default function GZeedDashboard() {
                     <button
                       key={filter.id}
                       onClick={() => setThemeFilter(filter.id)}
-                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap shrink-0 ${
+                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                         themeFilter === filter.id 
                           ? 'bg-white text-slate-900 shadow-sm' 
                           : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
@@ -1098,12 +1015,9 @@ export default function GZeedDashboard() {
                       >
                         {lang === 'ar' ? 'إلغاء' : lang === 'en' ? 'Cancel' : 'Annuler'}
                       </button>
-                      <button
+                      <button 
                         onClick={() => {
                           setIsBasicInfoEditing(false);
-                          if (storeName.trim()) {
-                            setTasksCompleted((prev: any) => ({ ...prev, name: true }));
-                          }
                           showToastAndNavigate(lang === 'ar' ? 'تم حفظ المعلومات بنجاح!' : lang === 'en' ? 'Information saved!' : 'Informations enregistrées !', 'settings');
                         }}
                         className="px-6 py-2 bg-cyan-600 text-white text-sm font-bold rounded-lg hover:bg-cyan-500 transition-colors"

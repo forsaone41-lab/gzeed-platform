@@ -992,11 +992,6 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   }, [isLiveStore, storeName, storeLogo, storeFavicon, seoDescription, storeIsAr]);
 
   const [isLoadingLiveConfig, setIsLoadingLiveConfig] = useState(isLiveStore);
-  // True only when a real *.gzeed.com (or custom) domain was visited and no
-  // `stores` row matches it - previously this case silently fell through to
-  // StoreBuilder's own default/demo state, so ANY unregistered subdomain
-  // rendered a fully working-looking storefront that nobody ever created.
-  const [liveStoreNotFound, setLiveStoreNotFound] = useState(false);
 
   // Fetch from Supabase for live store to handle cross-domain loading
   useEffect(() => {
@@ -1035,10 +1030,6 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
               }
            }
            
-           if (!data && isCustomProductionDomain) {
-              setLiveStoreNotFound(true);
-           }
-
            if (data && data.config_json) {
               const conf = data.config_json;
               if (conf.storeLang) setStoreLang(conf.storeLang);
@@ -2953,6 +2944,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            </div>
         )}
       </div>
+      <ThemeFooter setPage={setPage} />
       <BottomNavBar page={page} setPage={setPage} />
     </div>
   );
@@ -2976,7 +2968,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent"></div>
                   <div className="absolute bottom-12 left-12 right-12 flex justify-between items-end">
                      <div>
-                        <h1 className="text-5xl font-serif mb-4">{storeLang === 'ar' ? 'التشكيلة الملكية.' : storeLang === 'en' ? 'The Royal Edit.' : 'La Sélection Royale.'}</h1>
+                        <EditableText as="h1" text={heroTitle || (storeLang === 'ar' ? 'التشكيلة الملكية.' : storeLang === 'en' ? 'The Royal Edit.' : 'La Sélection Royale.')} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className="text-5xl font-serif mb-4" styleKey="heroTitle" />
                         <button onClick={() => setPage('collections')} className="px-8 py-3 text-xs tracking-widest border transition-colors" style={{ borderColor: primaryColor, color: primaryColor }}>{storeLang === 'ar' ? 'استكشف التشكيلة' : storeLang === 'en' ? 'EXPLORE COLLECTION' : 'EXPLORER LA COLLECTION'}</button>
                      </div>
                   </div>
@@ -3171,6 +3163,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            </div>
         )}
       </div>
+      <ThemeFooter setPage={setPage} bgColor="#111" textColor="#f5f5f5" />
       <BottomNavBar page={page} setPage={setPage} />
     </div>
   );
@@ -3422,6 +3415,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            </div>
         )}
       </div>
+      <ThemeFooter setPage={setPage} />
       <BottomNavBar page={page} setPage={setPage} />
     </div>
   );
@@ -3914,20 +3908,20 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
             {/* Sub-banner (Lookbook block) */}
             <div className="max-w-6xl mx-auto w-full px-4 py-20 text-center">
                <h3 className="text-2xl font-bold text-slate-900 mb-4 font-serif">{homeCollectionsTitle || 'New & Stylish Collections'}</h3>
-               <p className="text-slate-400 text-xs max-w-xl mx-auto mb-16 leading-relaxed">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.</p>
-               
+               <p className="text-slate-400 text-xs max-w-xl mx-auto mb-16 leading-relaxed">{storeLang === 'ar' ? 'تصاميم مختارة بعناية لتناسب كل مناسبة.' : storeLang === 'en' ? 'Carefully curated pieces for every occasion.' : 'Des pièces soigneusement sélectionnées pour chaque occasion.'}</p>
+
                <div className={`grid gap-8 ${previewDevice === 'mobile' && !isModal ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div className="bg-[#f8f9fa] p-8 flex items-center gap-6 text-left hover:shadow-lg transition-shadow">
                      <div className="flex-1">
-                        <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">Mazia Clothing Collections For Woman's 2019</h4>
-                        <button className="text-[10px] font-bold uppercase tracking-widest mt-6" style={{ color: primaryColor }}>Discover Now</button>
+                        <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{storeLang === 'ar' ? 'تشكيلة نسائية جديدة' : storeLang === 'en' ? "New Women's Collection" : 'Nouvelle collection femme'}</h4>
+                        <button onClick={() => setPage('collections')} className="text-[10px] font-bold uppercase tracking-widest mt-6" style={{ color: primaryColor }}>{storeLang === 'ar' ? 'اكتشف الآن' : storeLang === 'en' ? 'Discover Now' : 'Découvrir'}</button>
                      </div>
                      <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop" className="w-1/3 aspect-[3/4] object-cover" />
                   </div>
                   <div className="bg-[#f8f9fa] p-8 flex items-center gap-6 text-left hover:shadow-lg transition-shadow">
                      <div className="flex-1">
-                        <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">Top Sneaker Collections For Men's</h4>
-                        <button className="text-[10px] font-bold uppercase tracking-widest mt-6" style={{ color: primaryColor }}>Discover Now</button>
+                        <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{storeLang === 'ar' ? 'أحدث تشكيلة رجالية' : storeLang === 'en' ? "Top Men's Collection" : 'Top collection homme'}</h4>
+                        <button onClick={() => setPage('collections')} className="text-[10px] font-bold uppercase tracking-widest mt-6" style={{ color: primaryColor }}>{storeLang === 'ar' ? 'اكتشف الآن' : storeLang === 'en' ? 'Discover Now' : 'Découvrir'}</button>
                      </div>
                      <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop" className="w-1/3 aspect-[3/4] object-cover" />
                   </div>
@@ -4197,8 +4191,9 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
          <LogoEditor className={`text-3xl font-black tracking-tighter text-slate-900 mx-auto mb-8 opacity-20 ${fontFamily}`} style={{ color: primaryColor }} />
          <p>{tr(footerSettings.copyright)}</p>
          <div className="flex justify-center gap-6 mt-6 uppercase tracking-widest text-[10px] font-bold">
-            {footerSettings.showTerms && <span className="hover:text-slate-900 cursor-pointer">{tr('Terms of Service')}</span>}
-            {footerSettings.showPrivacy && <span className="hover:text-slate-900 cursor-pointer">{tr('Privacy Policy')}</span>}
+            {footerSettings.showPrivacy && <button onClick={() => setPage('privacy')} className="hover:text-slate-900 transition-colors">{tr('Privacy Policy')}</button>}
+            {footerSettings.showTerms && <button onClick={() => setPage('terms')} className="hover:text-slate-900 transition-colors">{tr('Terms of Service')}</button>}
+            {footerSettings.showCookies && <button onClick={() => setPage('cookies')} className="hover:text-slate-900 transition-colors">{tr('Cookie Policy')}</button>}
          </div>
       </div>
       <BottomNavBar page={page} setPage={setPage} />
@@ -4221,7 +4216,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         {/* Top Bar */}
         <div className="flex items-center justify-between p-6 bg-white/80 backdrop-blur-md sticky top-0 z-50">
            <button className="w-10 h-10 flex items-center justify-center"><div className="w-5 h-0.5 bg-slate-800 relative before:absolute before:w-3 before:h-0.5 before:bg-slate-800 before:-top-1.5 before:left-0 after:absolute after:w-4 after:h-0.5 after:bg-slate-800 after:top-1.5 after:left-0"></div></button>
-           <h1 className="text-xl font-serif font-black tracking-tighter">Lamode</h1>
+           <h1 className="text-xl font-serif font-black tracking-tighter">{storeName}</h1>
            <div className="flex gap-4">
               <button onClick={() => setIsCartOpen(true)} className="relative"><ShoppingBag className="w-5 h-5 text-slate-800" /></button>
               <button onClick={() => setPage('collections')}><Search className="w-5 h-5 text-slate-800" /></button>
@@ -4248,7 +4243,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-900/40 to-transparent" />
                 <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-center">
                    <p className="text-white/80 text-[10px] md:text-sm uppercase tracking-widest mb-2 md:mb-4 font-bold flex items-center gap-1">The Best <ArrowRight className="w-3 h-3 md:w-4 md:h-4" /></p>
-                   <h2 className="text-3xl md:text-6xl font-serif text-white leading-tight">Lamode<br/>Collection</h2>
+                   <h2 className="text-3xl md:text-6xl font-serif text-white leading-tight">{storeName}<br/>Collection</h2>
                    <div className="absolute bottom-6 md:bottom-12 right-6 md:right-12 bg-black/80 text-white text-[10px] md:text-sm font-bold px-3 md:px-6 py-1.5 md:py-3 flex items-center gap-1 md:gap-2 rounded-full">2023 <Sparkles className="w-3 h-3 md:w-4 md:h-4" /></div>
                 </div>
              </div>
@@ -4264,20 +4259,48 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                       <div key={p.id} onClick={() => navigateToProduct(p.id)} className="group cursor-pointer">
                          <div className="relative aspect-[3/4] bg-slate-50 rounded-[1.5rem] overflow-hidden mb-3">
                             <img src={getCoverImage(p)} className="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-500" />
-                            {p.id % 2 === 0 && (
-                               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-rose-500 text-white text-[9px] md:text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm whitespace-nowrap"><Sparkles className="w-2.5 h-2.5" /> Best Seller</div>
+                            {p.isNew && (
+                               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-rose-500 text-white text-[9px] md:text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm whitespace-nowrap"><Sparkles className="w-2.5 h-2.5" /> {storeIsAr ? 'جديد' : 'New'}</div>
                             )}
                          </div>
                          <h4 className="text-xs md:text-base font-bold text-slate-800 leading-tight mb-1 line-clamp-2">{p.name}</h4>
                          <div className="flex items-center justify-between">
-                            <span className="text-sm md:text-lg font-black text-emerald-600">${parseFloat(p.price).toFixed(2)}</span>
-                            <div className="flex items-center gap-0.5 text-[10px] font-bold text-slate-400"><Star className="w-3 h-3 text-amber-400 fill-amber-400" /> 4.{p.id % 5 + 5}</div>
+                            <span className="text-sm md:text-lg font-black text-emerald-600">{p.price} MAD</span>
                          </div>
                       </div>
                    ))}
                 </div>
              </div>
           </div>
+        )}
+
+        {page === 'collections' && (
+           <div className="px-6 py-8 md:max-w-6xl md:mx-auto md:py-12 animate-in fade-in duration-500">
+              <h2 className="text-xl md:text-3xl font-black text-slate-900 mb-6 md:mb-10">{storeIsAr ? 'كل المنتجات' : 'Tous les produits'}</h2>
+              {categories && categories.length > 1 && (
+                 <div className="flex gap-3 overflow-x-auto scrollbar-hide mb-8">
+                    {categories.map((cat: string) => (
+                       <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
+                          {cat === 'All' ? (storeIsAr ? 'الكل' : 'Tout') : cat}
+                       </button>
+                    ))}
+                 </div>
+              )}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+                 {filteredProducts.map((p: any) => (
+                    <div key={p.id} onClick={() => navigateToProduct(p.id)} className="group cursor-pointer">
+                       <div className="relative aspect-[3/4] bg-slate-50 rounded-[1.5rem] overflow-hidden mb-3">
+                          <img src={getCoverImage(p)} className="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-500" />
+                          {p.isNew && (
+                             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-rose-500 text-white text-[9px] md:text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm whitespace-nowrap"><Sparkles className="w-2.5 h-2.5" /> {storeIsAr ? 'جديد' : 'New'}</div>
+                          )}
+                       </div>
+                       <h4 className="text-xs md:text-base font-bold text-slate-800 leading-tight mb-1 line-clamp-2">{p.name}</h4>
+                       <span className="text-sm md:text-lg font-black text-emerald-600">{p.price} MAD</span>
+                    </div>
+                 ))}
+              </div>
+           </div>
         )}
 
         {page === 'product' && activeProductId && (() => {
@@ -4345,7 +4368,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            <div className="px-6 pt-4 md:max-w-3xl md:mx-auto md:py-12">
               <div className="flex items-center mb-8">
                  <button onClick={() => setPage('product')} className="w-10 h-10 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center"><ArrowLeft className="w-4 h-4 text-slate-900" /></button>
-                 <h2 className="text-sm font-black flex-1 text-center pr-10">Checkout</h2>
+                 <h2 className="text-sm font-black flex-1 text-center pr-10">{storeIsAr ? 'إتمام الطلب' : 'Commande'}</h2>
               </div>
               <CheckoutForm
                   storeIsAr={storeIsAr}
@@ -4361,13 +4384,15 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               <div className="w-24 h-24 bg-gradient-to-tr from-emerald-400 to-green-500 rounded-full flex items-center justify-center mb-8 shadow-xl">
                  <CheckCircle className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-black text-slate-900 mb-2">Order Successful!</h2>
-              <p className="text-slate-500 text-sm mb-10">Your items are being prepared.</p>
+              <h2 className="text-2xl font-black text-slate-900 mb-2">{storeIsAr ? 'تم تأكيد طلبك بنجاح!' : 'Commande confirmée !'}</h2>
+              <p className="text-slate-500 text-sm mb-10">{storeIsAr ? 'جاري تجهيز طلبك الآن.' : 'Vos articles sont en cours de préparation.'}</p>
               <button onClick={() => setPage('home')} className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-bold text-sm">
-                 Continue Shopping
+                 {storeIsAr ? 'متابعة التسوق' : 'Continuer mes achats'}
               </button>
            </div>
         )}
+
+        <ThemeFooter setPage={setPage} />
 
         {/* Bottom Navigation */}
         <div className="md:hidden fixed bottom-6 left-6 right-6 h-16 bg-[#1e1e1e] rounded-[2rem] flex items-center justify-between px-8 shadow-2xl z-50">
@@ -4406,8 +4431,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                 </div>
 
                 <div className="relative z-10 mt-4 md:mt-12 md:max-w-lg">
-                   <p className="text-white/80 text-sm md:text-xl font-bold tracking-widest uppercase mb-1 md:mb-4 drop-shadow-sm">New Nike Series</p>
-                   <h2 className="text-5xl md:text-8xl font-black italic tracking-tighter drop-shadow-md">JOYRIDE</h2>
+                   <EditableText as="p" text={heroSubtitle || (storeIsAr ? 'تشكيلة جديدة' : 'Nouvelle collection')} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-white/80 text-sm md:text-xl font-bold tracking-widest uppercase mb-1 md:mb-4 drop-shadow-sm" styleKey="heroSubtitle" />
+                   <EditableText as="h2" text={heroTitle || storeName} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className="text-5xl md:text-8xl font-black italic tracking-tighter drop-shadow-md" styleKey="heroTitle" />
                 </div>
 
                 {/* Floating Sneaker Image */}
@@ -4420,10 +4445,10 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                 <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-6 -mx-6 px-6 md:grid md:grid-cols-4 md:mx-0 md:px-0">
                    {storeProducts.slice(0, 4).map((p: any, i: number) => (
                       <div key={p.id} onClick={() => navigateToProduct(p.id)} className="w-40 md:w-full shrink-0 bg-white rounded-3xl p-4 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative cursor-pointer hover:-translate-y-2 transition-transform">
-                         <div className="absolute top-4 left-4 bg-lime-400 text-slate-900 text-[9px] md:text-xs font-black px-2 md:px-3 py-0.5 md:py-1 rounded-md">20%</div>
+                         {p.isOnSale && <div className="absolute top-4 left-4 bg-lime-400 text-slate-900 text-[9px] md:text-xs font-black px-2 md:px-3 py-0.5 md:py-1 rounded-md">{storeIsAr ? 'تخفيض' : 'Promo'}</div>}
                          <img src={getCoverImage(p)} className="w-full h-24 md:h-48 object-contain mt-6 mb-4 drop-shadow-xl" />
                          <div className="text-center">
-                            <span className="text-sm md:text-xl font-black text-slate-800">${parseFloat(p.price).toFixed(2)}</span>
+                            <span className="text-sm md:text-xl font-black text-slate-800">{p.price} MAD</span>
                          </div>
                       </div>
                    ))}
@@ -4449,6 +4474,33 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
           </div>
         )}
 
+        {page === 'collections' && (
+           <div className="px-6 pt-6 pb-24 md:max-w-6xl md:mx-auto md:py-12 animate-in fade-in duration-500">
+              <h2 className="text-xl md:text-3xl font-black text-slate-900 mb-6 md:mb-10">{storeIsAr ? 'كل المنتجات' : 'Tous les produits'}</h2>
+              {categories && categories.length > 1 && (
+                 <div className="flex gap-3 overflow-x-auto scrollbar-hide mb-6">
+                    {categories.map((cat: string) => (
+                       <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
+                          {cat === 'All' ? (storeIsAr ? 'الكل' : 'Tout') : cat}
+                       </button>
+                    ))}
+                 </div>
+              )}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+                 {filteredProducts.map((p: any) => (
+                    <div key={p.id} onClick={() => navigateToProduct(p.id)} className="bg-white rounded-3xl p-4 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative cursor-pointer hover:-translate-y-2 transition-transform">
+                       {p.isOnSale && <div className="absolute top-4 left-4 bg-lime-400 text-slate-900 text-[9px] font-black px-2 py-0.5 rounded-md">{storeIsAr ? 'تخفيض' : 'Promo'}</div>}
+                       <img src={getCoverImage(p)} className="w-full h-24 md:h-48 object-contain mb-4 drop-shadow-xl" />
+                       <div className="text-center">
+                          <p className="text-xs md:text-sm font-bold text-slate-600 truncate mb-1">{p.name}</p>
+                          <span className="text-sm md:text-xl font-black text-slate-800">{p.price} MAD</span>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+           </div>
+        )}
+
         {page === 'product' && activeProductId && (() => {
            const product = storeProducts.find((p: any) => p.id === activeProductId);
            if (!product) return null;
@@ -4465,14 +4517,16 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
                  {/* Categories Row */}
                  <div className="px-6 md:px-12 mb-6 overflow-x-auto scrollbar-hide whitespace-nowrap">
-                    <h1 className="text-2xl md:text-4xl font-black text-slate-900 mb-4">{product.category || 'Sneakers'}</h1>
-                    <div className="flex gap-6 text-sm font-bold">
-                       <span className="text-indigo-600 border-b-2 border-indigo-600 pb-2">Nike</span>
-                       <span className="text-slate-400">Adidas</span>
-                       <span className="text-slate-400">Puma</span>
-                       <span className="text-slate-400">Hummel</span>
-                       <span className="text-slate-400">Reebok</span>
-                    </div>
+                    <h1 className="text-2xl md:text-4xl font-black text-slate-900 mb-4">{product.category || (storeIsAr ? 'المنتجات' : 'Produits')}</h1>
+                    {categories && categories.length > 1 && (
+                       <div className="flex gap-6 text-sm font-bold">
+                          {categories.map((cat: string) => (
+                             <button key={cat} onClick={() => { setActiveCategory(cat); setPage('collections'); }} className={activeCategory === cat ? 'text-indigo-600 border-b-2 border-indigo-600 pb-2' : 'text-slate-400 hover:text-slate-700'}>
+                                {cat === 'All' ? (storeIsAr ? 'الكل' : 'Tout') : cat}
+                             </button>
+                          ))}
+                       </div>
+                    )}
                  </div>
 
                  {/* Giant Product Card */}
@@ -4480,9 +4534,9 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                     <div className="w-full bg-gradient-to-br from-rose-500 to-orange-400 rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-12 text-white relative shadow-2xl shadow-rose-500/30 overflow-hidden h-[340px] md:h-[600px]">
                        <div className="flex justify-between items-start relative z-10">
                           <div>
-                             <p className="text-[10px] md:text-sm font-black tracking-widest uppercase mb-1 md:mb-2 opacity-80">NIKE</p>
+                             <p className="text-[10px] md:text-sm font-black tracking-widest uppercase mb-1 md:mb-2 opacity-80">{storeName}</p>
                              <h2 className="text-2xl md:text-6xl font-bold leading-none mb-2 md:mb-4">{product.name}</h2>
-                             <p className="text-lg md:text-3xl font-bold">${parseFloat(product.price).toFixed(2)}</p>
+                             <p className="text-lg md:text-3xl font-bold">{product.price} MAD</p>
                           </div>
                           <button onClick={(e) => { e.stopPropagation(); setPage('collections'); }} className="w-8 h-8 md:w-16 md:h-16 flex items-center justify-center border border-white/30 rounded-full backdrop-blur-md hover:bg-white/20 transition-colors">
                              <Heart className="w-4 h-4 md:w-8 md:h-8 text-white" />
@@ -4494,14 +4548,14 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
                  {/* Sales Grid */}
                  <div className="px-6 pb-24">
-                    <h3 className="text-sm font-bold text-slate-800 mb-4">Sales</h3>
+                    <h3 className="text-sm font-bold text-slate-800 mb-4">{storeIsAr ? 'قد يعجبك أيضاً' : 'Vous aimerez aussi'}</h3>
                     <div className="grid grid-cols-3 gap-3">
                        {filteredProducts.slice(0, 3).map((p: any) => (
                           <div key={p.id} onClick={() => navigateToProduct(p.id)} className="bg-white border border-slate-100 rounded-2xl p-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow relative">
-                             <div className="absolute top-2 left-2 bg-lime-400 text-slate-900 text-[8px] font-black px-1.5 py-0.5 rounded">20%</div>
+                             {p.isOnSale && <div className="absolute top-2 left-2 bg-lime-400 text-slate-900 text-[8px] font-black px-1.5 py-0.5 rounded">{storeIsAr ? 'تخفيض' : 'Promo'}</div>}
                              <img src={getCoverImage(p)} className="w-full h-16 object-contain my-3 drop-shadow-md" />
                              <div className="text-center pb-1">
-                                <span className="text-[11px] font-black text-slate-800">${parseFloat(p.price).toFixed(2)}</span>
+                                <span className="text-[11px] font-black text-slate-800">{p.price} MAD</span>
                              </div>
                           </div>
                        ))}
@@ -4511,7 +4565,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                  {/* Floating CTA */}
                  <div className="fixed bottom-24 left-6 right-6">
                     <button onClick={() => setPage('checkout')} className="w-full h-14 bg-indigo-600 text-white rounded-full font-black uppercase tracking-widest text-sm shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 hover:scale-105 transition-transform">
-                       <ShoppingBag className="w-5 h-5" /> Buy Now
+                       <ShoppingBag className="w-5 h-5" /> {storeIsAr ? 'اشترِ الآن' : 'Acheter'}
                     </button>
                  </div>
               </div>
@@ -4522,7 +4576,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            <div className="px-6 pt-6 md:max-w-3xl md:mx-auto md:py-12">
               <div className="flex items-center mb-8">
                  <button onClick={() => setPage('product')} className="w-10 h-10 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center"><ArrowLeft className="w-4 h-4 text-slate-900" /></button>
-                 <h2 className="text-sm font-black flex-1 text-center pr-10">Checkout</h2>
+                 <h2 className="text-sm font-black flex-1 text-center pr-10">{storeIsAr ? 'إتمام الطلب' : 'Commande'}</h2>
               </div>
               <CheckoutForm
                   storeIsAr={storeIsAr}
@@ -4538,13 +4592,15 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               <div className="w-24 h-24 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-indigo-500/30">
                  <CheckCircle className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-black text-slate-900 mb-2">Awesome! 🎉</h2>
-              <p className="text-slate-500 text-sm mb-10">Your new kicks are on the way.</p>
+              <h2 className="text-2xl font-black text-slate-900 mb-2">{storeIsAr ? 'رائع! 🎉' : 'Parfait ! 🎉'}</h2>
+              <p className="text-slate-500 text-sm mb-10">{storeIsAr ? 'طلبك في الطريق إليك.' : 'Votre commande est en route.'}</p>
               <button onClick={() => setPage('home')} className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-bold text-sm shadow-xl shadow-indigo-600/30">
-                 Back to Store
+                 {storeIsAr ? 'العودة للمتجر' : 'Retour à la boutique'}
               </button>
            </div>
         )}
+
+        <ThemeFooter setPage={setPage} />
 
         {/* Floating Bottom Nav */}
         <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-white rounded-full h-16 flex items-center justify-between px-8 shadow-[0_10px_40px_rgba(0,0,0,0.1)] w-[calc(100%-3rem)] max-w-sm z-50">
@@ -4572,7 +4628,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         <div className="border-b border-slate-100 hidden md:block bg-slate-900 text-white py-2 px-8 text-xs flex justify-between items-center">
            <div>{config.contactEmail || 'clothstore@example.com'}</div>
            <div className="flex gap-4">
-              <span>Free International Shipping On Orders Over $60</span>
+              <span>{deliveryText}</span>
            </div>
         </div>
         <div className="flex items-center justify-between px-4 md:px-8 py-6 sticky top-0 bg-white/90 backdrop-blur-md z-50 shadow-sm">
@@ -4601,20 +4657,22 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
              <div className="flex flex-col md:flex-row gap-6 mb-16">
                 <div className="flex-1 bg-sky-100 rounded-[2rem] p-10 flex flex-col justify-center relative overflow-hidden h-[400px]">
                    <div className="relative z-10 max-w-md">
-                      <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-4">The Ultimate New Best Winter Collection</h2>
-                      <p className="text-slate-600 mb-8">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
-                      <button onClick={() => setPage('collections')} className="bg-white border-2 border-slate-900 text-slate-900 px-8 py-3 font-bold uppercase text-sm tracking-widest hover:bg-slate-900 hover:text-white transition-colors">Shop Collections</button>
+                      <EditableText as="h2" text={heroTitle || (storeIsAr ? 'التشكيلة النهائية' : 'La Collection Ultime')} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-4" styleKey="heroTitle" />
+                      <EditableText as="p" text={heroSubtitle || (storeIsAr ? 'اكتشف أحدث التشكيلات المختارة بعناية.' : 'Découvrez notre sélection soigneusement choisie.')} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-slate-600 mb-8" styleKey="heroSubtitle" />
+                      <button onClick={() => setPage('collections')} className="bg-white border-2 border-slate-900 text-slate-900 px-8 py-3 font-bold uppercase text-sm tracking-widest hover:bg-slate-900 hover:text-white transition-colors">{storeIsAr ? 'تسوق الآن' : 'Voir la collection'}</button>
                    </div>
                    {/* Background Image / Decorative */}
                    <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80" className="absolute right-0 bottom-0 h-[110%] object-cover object-left max-w-[50%]" />
                 </div>
                 <div onClick={() => setPage('collections')} className="w-full md:w-1/3 bg-sky-50 rounded-[2rem] p-6 relative h-[400px] overflow-hidden flex flex-col items-center group cursor-pointer">
-                   <div className="absolute top-6 right-6 bg-orange-500 text-white w-16 h-16 rounded-full flex flex-col items-center justify-center font-black leading-none z-10 shadow-lg group-hover:scale-110 transition-transform"><span className="text-xl">30</span><span className="text-[10px]">% OFF</span></div>
-                   <h3 className="text-3xl font-black tracking-widest uppercase mb-4 z-10">SALE</h3>
+                   {storeProducts.some((p: any) => p.isOnSale) && (
+                      <div className="absolute top-6 right-6 bg-orange-500 text-white text-xs font-black leading-none z-10 shadow-lg group-hover:scale-110 transition-transform px-3 py-2 rounded-full">{storeIsAr ? 'تخفيضات' : 'PROMO'}</div>
+                   )}
+                   <h3 className="text-3xl font-black tracking-widest uppercase mb-4 z-10">{storeIsAr ? 'تخفيض' : 'SALE'}</h3>
                    <div className="flex-1 w-full relative rounded-2xl overflow-hidden mb-4">
                       <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                    </div>
-                   <p className="font-bold text-slate-800">The Ultimate Collection</p>
+                   <p className="font-bold text-slate-800">{storeIsAr ? 'التشكيلة الكاملة' : 'La collection complète'}</p>
                 </div>
              </div>
 
@@ -4622,16 +4680,19 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
              <div className="flex flex-col md:flex-row gap-10">
                 {/* Left Testimonial */}
                 <div className="w-full md:w-1/4">
-                   <h3 className="text-2xl font-black mb-6">Testimonial</h3>
-                   <div className="bg-[#3a3f44] text-white p-8 rounded-tr-[3rem] rounded-bl-[3rem] text-center">
-                      <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80" className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-white/10" />
-                      <h4 className="font-bold mb-1">John Verma</h4>
-                      <p className="text-[10px] text-white/50 uppercase tracking-widest mb-6">Business CEO</p>
-                      <p className="text-sm text-white/80 leading-relaxed italic">"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s."</p>
-                      <div className="flex justify-center gap-2 mt-6">
-                         <div className="w-4 h-1.5 bg-white rounded-full"></div>
-                         <div className="w-4 h-1.5 bg-white/30 rounded-full"></div>
-                         <div className="w-4 h-1.5 bg-white/30 rounded-full"></div>
+                   <h3 className="text-2xl font-black mb-6">{storeIsAr ? 'لماذا تختارنا' : 'Pourquoi nous'}</h3>
+                   <div className="bg-[#3a3f44] text-white p-8 rounded-tr-[3rem] rounded-bl-[3rem] space-y-6">
+                      <div className="flex items-start gap-3">
+                         <Truck className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
+                         <p className="text-sm text-white/80 leading-relaxed">{deliveryText}</p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                         <ShieldCheck className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
+                         <p className="text-sm text-white/80 leading-relaxed">{guaranteeText}</p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                         <RefreshCw className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
+                         <p className="text-sm text-white/80 leading-relaxed">{returnText}</p>
                       </div>
                    </div>
                 </div>
@@ -4653,18 +4714,14 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                             </div>
                             <div className="flex justify-between items-start mb-2">
                                <div>
-                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{p.category || 'CATEGORY'}</p>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{p.category || (storeIsAr ? 'منتج' : 'PRODUIT')}</p>
                                   <h4 className="font-bold text-slate-800 mb-1">{p.name}</h4>
-                                  <p className="font-black text-slate-900">${parseFloat(p.price).toFixed(2)}</p>
+                                  <p className="font-black text-slate-900">{p.price} MAD</p>
                                </div>
                                <button onClick={(e) => { e.stopPropagation(); setPage('collections'); }} className="text-slate-400 hover:text-rose-500 transition-colors"><Heart className="w-5 h-5" /></button>
                             </div>
-                            <div className="flex items-center gap-1 text-[10px] text-slate-400 mb-4">
-                               <div className="flex text-slate-800"><Star className="w-3 h-3 fill-current"/><Star className="w-3 h-3 fill-current"/><Star className="w-3 h-3 fill-current"/><Star className="w-3 h-3 fill-current"/><Star className="w-3 h-3 fill-current"/></div>
-                               <span>4.5/5 (99 Review)</span>
-                            </div>
-                            <button onClick={(e) => { e.stopPropagation(); setPage('checkout'); }} className="w-full border-2 border-[#3a3f44] text-[#3a3f44] py-2 font-bold text-sm hover:bg-[#3a3f44] hover:text-white transition-colors">
-                               Add To Bag
+                            <button onClick={(e) => { e.stopPropagation(); setPage('checkout'); }} className="w-full border-2 border-[#3a3f44] text-[#3a3f44] py-2 font-bold text-sm hover:bg-[#3a3f44] hover:text-white transition-colors mt-4">
+                               {storeIsAr ? 'أضف إلى السلة' : 'Ajouter au panier'}
                             </button>
                          </div>
                       ))}
@@ -4679,21 +4736,20 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            if (!product) return null;
            return (
               <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 animate-in fade-in">
-                 <button onClick={() => setPage('home')} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 mb-8"><ArrowLeft className="w-4 h-4"/> Back to Store</button>
+                 <button onClick={() => setPage('home')} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 mb-8"><ArrowLeft className="w-4 h-4"/> {storeIsAr ? 'العودة للمتجر' : 'Retour à la boutique'}</button>
                  <div className="flex flex-col md:flex-row gap-12">
                     <div className="w-full md:w-1/2">
                        <img src={getCoverImage(product)} className="w-full aspect-[4/5] object-cover bg-slate-50 shadow-sm" />
                     </div>
                     <div className="w-full md:w-1/2 flex flex-col justify-center">
-                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{product.category || 'CLOTHING'}</p>
+                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{product.category || (storeIsAr ? 'منتج' : 'PRODUIT')}</p>
                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-4">{product.name}</h1>
                        <div className="flex items-center gap-4 mb-6">
-                          <span className="text-3xl font-black text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
-                          <div className="flex items-center gap-1 text-sm font-bold text-slate-500 bg-slate-50 px-3 py-1 rounded-full"><Star className="w-4 h-4 text-amber-400 fill-amber-400" /> 4.9 Rating</div>
+                          <span className="text-3xl font-black text-slate-900">{product.price} MAD</span>
                        </div>
-                       <p className="text-slate-600 mb-8 leading-relaxed">Experience unparalleled comfort and style with our premium {product.name}. Crafted from carefully selected materials, this piece offers both durability and elegance for any occasion.</p>
+                       <p className="text-slate-600 mb-8 leading-relaxed">{product.description || (storeIsAr ? 'منتج عالي الجودة مختار بعناية لمتجرنا.' : 'Un produit de qualité, soigneusement sélectionné pour notre boutique.')}</p>
                        <button onClick={() => setPage('checkout')} className="w-full md:w-auto bg-[#3a3f44] text-white px-12 py-4 font-black uppercase tracking-widest text-sm hover:bg-black transition-colors shadow-xl shadow-black/10 flex items-center justify-center gap-2">
-                          <ShoppingBag className="w-5 h-5" /> Buy Now
+                          <ShoppingBag className="w-5 h-5" /> {storeIsAr ? 'اشترِ الآن' : 'Acheter'}
                        </button>
                     </div>
                  </div>
@@ -4705,7 +4761,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            <div className="max-w-3xl mx-auto px-4 md:px-8 py-12">
               <div className="flex items-center mb-10 border-b border-slate-100 pb-6">
                  <button onClick={() => setPage('product')} className="w-10 h-10 border border-slate-200 rounded-full flex items-center justify-center hover:bg-slate-50"><ArrowLeft className="w-4 h-4 text-slate-900" /></button>
-                 <h2 className="text-2xl font-black flex-1 text-center pr-10 uppercase tracking-tight">Secure Checkout</h2>
+                 <h2 className="text-2xl font-black flex-1 text-center pr-10 uppercase tracking-tight">{storeIsAr ? 'إتمام الطلب' : 'Commande Sécurisée'}</h2>
               </div>
               <div className="bg-white p-8 md:p-12 border border-slate-100 shadow-xl shadow-slate-200/50 rounded-2xl">
                  <CheckoutForm
@@ -4718,23 +4774,52 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            </div>
         )}
 
+        {page === 'collections' && (
+           <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 animate-in fade-in duration-500">
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-8">{storeIsAr ? 'كل المنتجات' : 'Tous les produits'}</h2>
+              {categories && categories.length > 1 && (
+                 <div className="flex gap-3 overflow-x-auto scrollbar-hide mb-8">
+                    {categories.map((cat: string) => (
+                       <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-500 border border-slate-200'}`}>
+                          {cat === 'All' ? (storeIsAr ? 'الكل' : 'Tout') : cat}
+                       </button>
+                    ))}
+                 </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                 {filteredProducts.map((p: any) => (
+                    <div key={p.id} onClick={() => navigateToProduct(p.id)} className="group cursor-pointer">
+                       <div className="relative aspect-[4/3] bg-slate-100 mb-4 overflow-hidden">
+                          <img src={getCoverImage(p)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                       </div>
+                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{p.category || (storeIsAr ? 'منتج' : 'PRODUIT')}</p>
+                       <h4 className="font-bold text-slate-800 mb-1">{p.name}</h4>
+                       <p className="font-black text-slate-900">{p.price} MAD</p>
+                    </div>
+                 ))}
+              </div>
+           </div>
+        )}
+
         {page === 'success' && (
            <div className="max-w-2xl mx-auto px-4 py-24 text-center">
               <div className="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-8 border-4 border-white shadow-xl shadow-sky-100/50">
                  <CheckCircle className="w-12 h-12 text-sky-500" />
               </div>
-              <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Order Confirmed!</h2>
-              <p className="text-slate-500 text-lg mb-10">Thank you for your purchase. We are preparing your order for shipping.</p>
+              <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">{storeIsAr ? 'تم تأكيد طلبك!' : 'Commande confirmée !'}</h2>
+              <p className="text-slate-500 text-lg mb-10">{storeIsAr ? 'شكراً لطلبك. نحن نجهزه الآن للشحن.' : 'Merci pour votre achat. Nous préparons votre commande.'}</p>
               <button onClick={() => setPage('home')} className="bg-[#3a3f44] text-white px-10 py-4 font-black uppercase tracking-widest text-sm hover:bg-black transition-colors">
-                 Return to Shop
+                 {storeIsAr ? 'العودة للمتجر' : 'Retour à la boutique'}
               </button>
            </div>
         )}
+
+        <ThemeFooter setPage={setPage} />
       </div>
     );
   };
 
-  
+
   const LayoutProSimple = ({ isModal = false, page, setPage, activeProductId, navigateToProduct, buyMode, categories, activeCategory, setActiveCategory, filteredProducts, sortBy, setSortBy, setIsCartOpen, submitGlobalOrder, storeProducts }: any) => {
     const primaryColor = config?.primaryColor || activeTheme?.defaultColor;
     const fontFamily = config?.fontFamily || activeTheme?.defaultFont;
@@ -4744,16 +4829,14 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         
         {/* Top Navbar */}
         <div className="flex items-center justify-between px-6 py-4 sticky top-0 bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">
-           <h1 className="text-xl font-bold tracking-tighter text-emerald-500">STELLAR</h1>
+           <h1 className="text-xl font-bold tracking-tighter text-emerald-500">{storeName}</h1>
            <div className="hidden md:flex flex-1 max-w-md mx-8 relative">
               <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input type="text" placeholder="What are you looking for?" className="w-full bg-slate-50 border border-slate-200 rounded-full py-2.5 pl-10 pr-4 text-sm outline-none focus:border-emerald-500" />
+              <input type="text" placeholder={storeIsAr ? 'ابحث عن منتج...' : 'Rechercher un produit...'} className="w-full bg-slate-50 border border-slate-200 rounded-full py-2.5 pl-10 pr-4 text-sm outline-none focus:border-emerald-500" />
            </div>
            <div className="flex gap-4 items-center">
-              <span className="hidden md:block text-xs font-bold text-slate-600">🇬🇧 English</span>
               <button onClick={() => setIsCartOpen(true)} className="relative flex items-center gap-2">
                  <ShoppingBag className="w-5 h-5 text-slate-800" />
-                 <span className="text-xs font-bold bg-rose-500 text-white rounded-full w-4 h-4 flex items-center justify-center">2</span>
               </button>
            </div>
         </div>
@@ -4774,54 +4857,52 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
              <div className="max-w-7xl mx-auto px-6 py-8 flex gap-10">
                 {/* Left Sidebar Filter (Desktop) */}
                 <div className="hidden md:block w-64 shrink-0">
-                   <div className="mb-8 text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2"><Home className="w-3 h-3" /> / Clothes</div>
+                   <div className="mb-8 text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2"><Home className="w-3 h-3" /> / {activeCategory === 'All' ? (storeIsAr ? 'الكل' : 'Tout') : activeCategory}</div>
                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="font-bold">Filter</h3>
-                      <span className="text-xs text-emerald-500 cursor-pointer">Clear all</span>
+                      <h3 className="font-bold">{storeIsAr ? 'تصفية' : 'Filtrer'}</h3>
+                      {activeCategory !== 'All' && <span onClick={() => setActiveCategory('All')} className="text-xs text-emerald-500 cursor-pointer">{storeIsAr ? 'إلغاء' : 'Tout effacer'}</span>}
                    </div>
-                   
-                   <div className="mb-6">
-                      <div className="flex items-center justify-between mb-4 cursor-pointer">
-                         <span className="text-sm font-bold text-slate-600">Brand</span>
-                         <ArrowRight className="w-4 h-4 -rotate-90 text-slate-400" />
-                      </div>
-                      <div className="space-y-3">
-                         {['Nike', 'Adidas', 'New Balance', 'Puma'].map((b, i) => (
-                            <div key={b} className="flex items-center gap-3">
-                               <div className={`w-4 h-4 rounded border flex items-center justify-center ${i===0 ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300'}`}>
-                                  {i===0 && <CheckCircle className="w-3 h-3" />}
+
+                   {categories && categories.length > 1 && (
+                      <div className="mb-6">
+                         <div className="flex items-center justify-between mb-4">
+                            <span className="text-sm font-bold text-slate-600">{storeIsAr ? 'الفئة' : 'Catégorie'}</span>
+                         </div>
+                         <div className="space-y-3">
+                            {categories.map((cat: string) => (
+                               <div key={cat} onClick={() => setActiveCategory(cat)} className="flex items-center gap-3 cursor-pointer">
+                                  <div className={`w-4 h-4 rounded border flex items-center justify-center ${activeCategory === cat ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300'}`}>
+                                     {activeCategory === cat && <CheckCircle className="w-3 h-3" />}
+                                  </div>
+                                  <span className="text-sm text-slate-600">{cat === 'All' ? (storeIsAr ? 'الكل' : 'Tout') : cat}</span>
                                </div>
-                               <span className="text-sm text-slate-600">{b}</span>
-                            </div>
-                         ))}
+                            ))}
+                         </div>
                       </div>
-                   </div>
+                   )}
                 </div>
 
                 {/* Main Content Grid */}
                 <div className="flex-1">
                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl font-bold">84 result for clothes</h2>
-                      <div className="flex items-center gap-4 text-sm">
-                         <span className="text-slate-400">Sort by: <span className="font-bold text-slate-900">Popular</span></span>
-                      </div>
+                      <h2 className="text-xl font-bold">{filteredProducts.length} {storeIsAr ? 'منتج' : 'résultats'}</h2>
                    </div>
-                   
+
                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
                       {filteredProducts.map((p: any) => (
                          <div key={p.id} onClick={() => navigateToProduct(p.id)} className="group cursor-pointer">
                             <div className="relative aspect-[3/4] bg-slate-50 rounded-xl overflow-hidden mb-4">
                                <img src={getCoverImage(p)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 mix-blend-multiply" />
-                               {p.id % 3 === 0 && <div className="absolute top-3 left-3 bg-white text-rose-500 text-[10px] font-bold px-2 py-1 rounded shadow-sm">Hot item</div>}
+                               {p.isOnSale && <div className="absolute top-3 left-3 bg-white text-rose-500 text-[10px] font-bold px-2 py-1 rounded shadow-sm">{storeIsAr ? 'تخفيض' : 'Promo'}</div>}
                                <button onClick={(e) => { e.stopPropagation(); setPage('collections'); }} className="absolute bottom-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Heart className="w-4 h-4" />
                                </button>
                             </div>
-                            <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">{p.category || 'Simple'}</p>
+                            <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">{p.category || (storeIsAr ? 'منتج' : 'Simple')}</p>
                             <h4 className="text-sm font-bold text-slate-800 leading-snug mb-1 line-clamp-1">{p.name}</h4>
                             <div className="flex items-center gap-2">
-                               <span className="text-sm font-black text-sky-600">${parseFloat(p.price).toFixed(2)}</span>
-                               {p.comparePrice && <span className="text-xs text-rose-400 line-through">${parseFloat(p.comparePrice).toFixed(2)}</span>}
+                               <span className="text-sm font-black text-sky-600">{p.price} MAD</span>
+                               {p.comparePrice && <span className="text-xs text-rose-400 line-through">{p.comparePrice} MAD</span>}
                             </div>
                          </div>
                       ))}
@@ -4836,20 +4917,20 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            if (!product) return null;
            return (
               <div className="max-w-5xl mx-auto px-6 py-12 animate-in fade-in">
-                 <button onClick={() => setPage('home')} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 mb-8"><ArrowLeft className="w-4 h-4"/> Back</button>
+                 <button onClick={() => setPage('home')} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 mb-8"><ArrowLeft className="w-4 h-4"/> {storeIsAr ? 'رجوع' : 'Retour'}</button>
                  <div className="flex flex-col md:flex-row gap-12">
                     <div className="w-full md:w-1/2">
                        <img src={getCoverImage(product)} className="w-full aspect-[3/4] object-cover rounded-2xl shadow-sm bg-slate-50 mix-blend-multiply" />
                     </div>
                     <div className="w-full md:w-1/2 flex flex-col justify-center">
-                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{product.category || 'CLOTHING'}</p>
+                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{product.category || (storeIsAr ? 'منتج' : 'PRODUIT')}</p>
                        <h1 className="text-3xl font-black text-slate-900 leading-tight mb-4">{product.name}</h1>
                        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
-                          <span className="text-3xl font-black text-sky-600">${parseFloat(product.price).toFixed(2)}</span>
+                          <span className="text-3xl font-black text-sky-600">{product.price} MAD</span>
                        </div>
-                       <p className="text-slate-600 mb-8 leading-relaxed text-sm">Experience unparalleled comfort and style with our premium simple collection. Less is more.</p>
+                       <p className="text-slate-600 mb-8 leading-relaxed text-sm">{product.description || (storeIsAr ? 'منتج عالي الجودة مختار بعناية لمتجرنا.' : 'Un produit de qualité, soigneusement sélectionné pour notre boutique.')}</p>
                        <button onClick={() => setPage('checkout')} className="w-full md:w-auto bg-emerald-500 text-white px-12 py-4 font-black uppercase tracking-widest text-sm hover:bg-emerald-600 transition-colors shadow-lg rounded-xl flex items-center justify-center gap-2">
-                          <ShoppingBag className="w-5 h-5" /> Add to Cart
+                          <ShoppingBag className="w-5 h-5" /> {storeIsAr ? 'أضف إلى السلة' : 'Ajouter au panier'}
                        </button>
                     </div>
                  </div>
@@ -4861,7 +4942,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            <div className="max-w-3xl mx-auto px-4 md:px-8 py-12">
               <div className="flex items-center mb-10 pb-6">
                  <button onClick={() => setPage('product')} className="w-10 h-10 border border-slate-200 rounded-full flex items-center justify-center hover:bg-slate-50"><ArrowLeft className="w-4 h-4 text-slate-900" /></button>
-                 <h2 className="text-xl font-bold flex-1 text-center pr-10">Checkout</h2>
+                 <h2 className="text-xl font-bold flex-1 text-center pr-10">{storeIsAr ? 'إتمام الطلب' : 'Commande'}</h2>
               </div>
               <div className="bg-white p-8 border border-slate-100 shadow-sm rounded-2xl">
                  <CheckoutForm
@@ -4879,20 +4960,22 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-8 border-4 border-white shadow-sm">
                  <CheckCircle className="w-12 h-12 text-emerald-500" />
               </div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">Order Confirmed!</h2>
-              <p className="text-slate-500 text-sm mb-10">Thank you for your purchase. We are preparing your order.</p>
+              <h2 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">{storeIsAr ? 'تم تأكيد طلبك!' : 'Commande confirmée !'}</h2>
+              <p className="text-slate-500 text-sm mb-10">{storeIsAr ? 'شكراً لطلبك. نحن نجهزه الآن.' : 'Merci pour votre achat. Nous préparons votre commande.'}</p>
               <button onClick={() => setPage('home')} className="bg-emerald-500 text-white px-10 py-4 font-bold rounded-xl text-sm hover:bg-emerald-600 transition-colors">
-                 Return to Shop
+                 {storeIsAr ? 'العودة للمتجر' : 'Retour à la boutique'}
               </button>
            </div>
         )}
+
+        <ThemeFooter setPage={setPage} />
       </div>
     );
   };
 
   const Layout = () => {
        if (activeTheme.layout === 'hero-center') return <LayoutHeroCenter {...props} />;
-       if (activeTheme.layout === 'split-screen') return <LayoutSplitScreen {...props} />;
+       if (activeTheme.layout === 'split-screen' || activeTheme.layout === 'sidebar-right') return <LayoutSplitScreen {...props} />;
        if (activeTheme.layout === 'elegant') return <LayoutElegant {...props} />;
        if (activeTheme.layout === 'mazia') return <LayoutMazia {...props} />;
        if (activeTheme.layout === 'playful') return <LayoutPlayful {...props} />;
@@ -5195,23 +5278,6 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
        return (
           <div className="w-full h-screen bg-white flex flex-col items-center justify-center">
              <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
-          </div>
-       );
-    }
-
-    if (liveStoreNotFound) {
-       return (
-          <div className="w-full h-screen flex flex-col items-center justify-center text-center px-6 bg-slate-50">
-             <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-6">
-                <Package className="w-8 h-8 text-slate-400" />
-             </div>
-             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">404</h1>
-             <p className="text-slate-500 font-medium max-w-md">
-                Aucune boutique n'existe à cette adresse ({window.location.hostname}).
-             </p>
-             <a href="https://gzeed.com" className="mt-8 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors">
-                Retour à GZeed
-             </a>
           </div>
        );
     }

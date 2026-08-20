@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLang } from '../contexts/LangContext';
-import { Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
+import { Mail, Phone, MapPin, ArrowRight, Apple, Play, CreditCard } from 'lucide-react';
 
 export default function PublicFooter() {
   const { lang, isAr } = useLang();
@@ -39,6 +39,24 @@ export default function PublicFooter() {
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-cyan-600 hover:text-white flex items-center justify-center transition-all text-slate-400 font-bold text-xs uppercase">
                 X
+              </a>
+            </div>
+            
+            {/* App Store / Google Play Buttons */}
+            <div className="flex flex-wrap items-center gap-3 pt-4">
+              <a href="#" className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl transition-colors border border-slate-700/50 shadow-lg group">
+                <Apple className="w-6 h-6 text-slate-300 group-hover:text-white transition-colors" />
+                <div className="flex flex-col text-left" dir="ltr">
+                  <span className="text-[9px] leading-none text-slate-400 font-medium">Download on the</span>
+                  <span className="text-sm font-bold leading-tight tracking-tight">App Store</span>
+                </div>
+              </a>
+              <a href="#" className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl transition-colors border border-slate-700/50 shadow-lg group">
+                <Play className="w-5 h-5 text-slate-300 group-hover:text-cyan-500 transition-colors ml-1" />
+                <div className="flex flex-col text-left" dir="ltr">
+                  <span className="text-[9px] leading-none text-slate-400 font-medium">GET IT ON</span>
+                  <span className="text-sm font-bold leading-tight tracking-tight">Google Play</span>
+                </div>
               </a>
             </div>
           </div>
@@ -100,6 +118,12 @@ export default function PublicFooter() {
                   {txt('برنامج الشركاء', 'Programme Partenaires', 'Partner Program')}
                 </Link>
               </li>
+              <li>
+                <Link to="/themes" className="hover:text-cyan-400 transition-colors inline-flex items-center gap-2 group">
+                  <ArrowRight className={`w-4 h-4 text-cyan-600 group-hover:translate-x-1 transition-transform ${isAr ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
+                  {txt('متجر القوالب', 'Boutique de Thèmes', 'Themes Store')}
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -143,6 +167,18 @@ export default function PublicFooter() {
             <Link to="/terms" className="hover:text-cyan-400 transition-colors">
               {txt('شروط الاستخدام', 'Conditions d\'utilisation', 'Terms of Service')}
             </Link>
+          </div>
+          
+          {/* Payment Methods */}
+          <div className="flex items-center gap-3 opacity-50 hover:opacity-100 transition-opacity bg-slate-900/50 px-4 py-2 rounded-lg">
+             <CreditCard className="w-5 h-5 text-slate-300" />
+             <div className="flex items-center gap-2 font-black text-[11px] text-slate-300 tracking-widest" dir="ltr">
+               <span>VISA</span>
+               <span className="text-slate-600">•</span>
+               <span>MASTERCARD</span>
+               <span className="text-slate-600">•</span>
+               <span>VCC</span>
+             </div>
           </div>
         </div>
       </div>

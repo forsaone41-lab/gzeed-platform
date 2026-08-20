@@ -199,7 +199,7 @@ export default function GZeedSignup() {
                     <><Loader2 className="w-5 h-5 animate-spin" /> {isAr ? 'جاري التجهيز...' : 'Préparation...'}</>
                   ) : (
                     <>
-                      {isAr ? 'أنشئ متجري الآن' : 'Créer ma boutique'}
+                      {isAr ? 'إنشاء حساب' : 'Créer un compte'}
                       <CheckCircle2 className="w-5 h-5" />
                     </>
                   )}

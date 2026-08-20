@@ -99,7 +99,7 @@ export default function PlatformLanding() {
               <option value="fr" className="text-slate-900">FR</option>
               <option value="en" className="text-slate-900">EN</option>
             </select>
-            <Link to="/store-signup?mode=login" className={`text-sm font-semibold transition-colors hidden sm:block ${scrolled ? 'text-slate-900 hover:text-cyan-600' : 'text-white hover:text-cyan-300'}`}>
+            <Link to="/login" className={`text-sm font-semibold transition-colors hidden sm:block ${scrolled ? 'text-slate-900 hover:text-cyan-600' : 'text-white hover:text-cyan-300'}`}>
               {txt('تسجيل الدخول', 'Se Connecter', 'Log In')}
             </Link>
             <Link to="/store-signup" className="px-6 py-2.5 rounded-md bg-cyan-600 text-white font-bold text-sm hover:bg-cyan-700 transition-all shadow-md">
@@ -155,7 +155,7 @@ export default function PlatformLanding() {
                 dir={isAr ? "rtl" : "ltr"}
               />
               <button type="submit" disabled={isSubmittingLead} className="bg-cyan-600 hover:bg-cyan-700 disabled:opacity-60 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group whitespace-nowrap shadow-[0_0_20px_rgba(8,145,178,0.3)] hover:shadow-[0_0_30px_rgba(8,145,178,0.5)]">
-                {isAr ? 'ابدأ مجاناً' : 'Commencer gratuitement'}
+                {isAr ? 'إنشاء حساب' : 'Créer un compte'}
                 <ArrowRight className={`w-5 h-5 transition-transform shrink-0 ${isAr ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`} />
               </button>
             </div>
@@ -174,7 +174,7 @@ export default function PlatformLanding() {
                 />
               </div>
               <button type="submit" disabled={isSubmittingLead} className="w-full justify-center bg-cyan-600 hover:bg-cyan-700 disabled:opacity-60 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 group shadow-[0_0_20px_rgba(8,145,178,0.3)]">
-                {isAr ? 'ابدأ مجاناً' : 'Commencer gratuitement'}
+                {isAr ? 'إنشاء حساب' : 'Créer un compte'}
                 <ArrowRight className={`w-5 h-5 transition-transform shrink-0 ${isAr ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`} />
               </button>
             </div>
