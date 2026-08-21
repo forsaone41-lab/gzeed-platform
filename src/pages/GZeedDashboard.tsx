@@ -37,6 +37,10 @@ import { useLang } from "../contexts/LangContext";
 import { useNavigate, Navigate } from "react-router-dom";
 import { supabase } from "../supabase";
 import { saveRecord } from "../types";
+import StoreAnalytics from "./StoreAnalytics";
+import CustomersManager from "../components/dashboard/CustomersManager";
+import CategoriesManager from "../components/dashboard/CategoriesManager";
+import TeamManager from "../components/dashboard/TeamManager";
 
 export default function GZeedDashboard() {
   const { isAr, toggle, lang } = useLang();
@@ -2970,18 +2974,14 @@ export default function GZeedDashboard() {
               </div>
             </div>
           )}
-          {["customers", "analytics", "categories", "team"].includes(activeTab) && (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400 animate-fade-in">
-              <Settings className="w-16 h-16 mb-4 animate-spin-slow opacity-20" />
-              <h2 className="text-xl font-bold text-slate-500">
-                {lang === "ar"
-                  ? "هذه الصفحة قيد التطوير"
-                  : lang === "en"
-                    ? "Page under development"
-                    : "Page en cours de développement"}
-              </h2>
+          {activeTab === "analytics" && (
+            <div className="-m-4 md:-m-8">
+              <StoreAnalytics currentUser={null} embedded={true} />
             </div>
           )}
+          {activeTab === "customers" && <CustomersManager />}
+          {activeTab === "categories" && <CategoriesManager />}
+          {activeTab === "team" && <TeamManager />}
         </div>
       </main>
 

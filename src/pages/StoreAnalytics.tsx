@@ -5,9 +5,10 @@ import { supabase } from '../supabase';
 
 interface StoreAnalyticsProps {
   currentUser: any;
+  embedded?: boolean;
 }
 
-export default function StoreAnalytics({ currentUser }: StoreAnalyticsProps) {
+export default function StoreAnalytics({ currentUser, embedded = false }: StoreAnalyticsProps) {
   const navigate = useNavigate();
   const [dashLang, setDashLang] = useState<'fr' | 'en' | 'ar'>(() => (localStorage.getItem('beya_dash_lang') as any) || 'fr');
   const t = (fr: string, en: string, ar: string) => (dashLang === 'ar' ? ar : dashLang === 'en' ? en : fr);
@@ -126,15 +127,17 @@ export default function StoreAnalytics({ currentUser }: StoreAnalyticsProps) {
   }, [currentUser]);
 
   return (
-    <div className="min-h-screen bg-slate-50" dir={isAr ? 'rtl' : 'ltr'}>
+    <div className={embedded ? "bg-slate-50" : "min-h-screen bg-slate-50"} dir={isAr ? 'rtl' : 'ltr'}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className={`flex items-center gap-4 mb-8 ${isAr ? 'flex-row-reverse' : ''}`}>
-          <button
-            onClick={() => navigate('/')}
-            className="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
-          >
-            <ArrowLeft className={`w-5 h-5 ${isAr ? 'rotate-180' : ''}`} />
-          </button>
+          {!embedded && (
+            <button
+              onClick={() => navigate('/')}
+              className="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
+            >
+              <ArrowLeft className={`w-5 h-5 ${isAr ? 'rotate-180' : ''}`} />
+            </button>
+          )}
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               {t('Statistiques de vente', 'Sales Analytics', 'إحصائيات المبيعات')}
