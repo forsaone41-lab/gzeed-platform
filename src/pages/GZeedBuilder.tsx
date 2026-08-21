@@ -51,6 +51,18 @@ export default function GZeedBuilder() {
     if (!id) return '/#/demo/ecommerce/abaya';
     if (id === 'dentist') return '/#/demo/dentist';
     if (id === 'omra') return '/#/demo/omra-tours';
+    if (id === 'tourism') return '/#/demo/tourism';
+    if (id === 'vacation-deals') return '/#/demo/vacation-deals';
+    if (id === 'mazia') return '/#/demo/mazia';
+    if (id === 'bidla') return '/#/demo/bidla';
+    if (id === 'car-rental') return '/#/demo/car-rental';
+    if (id === 'service-pro') return '/#/demo/service-pro';
+    if (id === 'apartment') return '/#/demo/apartment';
+    if (id === 'beauty-salon') return '/#/demo/beauty-salon';
+    if (id === 'traiteur') return '/#/demo/traiteur';
+    if (id === 'logistics') return '/#/demo/logistics';
+    if (id === 'city-rentals') return '/#/demo/city-rentals';
+    
     if (id === 'digital') return '/#/demo/ecommerce/iptv';
     if (id === 'perfume') return '/#/demo/ecommerce/luxury-perfume';
     if (id === 'abaya') return '/#/demo/ecommerce/abaya';
