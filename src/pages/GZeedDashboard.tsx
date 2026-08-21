@@ -57,6 +57,15 @@ export default function GZeedDashboard() {
       sn && dn && sn !== "متجر الأناقة" && dn !== "store-123.gzeed.com";
     return isSetup ? "home" : "settings";
   });
+
+  useEffect(() => {
+    if (location.state && location.state.tab) {
+      setActiveTab(location.state.tab);
+      // Clear state to prevent getting stuck if user navigates away and back naturally
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state]);
+
   const [themeFilter, setThemeFilter] = useState("all");
   const [activeThemeId, setActiveThemeId] = useState<string | null>(
     () => localStorage.getItem("gzeed_active_theme") || null,

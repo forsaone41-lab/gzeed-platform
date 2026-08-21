@@ -44,18 +44,18 @@ export default function GZeedBuilder() {
     // Priority: Show the user's actual live store preview with their products
     const storeName = localStorage.getItem('gzeed_store_name');
     if (storeName && storeName !== 'متجر تجريبي' && storeName !== 'My Store') {
-      return `#/store/${encodeURIComponent(storeName)}`;
+      return `/#/store/${encodeURIComponent(storeName)}`;
     }
 
     // Fallback to demo themes if no store is created yet
-    if (!id) return '#/demo/ecommerce/abaya';
-    if (id === 'dentist') return '#/demo/dentist';
-    if (id === 'omra') return '#/demo/omra-tours';
-    if (id === 'digital') return '#/demo/ecommerce/iptv';
-    if (id === 'perfume') return '#/demo/ecommerce/luxury-perfume';
-    if (id === 'abaya') return '#/demo/ecommerce/abaya';
-    if (id === 'minimalist') return '#/demo/ecommerce/minimalist';
-    return `#/demo/ecommerce/${id}`;
+    if (!id) return '/#/demo/ecommerce/abaya';
+    if (id === 'dentist') return '/#/demo/dentist';
+    if (id === 'omra') return '/#/demo/omra-tours';
+    if (id === 'digital') return '/#/demo/ecommerce/iptv';
+    if (id === 'perfume') return '/#/demo/ecommerce/luxury-perfume';
+    if (id === 'abaya') return '/#/demo/ecommerce/abaya';
+    if (id === 'minimalist') return '/#/demo/ecommerce/minimalist';
+    return `/#/demo/ecommerce/${id}`;
   };
 
   const handlePublish = () => {
