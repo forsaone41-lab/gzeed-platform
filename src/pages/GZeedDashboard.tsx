@@ -34,7 +34,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { useLang } from "../contexts/LangContext";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { supabase } from "../supabase";
 import { saveRecord } from "../types";
 import StoreAnalytics from "./StoreAnalytics";
@@ -45,8 +45,12 @@ import TeamManager from "../components/dashboard/TeamManager";
 export default function GZeedDashboard() {
   const { isAr, toggle, lang } = useLang();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
+    if (location.state && location.state.tab) {
+      return location.state.tab;
+    }
     const sn = localStorage.getItem("gzeed_store_name");
     const dn = localStorage.getItem("gzeed_domain_name");
     const isSetup =

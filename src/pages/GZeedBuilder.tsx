@@ -28,6 +28,17 @@ export default function GZeedBuilder() {
   const [activeSidebarTab, setActiveSidebarTab] = useState<'theme' | 'sections' | 'settings'>('theme');
   const [isPublishing, setIsPublishing] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleSave = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    }, 800);
+  };
 
   const getThemePreviewUrl = (id: string | null) => {
     if (!id) return '#/demo/ecommerce/abaya';
@@ -55,7 +66,7 @@ export default function GZeedBuilder() {
       <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-20 shrink-0">
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/dashboard', { state: { tab: 'themes' } })}
             className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-600 transition-colors"
           >
             <ArrowLeft className={`w-5 h-5 ${isAr ? 'rotate-180' : ''}`} />
@@ -101,9 +112,23 @@ export default function GZeedBuilder() {
             <button className="p-2 hover:text-slate-900 transition-colors"><Undo className="w-4 h-4" /></button>
             <button className="p-2 hover:text-slate-900 transition-colors"><Redo className="w-4 h-4" /></button>
           </div>
-          <button className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all flex items-center gap-2">
-            <Save className="w-4 h-4" />
-            <span className="hidden sm:block">{lang === 'ar' ? 'حفظ' : lang === 'en' ? 'Save' : 'Enregistrer'}</span>
+          <button 
+            onClick={handleSave}
+            disabled={isSaving || isSaved}
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${isSaved ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+          >
+            {isSaving ? (
+              <div className="w-4 h-4 border-2 border-slate-400 border-t-slate-700 rounded-full animate-spin" />
+            ) : isSaved ? (
+              <CheckCircle2 className="w-4 h-4" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            <span className="hidden sm:block">
+              {isSaving ? (lang === 'ar' ? 'جاري الحفظ...' : lang === 'en' ? 'Saving...' : 'Enregistrement...') 
+                : isSaved ? (lang === 'ar' ? 'تم الحفظ' : lang === 'en' ? 'Saved' : 'Enregistré') 
+                : (lang === 'ar' ? 'حفظ' : lang === 'en' ? 'Save' : 'Enregistrer')}
+            </span>
           </button>
           <button 
             onClick={handlePublish}
