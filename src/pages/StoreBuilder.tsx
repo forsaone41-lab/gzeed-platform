@@ -1336,9 +1336,21 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
      return `${storeName.toLowerCase().replace(/\s+/g, '')}.gzeed.com`;
   };
 
+  // Listen to postMessage for theme updates from the GZeedBuilder iframe wrapper
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'UPDATE_THEME') {
+        const { primaryColor, fontFamily, cardStyle } = event.data.payload;
+        if (primaryColor) setPrimaryColor(primaryColor);
+        if (fontFamily) setFontFamily(fontFamily);
+        if (cardStyle) setCardStyle(cardStyle);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   // Plan (Normal/PRO/Premier) comes straight from the stores table so it can only be
-  // changed by an admin, never by the merchant editing their own store config_json.
-  // Runs for both the editor and the live storefront.
   useEffect(() => {
      if (!storeName) return;
      const domain = getStoreDomain();

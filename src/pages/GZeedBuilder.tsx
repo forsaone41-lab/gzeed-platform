@@ -31,6 +31,32 @@ export default function GZeedBuilder() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const [activeColor, setActiveColor] = useState('#0f172a');
+  const [activeFont, setActiveFont] = useState('font-sans');
+  const [activeCardStyle, setActiveCardStyle] = useState('rounded');
+
+  const updateThemeInIframe = (payload: any) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_THEME', payload }, '*');
+    }
+  };
+
+  const handleColorChange = (color: string) => {
+    setActiveColor(color);
+    updateThemeInIframe({ primaryColor: color });
+  };
+
+  const handleFontChange = (font: string) => {
+    setActiveFont(font);
+    updateThemeInIframe({ fontFamily: font });
+  };
+
+  const handleCardStyleChange = (style: string) => {
+    setActiveCardStyle(style);
+    updateThemeInIframe({ cardStyle: style });
+  };
+
   const handleSave = () => {
     setIsSaving(true);
     setTimeout(() => {
@@ -202,29 +228,49 @@ export default function GZeedBuilder() {
                   <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'الألوان الأساسية' : lang === 'en' ? 'Brand Colors' : 'Couleurs de la marque'}</h3>
                   <div className="grid grid-cols-5 gap-3">
                     {['#0f172a', '#06b6d4', '#8b5cf6', '#ec4899', '#10b981'].map((color, idx) => (
-                      <button key={idx} className="aspect-square rounded-full border-2 border-transparent hover:scale-110 transition-transform focus:border-slate-900 shadow-sm" style={{ backgroundColor: color }} />
+                      <button 
+                        key={idx} 
+                        onClick={() => handleColorChange(color)}
+                        className={`aspect-square rounded-full border-2 transition-transform hover:scale-110 shadow-sm ${activeColor === color ? 'border-slate-900 scale-110' : 'border-transparent'}`} 
+                        style={{ backgroundColor: color }} 
+                      />
                     ))}
                   </div>
                 </div>
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'الخطوط' : lang === 'en' ? 'Typography' : 'Typographie'}</h3>
                   <div className="space-y-3">
-                    <button className="w-full p-4 border border-slate-200 rounded-xl text-left hover:border-cyan-400 transition-colors bg-slate-50 font-sans">
-                      <div className="font-bold text-slate-900">Inter / System Sans</div>
-                      <div className="text-xs text-slate-500 mt-1">Clean, modern, readable</div>
+                    <button 
+                      onClick={() => handleFontChange('font-sans')}
+                      className={`w-full p-4 border rounded-xl text-left transition-colors ${activeFont === 'font-sans' ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200 hover:border-cyan-400 bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-slate-900 font-sans">Inter / System Sans</div>
+                      <div className="text-xs text-slate-500 mt-1 font-sans">Clean, modern, readable</div>
                     </button>
-                    <button className="w-full p-4 border border-slate-200 rounded-xl text-left hover:border-cyan-400 transition-colors font-serif">
-                      <div className="font-bold text-slate-900">Playfair Display</div>
-                      <div className="text-xs text-slate-500 mt-1">Elegant, classic, luxury</div>
+                    <button 
+                      onClick={() => handleFontChange('font-serif')}
+                      className={`w-full p-4 border rounded-xl text-left transition-colors ${activeFont === 'font-serif' ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200 hover:border-cyan-400 bg-white'}`}
+                    >
+                      <div className="font-bold text-slate-900 font-serif">Playfair Display</div>
+                      <div className="text-xs text-slate-500 mt-1 font-serif">Elegant, classic, luxury</div>
                     </button>
                   </div>
                 </div>
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'شكل الأزرار' : lang === 'en' ? 'Button Style' : 'Style de bouton'}</h3>
                   <div className="grid grid-cols-3 gap-3">
-                    <button className="py-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">Square</button>
-                    <button className="py-3 border border-slate-900 rounded-xl bg-slate-900 text-white font-bold transition-colors shadow-md">Rounded</button>
-                    <button className="py-3 border border-slate-200 rounded-full hover:bg-slate-50 transition-colors">Pill</button>
+                    <button 
+                      onClick={() => handleCardStyleChange('square')}
+                      className={`py-3 border rounded-xl transition-colors ${activeCardStyle === 'square' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Square</button>
+                    <button 
+                      onClick={() => handleCardStyleChange('rounded')}
+                      className={`py-3 border rounded-xl transition-colors ${activeCardStyle === 'rounded' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Rounded</button>
+                    <button 
+                      onClick={() => handleCardStyleChange('pill')}
+                      className={`py-3 border rounded-full transition-colors ${activeCardStyle === 'pill' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Pill</button>
                   </div>
                 </div>
               </div>
@@ -295,6 +341,7 @@ export default function GZeedBuilder() {
                 <p className="font-bold tracking-widest uppercase text-xs">Loading Preview...</p>
               </div>
               <iframe 
+                ref={iframeRef}
                 src={getThemePreviewUrl(activeThemeId)}
                 title="Live Preview" 
                 className="absolute inset-0 w-full h-full border-0 z-10 bg-white"
