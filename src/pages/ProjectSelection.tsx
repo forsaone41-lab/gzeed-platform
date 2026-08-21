@@ -18,10 +18,10 @@ export default function ProjectSelection() {
     // If they already have a project type, redirect to dashboard
     const checkExisting = async () => {
       const localType = localStorage.getItem("gzeed_project_type");
-      if (localType) {
-        navigate("/dashboard", { replace: true });
-        return;
-      }
+      // if (localType) {
+      //   navigate("/dashboard", { replace: true });
+      //   return;
+      // }
       
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -34,8 +34,8 @@ export default function ProjectSelection() {
             
           if (data && data.project_type) {
             localStorage.setItem("gzeed_project_type", data.project_type);
-            navigate("/dashboard", { replace: true });
-            return;
+            // navigate("/dashboard", { replace: true });
+            // return;
           }
         }
       } catch (err) {

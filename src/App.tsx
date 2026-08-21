@@ -914,8 +914,6 @@ function AppContent() {
         <Route path="/setup" element={<SetupLanding />} />
         <Route path="/platform-demo" element={<PlatformLanding />} />
         <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
-        <Route path="/project-selection" element={<Suspense fallback={<PageLoader />}><ProjectSelection /></Suspense>} />
-        <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="/demo/tourism" element={<TourismDemo />} />
         <Route path="/demo/vacation-deals" element={<VacationDealsDemo />} />
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
@@ -933,6 +931,8 @@ function AppContent() {
         <Route path="fast-scanner" element={can('fast_scanner') ? <FastScanner /> : <Navigate to="/" replace />} />
       </Route>
       {/* Standalone SaaS Route for BEYA STORE Builder (Accessible by admin via this specific route) */}
+      <Route path="/project-selection" element={<Suspense fallback={<PageLoader />}><ProjectSelection /></Suspense>} />
+      <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
       <Route path="/store-builder" element={(currentUser?.role === 'admin') ? <div className="min-h-screen bg-white"><StoreBuilder appCurrentUser={currentUser} /></div> : <Navigate to="/" replace />} />
       <Route path="/store-analytics" element={<Suspense fallback={<PageLoader />}><StoreAnalytics currentUser={currentUser} /></Suspense>} />
       <Route path="/beya-designer" element={<Suspense fallback={<PageLoader />}><BeyaDesignerPage /></Suspense>} />
