@@ -30,6 +30,8 @@ import {
   ShieldCheck,
   Banknote,
   CheckCircle,
+  Tags,
+  Briefcase,
 } from "lucide-react";
 import { useLang } from "../contexts/LangContext";
 import { useNavigate, Navigate } from "react-router-dom";
@@ -646,31 +648,40 @@ export default function GZeedDashboard() {
       labelFr: "Accueil",
       labelEn: "Home",
     },
-    // Orders & Products only make sense for an e-commerce store, not a showcase website
-    ...(projectType !== "website"
-      ? [
-          {
-            id: "orders",
-            icon: ShoppingBag,
-            labelAr: "الطلبات",
-            labelFr: "Commandes",
-            labelEn: "Orders",
-          },
-          {
-            id: "products",
-            icon: Box,
-            labelAr: "المنتجات",
-            labelFr: "Produits",
-            labelEn: "Products",
-          },
-        ]
-      : []),
+    {
+      id: "orders",
+      icon: ShoppingBag,
+      labelAr: "الطلبات",
+      labelFr: "Commandes",
+      labelEn: "Orders",
+    },
+    {
+      id: "products",
+      icon: Box,
+      labelAr: "المنتجات",
+      labelFr: "Produits",
+      labelEn: "Products",
+    },
+    {
+      id: "categories",
+      icon: Tags,
+      labelAr: "التصنيفات",
+      labelFr: "Catégories",
+      labelEn: "Categories",
+    },
     {
       id: "customers",
       icon: Users,
       labelAr: "العملاء",
       labelFr: "Clients",
       labelEn: "Customers",
+    },
+    {
+      id: "team",
+      icon: Briefcase,
+      labelAr: "فريق العمل",
+      labelFr: "Équipe",
+      labelEn: "Team / Staff",
     },
     {
       id: "analytics",
@@ -2959,8 +2970,7 @@ export default function GZeedDashboard() {
               </div>
             </div>
           )}
-
-          {["customers", "analytics"].includes(activeTab) && (
+          {["customers", "analytics", "categories", "team"].includes(activeTab) && (
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400 animate-fade-in">
               <Settings className="w-16 h-16 mb-4 animate-spin-slow opacity-20" />
               <h2 className="text-xl font-bold text-slate-500">
