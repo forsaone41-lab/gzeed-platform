@@ -1066,9 +1066,32 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
               }
               
               if (previewThemeId) {
-                  const overrideTheme = THEMES.find(t => t.id === previewThemeId);
+                  const themeMap: Record<string, string> = {
+                      'minimalist': 'pop-fashion',
+                      'abaya': 'blush-studio',
+                      'perfume': 'jewelry',
+                      'digital': 'tech',
+                      'dentist': 'editorial-noir',
+                      'omra': 'emerald-market',
+                      'tourism': 'emerald-market',
+                      'vacation-deals': 'emerald-market',
+                      'mazia': 'luxury',
+                      'bidla': 'atelier',
+                      'car-rental': 'tech',
+                      'service-pro': 'tech',
+                      'apartment': 'furniture',
+                      'beauty-salon': 'cosmetics',
+                      'traiteur': 'atelier',
+                      'logistics': 'tech',
+                      'city-rentals': 'furniture',
+                      'blank': 'streetwear'
+                  };
+                  const mappedId = themeMap[previewThemeId] || previewThemeId;
+                  const overrideTheme = THEMES.find(t => t.id === mappedId);
+                  
                   if (overrideTheme) {
                       setActiveTheme(overrideTheme);
+                      if (!conf.primaryColor) setPrimaryColor(overrideTheme.defaultColor);
                   } else {
                       if (conf.activeTheme) setActiveTheme(conf.activeTheme);
                   }
