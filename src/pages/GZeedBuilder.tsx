@@ -44,7 +44,7 @@ export default function GZeedBuilder() {
     // Priority: Show the user's actual live store preview with their products
     const storeName = localStorage.getItem('gzeed_store_name');
     if (storeName && storeName !== 'متجر تجريبي' && storeName !== 'My Store') {
-      return `/#/store/${encodeURIComponent(storeName)}`;
+      return `/#/store/${encodeURIComponent(storeName)}?theme=${id}`;
     }
 
     // Fallback to demo themes if no store is created yet

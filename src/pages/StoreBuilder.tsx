@@ -1057,7 +1057,24 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
               if (conf.seoDescription) setSeoDescription(conf.seoDescription);
               if (conf.comingSoonMode !== undefined) setComingSoonMode(conf.comingSoonMode);
               if (conf.comingSoonMessage) setComingSoonMessage(conf.comingSoonMessage);
-              if (conf.activeTheme) setActiveTheme(conf.activeTheme);
+              // Check if there is a preview_theme in the URL hash
+              const hashParts = window.location.hash.split('?');
+              let previewThemeId = null;
+              if (hashParts.length > 1) {
+                  const urlParams = new URLSearchParams(hashParts[1]);
+                  previewThemeId = urlParams.get('theme');
+              }
+              
+              if (previewThemeId) {
+                  const overrideTheme = THEMES.find(t => t.id === previewThemeId);
+                  if (overrideTheme) {
+                      setActiveTheme(overrideTheme);
+                  } else {
+                      if (conf.activeTheme) setActiveTheme(conf.activeTheme);
+                  }
+              } else {
+                  if (conf.activeTheme) setActiveTheme(conf.activeTheme);
+              }
               if (conf.primaryColor) setPrimaryColor(conf.primaryColor);
               if (conf.fontFamily) setFontFamily(conf.fontFamily);
               if (conf.heroImage) setHeroImage(conf.heroImage);
