@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Globe, Smartphone, ArrowRight, Loader2, Check } from "lucide-react";
-import { supabase } from "../supabaseClient";
-import { useLang } from "../context/LangContext";
+import { supabase } from "../supabase";
+import { useLang } from "../contexts/LangContext";
 
 export default function ProjectSelection() {
   const navigate = useNavigate();
