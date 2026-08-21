@@ -833,7 +833,13 @@ export default function GZeedDashboard() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {
+                    if (item.id === "builder") {
+                      navigate("/gzeed-builder");
+                    } else {
+                      setActiveTab(item.id);
+                    }
+                  }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 group
                     ${
                       isActive
@@ -1689,14 +1695,8 @@ export default function GZeedDashboard() {
                       key={theme.id}
                       onClick={() => {
                         setActiveThemeId(theme.id);
-                        showToastAndNavigate(
-                          lang === "ar"
-                            ? `تم تفعيل قالب ${theme.name} بنجاح!`
-                            : lang === "en"
-                              ? `Theme ${theme.name} applied successfully!`
-                              : `Thème ${theme.name} appliqué avec succès !`,
-                          "builder",
-                        );
+                        localStorage.setItem("gzeed_active_theme", theme.id);
+                        navigate("/gzeed-builder");
                       }}
                       className={`bg-white rounded-2xl border overflow-hidden group cursor-pointer hover:shadow-xl hover:border-cyan-300 transition-all ${activeThemeId === theme.id ? "border-2 border-emerald-500 shadow-md ring-4 ring-emerald-50" : "border-slate-200"}`}
                     >
