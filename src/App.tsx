@@ -636,6 +636,7 @@ function AppContent() {
         <Route path="/welcome" element={<Suspense fallback={<PageLoader />}><WelcomeGZeed /></Suspense>} />
         <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="/gzeed-builder" element={<Suspense fallback={<PageLoader />}><GZeedBuilder /></Suspense>} />
+        <Route path="/store/:storeNameUrl" element={<div className="min-h-screen bg-white"><StoreBuilder isLiveStore={true} /></div>} />
         <Route path="/store-builder" element={
           <Suspense fallback={<PageLoader />}>
             <div className="min-h-screen bg-white">
@@ -771,6 +772,7 @@ function AppContent() {
             </div>
           </Suspense>
         } />
+        <Route path="/store/:storeNameUrl" element={<div className="min-h-screen bg-white"><StoreBuilder isLiveStore={true} /></div>} />
         <Route path="/portal" element={
           <Suspense fallback={<PageLoader />}>
             <PortailClient currentUser={currentUser} onLogout={handleLogout} />
