@@ -41,6 +41,13 @@ export default function GZeedBuilder() {
   };
 
   const getThemePreviewUrl = (id: string | null) => {
+    // Priority: Show the user's actual live store preview with their products
+    const storeName = localStorage.getItem('gzeed_store_name');
+    if (storeName && storeName !== 'متجر تجريبي' && storeName !== 'My Store') {
+      return `#/store/${encodeURIComponent(storeName)}`;
+    }
+
+    // Fallback to demo themes if no store is created yet
     if (!id) return '#/demo/ecommerce/abaya';
     if (id === 'dentist') return '#/demo/dentist';
     if (id === 'omra') return '#/demo/omra-tours';
