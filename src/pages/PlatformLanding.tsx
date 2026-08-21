@@ -6,6 +6,7 @@ import PublicFooter from '../components/PublicFooter';
 import { PricingSection } from '../components/PricingSection';
 import { usePlatformSettings } from '../contexts/PlatformSettingsContext';
 import { saveRecord } from '../types';
+import { supabase } from '../supabase';
 
 // ==========================================
 // 🎥 VIDEO BACKGROUND IS MANAGED VIA CMS
@@ -19,6 +20,14 @@ export default function PlatformLanding() {
   const [showIcon, setShowIcon] = useState(false);
   const [heroEmail, setHeroEmail] = useState('');
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+
+  useEffect(() => {
+    // Already-authenticated merchants shouldn't land on the marketing page -
+    // send them straight to their dashboard instead of asking them to log in again.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) navigate('/dashboard', { replace: true });
+    });
+  }, [navigate]);
 
   const handleHeroSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

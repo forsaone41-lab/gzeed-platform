@@ -64,6 +64,8 @@ const ListeAttente    = lazy(() => import('./pages/ListeAttente'));
 const Notifications   = lazy(() => import('./pages/Notifications'));
 const GZeedSignup     = lazy(() => import('./pages/GZeedSignup'));
 const GZeedDashboard  = lazy(() => import('./pages/GZeedDashboard'));
+const WelcomeGZeed    = lazy(() => import('./pages/WelcomeGZeed'));
+const ProjectSelection = lazy(() => import('./pages/ProjectSelection'));
 const GZeedBuilder    = lazy(() => import('./pages/GZeedBuilder'));
 const GZeedLogin      = lazy(() => import('./pages/GZeedLogin'));
 const AISpace         = lazy(() => import('./pages/AISpace'));
@@ -543,12 +545,12 @@ function AppContent() {
         <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm shadow-blue-500/20">
           <Lock className="w-8 h-8 text-blue-600" />
         </div>
-        <h2 className="text-2xl font-black text-center text-slate-900 mb-2 tracking-tight">????? ???? ???? ?????</h2>
-        <p className="text-center text-slate-500 mb-8 font-medium">?????? ????? ???? ?????? ??????? ?????? ????? ??.</p>
-        
+        <h2 className="text-2xl font-black text-center text-slate-900 mb-2 tracking-tight">تعيين كلمة مرور جديدة</h2>
+        <p className="text-center text-slate-500 mb-8 font-medium">أدخل كلمة مرور جديدة لحسابك للمتابعة.</p>
+
         <form onSubmit={handleUpdatePassword} className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">???? ?????? ???????</label>
+            <label className="block text-sm font-bold text-slate-700 mb-2">كلمة المرور الجديدة</label>
             <div className="relative">
               <Lock className="absolute top-1/2 -translate-y-1/2 right-4 w-5 h-5 text-slate-400" />
               <input
@@ -558,7 +560,7 @@ function AppContent() {
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 className="w-full pr-12 pl-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-bold text-slate-900 text-left"
-                placeholder="��������"
+                placeholder="••••••••"
                 dir="ltr"
               />
               <button
@@ -582,7 +584,7 @@ function AppContent() {
             disabled={isUpdatingPassword}
             className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-70"
           >
-            {isUpdatingPassword ? <Loader2 className="w-5 h-5 animate-spin" /> : '??? ???? ??????'}
+            {isUpdatingPassword ? <Loader2 className="w-5 h-5 animate-spin" /> : 'تحديث كلمة المرور'}
           </button>
         </form>
       </div>
@@ -631,6 +633,7 @@ function AppContent() {
         <Route path="/demo/ecommerce/abaya" element={<AbayaDemo />} />
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
         <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
+        <Route path="/welcome" element={<Suspense fallback={<PageLoader />}><WelcomeGZeed /></Suspense>} />
         <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="/gzeed-builder" element={<Suspense fallback={<PageLoader />}><GZeedBuilder /></Suspense>} />
         <Route path="/store-builder" element={
@@ -719,6 +722,7 @@ function AppContent() {
     return (
       <Routes>
         <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
+        <Route path="/welcome" element={<Suspense fallback={<PageLoader />}><WelcomeGZeed /></Suspense>} />
         <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="*" element={<PortailClient currentUser={currentUser} onLogout={handleLogout} />} />
       </Routes>
@@ -752,6 +756,11 @@ function AppContent() {
         <Route path="/" element={
           <Suspense fallback={<PageLoader />}>
             <MerchantDashboard currentUser={currentUser} onLogout={handleLogout} />
+          </Suspense>
+        } />
+        <Route path="/welcome" element={
+          <Suspense fallback={<PageLoader />}>
+            <WelcomeGZeed />
           </Suspense>
         } />
         {/* They can also access the builder */}
@@ -905,7 +914,7 @@ function AppContent() {
         <Route path="/setup" element={<SetupLanding />} />
         <Route path="/platform-demo" element={<PlatformLanding />} />
         <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
-        <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
+        <Route path="/project-selection" element={<Suspense fallback={<PageLoader />}><ProjectSelection /></Suspense>} />
         <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="/demo/tourism" element={<TourismDemo />} />
         <Route path="/demo/vacation-deals" element={<VacationDealsDemo />} />

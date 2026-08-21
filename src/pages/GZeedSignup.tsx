@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Store, ArrowRight, CheckCircle2, Loader2, Eye, EyeOff } from 'lucide-react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { Mail, Store, ArrowRight, CheckCircle2, Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
+import { supabase } from '../supabase';
 
 export default function GZeedSignup() {
   const { isAr } = useLang();
@@ -10,6 +11,8 @@ export default function GZeedSignup() {
   const prefilledEmail = (location.state as { email?: string } | null)?.email || '';
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: prefilledEmail,
@@ -20,27 +23,45 @@ export default function GZeedSignup() {
     agreeToTerms: true
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 1) {
       if (!formData.email) return;
-      setLoading(true);
-      setTimeout(() => {
-        setLoading(false);
-        setStep(2);
-      }, 800);
+      setStep(2);
     } else if (step === 2) {
       if (!formData.firstName || !formData.password) return;
       setLoading(true);
-      // Simulate API call to create store
-      setTimeout(() => {
-        setLoading(false);
-        setStep(3);
-        // After success, navigate to the dashboard
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 3000);
-      }, 1500);
+      setError('');
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            store_name: formData.storeName,
+          },
+        },
+      });
+      setLoading(false);
+
+      if (signUpError) {
+        setError(signUpError.message.includes('already registered')
+          ? (isAr ? 'هذا البريد الإلكتروني مسجل من قبل.' : 'Cet e-mail est déjà utilisé.')
+          : (isAr ? 'وقع خطأ، حاول مرة أخرى.' : 'Une erreur est survenue, réessayez.'));
+        return;
+      }
+
+      if (formData.storeName) localStorage.setItem('gzeed_store_name', formData.storeName);
+      setStep(3);
+
+      if (data.session) {
+        // Email confirmation disabled in Supabase - session is active right away
+        setTimeout(() => navigate('/dashboard'), 3000);
+      } else {
+        // Email confirmation required - no session until the merchant clicks the link we just sent
+        setNeedsEmailConfirmation(true);
+      }
     }
   };
 
@@ -119,7 +140,12 @@ export default function GZeedSignup() {
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                
+                {error && (
+                  <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-bold px-4 py-3 rounded-xl">
+                    <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-slate-300 mb-2">
@@ -211,17 +237,27 @@ export default function GZeedSignup() {
           {step === 3 && (
             <div className="animate-fade-in text-center py-8">
               <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
-                <CheckCircle2 className="w-12 h-12 text-emerald-400 animate-pulse" />
+                {needsEmailConfirmation ? <Mail className="w-12 h-12 text-emerald-400" /> : <CheckCircle2 className="w-12 h-12 text-emerald-400 animate-pulse" />}
               </div>
               <h1 className="text-3xl font-black text-white mb-4">
-                {isAr ? 'تم إنشاء حسابك بنجاح!' : 'Compte créé avec succès !'}
+                {needsEmailConfirmation
+                  ? (isAr ? 'تحقق من بريدك الإلكتروني' : 'Vérifiez votre e-mail')
+                  : (isAr ? 'تم إنشاء حسابك بنجاح!' : 'Compte créé avec succès !')}
               </h1>
               <p className="text-slate-400 font-medium mb-8">
-                {isAr ? 'جاري توجيهك إلى لوحة التحكم الخاصة بك...' : 'Redirection vers votre tableau de bord...'}
+                {needsEmailConfirmation
+                  ? (isAr ? `أرسلنا رابط تأكيد إلى ${formData.email}. اضغط عليه لتفعيل حسابك ثم سجّل الدخول.` : `Nous avons envoyé un lien de confirmation à ${formData.email}. Cliquez dessus pour activer votre compte, puis connectez-vous.`)
+                  : (isAr ? 'جاري توجيهك إلى لوحة التحكم الخاصة بك...' : 'Redirection vers votre tableau de bord...')}
               </p>
-              <div className="flex justify-center">
-                <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
-              </div>
+              {needsEmailConfirmation ? (
+                <Link to="/login" className="text-cyan-500 hover:text-cyan-400 font-bold transition-colors">
+                  {isAr ? 'الذهاب إلى تسجيل الدخول' : 'Aller à la connexion'}
+                </Link>
+              ) : (
+                <div className="flex justify-center">
+                  <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+                </div>
+              )}
             </div>
           )}
 

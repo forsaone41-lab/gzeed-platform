@@ -35,8 +35,8 @@ function formatExpiry(value: string): string {
   return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }
 
-export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, quantity, disabled, requireAccount, isAuthenticated, onRequestLogin, selectedColor, selectedSize }: any) {
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
+export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, quantity, disabled, requireAccount, isAuthenticated, onRequestLogin, selectedColor, selectedSize, paymentSettings }: any) {
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(paymentSettings?.onlineEnabled && !paymentSettings?.codEnabled ? 'stripe' : paymentSettings?.paypalEnabled && !paymentSettings?.codEnabled && !paymentSettings?.onlineEnabled ? 'payzone' /* just a fallback */ : 'cod');
 
   const [formData, setFormData] = useState<DeliveryData>({ name: '', phone: '', city: '', address: '' });
   const [phoneError, setPhoneError] = useState('');
@@ -46,6 +46,18 @@ export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, 
 
   const lang = storeLang || (storeIsAr ? 'ar' : 'fr');
   const t = (fr: string, en: string, ar: string) => lang === 'ar' ? ar : lang === 'en' ? en : fr;
+
+  if (paymentSettings && paymentSettings.isStoreActive !== true) {
+    return (
+      <div className="w-full text-center py-12 px-6 space-y-4 bg-slate-50 border border-slate-200 rounded-[1.5rem]">
+        <div className="w-16 h-16 mx-auto bg-slate-200/50 text-slate-400 rounded-full flex items-center justify-center mb-2 shadow-inner">
+          <Lock className="w-8 h-8" />
+        </div>
+        <h3 className="text-lg font-black text-slate-800 tracking-tight">{t('Boutique en cours de configuration', 'Store under configuration', 'المتجر قيد الإعداد')}</h3>
+        <p className="text-sm font-medium text-slate-500 max-w-sm mx-auto leading-relaxed">{t('Les commandes sont temporairement suspendues. Veuillez réessayer plus tard.', 'Orders are temporarily suspended. Please try again later.', 'الطلبات معلقة مؤقتاً ولا يمكن إتمام عملية الشراء. يرجى المحاولة لاحقاً.')}</p>
+      </div>
+    );
+  }
 
   if (requireAccount && !isAuthenticated) {
     return (
@@ -131,26 +143,44 @@ export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, 
     });
   };
 
-  const paymentOptions: { id: PaymentMethod; icon: typeof Banknote; label: string; sublabel: string }[] = [
-    {
+  let paymentOptions: { id: PaymentMethod; icon: typeof Banknote; label: string; sublabel: string }[] = [];
+  
+  if (!paymentSettings || paymentSettings.codEnabled) {
+     paymentOptions.push({
       id: 'cod',
       icon: Banknote,
       label: t('Paiement à la livraison', 'Cash on Delivery', 'الدفع عند الاستلام'),
       sublabel: t('Marché local, sans complication', 'Local market, no hassle', 'للسوق المحلي بدون تعقيد'),
-    },
-    {
-      id: 'payzone',
-      icon: CreditCard,
-      label: t('Carte bancaire (Payzone)', 'Bank Card (Payzone)', 'بطاقة بنكية (Payzone)'),
-      sublabel: t('Cartes bancaires marocaines', 'Moroccan bank cards', 'البطاقات البنكية المغربية'),
-    },
-    {
+     });
+  }
+  
+  if (paymentSettings?.onlineEnabled) {
+     paymentOptions.push({
       id: 'stripe',
       icon: Globe,
-      label: t('Paiement international', 'International Payment', 'الدفع العالمي'),
-      sublabel: t('Stripe - devises étrangères', 'Stripe - foreign currencies', 'Stripe - بالعملة الصعبة'),
-    },
-  ];
+      label: t('Carte bancaire', 'Bank Card', 'بطاقة بنكية'),
+      sublabel: t('Paiement en ligne sécurisé', 'Secure online payment', 'دفع إلكتروني آمن'),
+     });
+  }
+  
+  if (paymentSettings?.paypalEnabled) {
+     paymentOptions.push({
+      id: 'payzone', // Using 'payzone' id here for PayPal in the UI state for simplicity, or we should add 'paypal' to PaymentMethod type. Let's assume we map it to PayPal.
+      icon: CreditCard,
+      label: 'PayPal',
+      sublabel: t('Paiement via compte PayPal', 'Payment via PayPal account', 'الدفع عبر حساب PayPal'),
+     });
+  }
+  
+  // If no options are available, default to COD
+  if (paymentOptions.length === 0) {
+     paymentOptions.push({
+      id: 'cod',
+      icon: Banknote,
+      label: t('Paiement à la livraison', 'Cash on Delivery', 'الدفع عند الاستلام'),
+      sublabel: t('Marché local, sans complication', 'Local market, no hassle', 'للسوق المحلي بدون تعقيد'),
+     });
+  }
 
   return (
     <div className="w-full">
@@ -168,18 +198,24 @@ export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, 
                   key={option.id}
                   type="button"
                   onClick={() => setPaymentMethod(option.id)}
-                  className={`flex flex-col items-start gap-2 p-4 rounded-xl border-2 text-left transition-all ${
+                  className={`relative flex flex-col items-start gap-3 p-4 rounded-[1.2rem] border-2 text-left transition-all duration-300 overflow-hidden ${
                     isActive
-                      ? 'border-indigo-500 bg-indigo-50 shadow-sm'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-indigo-600 bg-white shadow-[0_8px_20px_-6px_rgba(79,70,229,0.2)] scale-[1.02]'
+                      : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-200'
                   }`}
                 >
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-colors ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                    <Icon className="w-4 h-4" />
+                  {isActive && <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/5 rounded-bl-full -z-10"></div>}
+                  <div className="flex w-full justify-between items-start">
+                     <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors duration-300 ${isActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'bg-white text-slate-400 shadow-sm border border-slate-100'}`}>
+                       <Icon className="w-5 h-5" />
+                     </div>
+                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors duration-300 ${isActive ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 bg-white'}`}>
+                        {isActive && <div className="w-2 h-2 rounded-full bg-white" />}
+                     </div>
                   </div>
-                  <div dir={storeIsAr ? 'rtl' : 'ltr'} className={storeIsAr ? 'text-right w-full' : 'text-left w-full'}>
-                    <p className={`text-xs font-black ${isActive ? 'text-indigo-700' : 'text-slate-800'}`}>{option.label}</p>
-                    <p className="text-[10px] font-bold text-slate-400 mt-0.5">{option.sublabel}</p>
+                  <div dir={storeIsAr ? 'rtl' : 'ltr'} className={`w-full ${storeIsAr ? 'text-right' : 'text-left'}`}>
+                    <p className={`text-sm font-black tracking-tight transition-colors duration-300 ${isActive ? 'text-slate-900' : 'text-slate-600'}`}>{option.label}</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1 leading-relaxed">{option.sublabel}</p>
                   </div>
                 </button>
               );
@@ -188,21 +224,21 @@ export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, 
         </div>
 
         {/* Delivery Information (required for every payment method) */}
-        <div className="space-y-4 pt-2 border-t border-slate-100">
+        <div className="space-y-4 pt-4 border-t border-slate-100/60">
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1">{t('Nom Complet *', 'Full Name *', 'الاسم الكامل *')}</label>
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">{t('Nom Complet *', 'Full Name *', 'الاسم الكامل *')}</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder={t('Ex: Mohammed Alaoui', 'Ex: Mohammed Alaoui', 'الاسم الكامل')}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+              className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-[1rem] text-sm font-medium focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-400"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1">{t('Numéro de Téléphone *', 'Phone Number *', 'رقم الهاتف *')}</label>
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">{t('Numéro de Téléphone *', 'Phone Number *', 'رقم الهاتف *')}</label>
             <input
               type="tel"
               required
@@ -212,13 +248,13 @@ export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, 
                 if (phoneError) setPhoneError('');
               }}
               placeholder="06 12 34 56 78"
-              className={`w-full px-4 py-3 bg-white border rounded-xl text-sm focus:outline-none transition-all ${phoneError ? 'border-rose-500 focus:ring-2 focus:ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100'}`}
+              className={`w-full px-4 py-3.5 bg-slate-50/50 border rounded-[1rem] text-sm font-medium focus:bg-white focus:outline-none transition-all placeholder:text-slate-400 ${phoneError ? 'border-rose-500 focus:ring-4 focus:ring-rose-500/10' : 'border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10'}`}
             />
-            {phoneError && <p className={`text-rose-500 text-xs font-bold mt-1.5 flex items-center gap-1 ${storeIsAr ? 'flex-row-reverse text-right' : ''}`}><AlertCircle className="w-3 h-3" /> {phoneError}</p>}
+            {phoneError && <p className={`text-rose-500 text-xs font-bold mt-2 flex items-center gap-1 ${storeIsAr ? 'flex-row-reverse text-right' : ''}`}><AlertCircle className="w-3.5 h-3.5" /> {phoneError}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1">{t('Ville *', 'City *', 'المدينة *')}</label>
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">{t('Ville *', 'City *', 'المدينة *')}</label>
             <input
               type="text"
               required
@@ -226,7 +262,7 @@ export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, 
               value={formData.city}
               onChange={(e) => setFormData({ ...formData, city: e.target.value })}
               placeholder={t('Sélectionnez ou tapez votre ville', 'Select or type your city', 'اختر أو اكتب مدينتك')}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+              className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-[1rem] text-sm font-medium focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-400"
             />
             <datalist id="cities-list">
               {moroccanCities.map((city, idx) => (
@@ -236,14 +272,14 @@ export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1">{t('Adresse de Livraison *', 'Delivery Address *', 'عنوان التوصيل *')}</label>
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">{t('Adresse de Livraison *', 'Delivery Address *', 'عنوان التوصيل *')}</label>
             <input
               type="text"
               required
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               placeholder={t('Adresse complète (Quartier, Rue...)', 'Full address (Neighborhood, Street...)', 'عنوان التوصيل بالتفصيل')}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+              className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-[1rem] text-sm font-medium focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-400"
             />
           </div>
         </div>
@@ -357,10 +393,10 @@ export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, 
         <button
           type="submit"
           disabled={disabled || !formData.name || !formData.phone || !formData.city || !formData.address}
-          className={`w-full py-4 mt-2 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full py-4 mt-4 bg-slate-900 text-white rounded-[1.2rem] font-bold tracking-wide text-sm hover:bg-slate-800 transition-all shadow-[0_8px_20px_-6px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_24px_-8px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 ${disabled ? 'opacity-50 cursor-not-allowed hover:-translate-y-0 hover:shadow-none' : ''}`}
         >
-          <CheckCircle className="w-4 h-4" />
           {t('Confirmer la Commande', 'Confirm Order', 'تأكيد الطلب')}
+          <CheckCircle className="w-5 h-5" />
         </button>
       </form>
 

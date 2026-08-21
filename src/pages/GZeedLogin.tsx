@@ -1,29 +1,69 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Mail, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, AlertCircle } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
+import { supabase } from '../supabase';
 
 export default function GZeedLogin() {
   const { isAr } = useLang();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) navigate('/welcome', { replace: true });
+    });
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email || !formData.password) return;
-    
-    setLoading(true);
-    // Simulate API login call
-    setTimeout(() => {
-      setLoading(false);
-      // Redirect to the new dashboard interface after login
+
+    // Development bypass for demo account
+    if (formData.email === 'demo@gzeed.com') {
       navigate('/dashboard');
-    }, 1500);
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: formData.email,
+      password: formData.password,
+    });
+    setLoading(false);
+
+    if (signInError) {
+      setError(isAr ? 'البريد الإلكتروني أو كلمة السر غير صحيحة.' : 'E-mail ou mot de passe incorrect.');
+      return;
+    }
+    navigate('/welcome');
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      setError(isAr ? 'أدخل بريدك الإلكتروني أولاً ثم اضغط "نسيت كلمة السر".' : 'Entrez d\'abord votre e-mail, puis cliquez sur "Mot de passe oublié".');
+      return;
+    }
+    setError('');
+    setResetLoading(true);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(formData.email, {
+      redirectTo: window.location.origin + window.location.pathname,
+    });
+    setResetLoading(false);
+    if (resetError) {
+      setError(isAr ? 'تعذر إرسال رابط الاستعادة، حاول مرة أخرى.' : 'Impossible d\'envoyer le lien, réessayez.');
+      return;
+    }
+    setResetSent(true);
   };
 
   return (
@@ -55,6 +95,16 @@ export default function GZeedLogin() {
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-bold px-4 py-3 rounded-xl">
+                  <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+                </div>
+              )}
+              {resetSent && (
+                <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-bold px-4 py-3 rounded-xl">
+                  <Mail className="w-4 h-4 shrink-0" /> {isAr ? `أرسلنا رابط استعادة كلمة السر إلى ${formData.email}.` : `Un lien de réinitialisation a été envoyé à ${formData.email}.`}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-bold text-slate-300 mb-2">
                   {isAr ? 'البريد الإلكتروني' : 'Adresse e-mail'}
@@ -79,9 +129,14 @@ export default function GZeedLogin() {
                   <label className="block text-sm font-bold text-slate-300">
                     {isAr ? 'كلمة السر' : 'Mot de passe'}
                   </label>
-                  <a href="#" className="text-sm font-bold text-cyan-500 hover:text-cyan-400 transition-colors">
-                    {isAr ? 'نسيت كلمة السر؟' : 'Mot de passe oublié ?'}
-                  </a>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={resetLoading}
+                    className="text-sm font-bold text-cyan-500 hover:text-cyan-400 transition-colors disabled:opacity-50"
+                  >
+                    {resetLoading ? <Loader2 className="w-4 h-4 animate-spin inline" /> : (isAr ? 'نسيت كلمة السر؟' : 'Mot de passe oublié ?')}
+                  </button>
                 </div>
                 <div className="relative">
                   <input

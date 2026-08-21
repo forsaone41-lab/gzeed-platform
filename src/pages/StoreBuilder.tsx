@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -930,6 +930,12 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
     links: ['À Propos', 'Contact', 'Politique de Retour', 'Termes & Conditions']
   });
   const [showReviews, setShowReviews] = useState(config.showReviews !== undefined ? config.showReviews : true);
+  const [paymentSettings, setPaymentSettings] = useState(config.paymentSettings || {
+    codEnabled: true,
+    onlineEnabled: false,
+    paypalEnabled: false,
+    paypalEmail: '',
+  });
   // Computed design vars - available to all Layout components
   const btnRadius = buttonStyle === 'pill' ? '9999px' : buttonStyle === 'square' ? '0px' : '10px';
   const btnStyle = { backgroundColor: primaryColor, borderRadius: btnRadius };
@@ -992,6 +998,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   }, [isLiveStore, storeName, storeLogo, storeFavicon, seoDescription, storeIsAr]);
 
   const [isLoadingLiveConfig, setIsLoadingLiveConfig] = useState(isLiveStore);
+  const [storeNotFound, setStoreNotFound] = useState(false);
 
   // Fetch from Supabase for live store to handle cross-domain loading
   useEffect(() => {
@@ -1030,6 +1037,11 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
               }
            }
            
+           if (!data || !data.config_json) {
+              setStoreNotFound(true);
+              return;
+           }
+
            if (data && data.config_json) {
               const conf = data.config_json;
               if (conf.storeLang) setStoreLang(conf.storeLang);
@@ -1423,6 +1435,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
        sliderImages,
        heroSlides,
        footerSettings,
+       paymentSettings,
        newsletterTitle,
        newsletterSubtitle,
        featuresData,
@@ -2540,6 +2553,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                  onRequestLogin={() => { setAuthMode('login'); setIsAuthOpen(true); }}
                                  selectedColor={selectedColor}
                                  selectedSize={selectedSize}
+                                 paymentSettings={paymentSettings}
                               />
                           </div>
                        ) : (
@@ -2599,6 +2613,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                  onRequestLogin={() => { setAuthMode('login'); setIsAuthOpen(true); }}
                                  selectedColor={selectedColor}
                                  selectedSize={selectedSize}
+                                 paymentSettings={paymentSettings}
                               />
                  </div>
               </div>
@@ -4375,6 +4390,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                   onSubmit={submitGlobalOrder}
                   product={storeProducts.find((p: any) => p.id === activeProductId) || storeProducts[0]}
                   quantity={1}
+                  paymentSettings={paymentSettings}
                />
            </div>
         )}
@@ -5282,6 +5298,27 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
        );
     }
 
+    if (storeNotFound) {
+       return (
+          <div className="w-full min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center" dir={storeLang === 'ar' ? 'rtl' : 'ltr'}>
+             <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                <AlertCircle className="w-10 h-10 text-slate-400" />
+             </div>
+             <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight mb-4">
+                {storeIsAr ? 'المتجر غير متوفر' : 'Store Not Found'}
+             </h1>
+             <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium leading-relaxed">
+                {storeIsAr 
+                  ? 'المتجر الذي تبحث عنه غير موجود أو لم يتم إعداده بعد. يرجى التحقق من الرابط والمحاولة مرة أخرى.' 
+                  : 'The store you are looking for does not exist or has not been configured yet. Please check the URL and try again.'}
+             </p>
+             <a href="https://gzeed.com" className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition-all">
+                {storeIsAr ? 'أنشئ متجرك الخاص مجاناً' : 'Create your own store for free'}
+             </a>
+          </div>
+       );
+    }
+
     if (comingSoonMode) {
        return (
           <div className="w-full h-screen flex flex-col items-center justify-center text-center px-6 bg-gradient-to-br from-slate-900 via-slate-950 to-black text-white" dir={storeLang === 'ar' ? 'rtl' : 'ltr'}>
@@ -6011,46 +6048,127 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
               {/* PAYMENTS TAB (NEW!) */}
               {activeTab === 'payments' && (
-                 <div className="space-y-4">
-                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-2">Méthodes de Paiement</h3>
-                    
-                    <div className="p-4 border-2 border-indigo-600 rounded-xl bg-indigo-50/30 shadow-sm relative overflow-hidden">
-                       <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[8px] font-black uppercase px-2 py-1 rounded-bl-lg">Actif</div>
-                       <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
-                             <CreditCard className="w-4 h-4" />
-                          </div>
-                          <div>
-                             <h4 className="text-sm font-black text-slate-800">Paiement à la Livraison (COD)</h4>
-                             <p className="text-[10px] text-slate-500">Le client paie à la réception.</p>
-                          </div>
+                 <div className="space-y-6">
+                    <div className="flex items-center justify-between mb-2">
+                       <h3 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                          <CreditCard className="w-5 h-5 text-indigo-500" />
+                          Méthodes de Paiement
+                       </h3>
+                       <div className="bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase px-2 py-1 rounded-full flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3" /> Sécurisé
                        </div>
                     </div>
+                    <p className="text-xs font-bold text-slate-500 leading-relaxed mb-6">Activez et configurez les méthodes de paiement pour vos clients. Choisissez parmi les options locales et internationales.</p>
 
-                    <div className="p-4 border border-slate-200 rounded-xl bg-white shadow-sm opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
-                       <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center">
-                             <CreditCard className="w-4 h-4" />
+                    <div className="space-y-4">
+                       {/* COD */}
+                       <div className={`relative group p-5 rounded-[1.5rem] border-2 transition-all duration-300 overflow-hidden ${paymentSettings.codEnabled ? 'bg-gradient-to-br from-white to-slate-50/50 border-indigo-500 shadow-xl shadow-indigo-100/50' : 'bg-white border-slate-100 shadow-sm hover:border-slate-300 hover:shadow-md'}`}>
+                          {paymentSettings.codEnabled && <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-bl-[100px] -z-10 transition-all duration-700"></div>}
+                          
+                          <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-4 z-10">
+                                <div className={`w-12 h-12 rounded-[1rem] flex items-center justify-center shrink-0 transition-all duration-300 ${paymentSettings.codEnabled ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105' : 'bg-slate-100 text-slate-400'}`}>
+                                   <Banknote className="w-6 h-6" />
+                                </div>
+                                <div>
+                                   <h4 className={`text-base font-black tracking-tight transition-colors duration-300 ${paymentSettings.codEnabled ? 'text-slate-900' : 'text-slate-600'}`}>Paiement à la Livraison</h4>
+                                   <p className="text-xs font-bold text-slate-500 mt-0.5">Cash on Delivery (COD)</p>
+                                </div>
+                             </div>
+                             
+                             <button 
+                                onClick={() => setPaymentSettings({ ...paymentSettings, codEnabled: !paymentSettings.codEnabled })} 
+                                className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none z-10 shadow-inner ${paymentSettings.codEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                             >
+                                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm ring-0 transition duration-300 ease-in-out ${paymentSettings.codEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                             </button>
                           </div>
-                          <div>
-                             <h4 className="text-sm font-black text-slate-800">Carte Bancaire (Stripe)</h4>
-                             <p className="text-[10px] text-slate-500">Acceptez les paiements par carte.</p>
-                          </div>
+                          
+                          {paymentSettings.codEnabled && (
+                             <div className="mt-5 pt-4 border-t border-slate-100/80 flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
+                                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Activé et prêt pour vos clients locaux.</span>
+                             </div>
+                          )}
                        </div>
-                       <button className="mt-3 w-full py-2 bg-slate-900 text-white text-[10px] font-bold rounded-lg uppercase tracking-wider">Configurer</button>
-                    </div>
 
-                    <div className="p-4 border border-slate-200 rounded-xl bg-white shadow-sm opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
-                       <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center">
-                             <CreditCard className="w-4 h-4" />
+                       {/* Stripe / Online */}
+                       <div className={`relative group p-5 rounded-[1.5rem] border-2 transition-all duration-300 overflow-hidden ${paymentSettings.onlineEnabled ? 'bg-gradient-to-br from-white to-slate-50/50 border-indigo-500 shadow-xl shadow-indigo-100/50' : 'bg-white border-slate-100 shadow-sm hover:border-slate-300 hover:shadow-md'}`}>
+                          {paymentSettings.onlineEnabled && <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-bl-[100px] -z-10 transition-all duration-700"></div>}
+                          
+                          <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-4 z-10">
+                                <div className={`w-12 h-12 rounded-[1rem] flex items-center justify-center shrink-0 transition-all duration-300 ${paymentSettings.onlineEnabled ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105' : 'bg-slate-100 text-slate-400'}`}>
+                                   <Globe className="w-6 h-6" />
+                                </div>
+                                <div>
+                                   <h4 className={`text-base font-black tracking-tight transition-colors duration-300 ${paymentSettings.onlineEnabled ? 'text-slate-900' : 'text-slate-600'}`}>Carte Bancaire</h4>
+                                   <p className="text-xs font-bold text-slate-500 mt-0.5">Paiement en ligne (Stripe/Payzone)</p>
+                                </div>
+                             </div>
+                             
+                             <button 
+                                onClick={() => setPaymentSettings({ ...paymentSettings, onlineEnabled: !paymentSettings.onlineEnabled })} 
+                                className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none z-10 shadow-inner ${paymentSettings.onlineEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                             >
+                                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm ring-0 transition duration-300 ease-in-out ${paymentSettings.onlineEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                             </button>
                           </div>
-                          <div>
-                             <h4 className="text-sm font-black text-slate-800">PayPal</h4>
-                             <p className="text-[10px] text-slate-500">Paiement via compte PayPal.</p>
-                          </div>
+
+                          {paymentSettings.onlineEnabled && (
+                             <div className="mt-5 pt-4 border-t border-slate-100/80 animate-in slide-in-from-top-2 duration-300 space-y-4">
+                                <div className="flex items-center justify-between bg-slate-50/80 rounded-xl p-3 border border-slate-100 backdrop-blur-sm">
+                                    <div className="flex items-center gap-2">
+                                       <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
+                                       <span className="text-xs font-bold text-slate-600">Mode Test (API Keys requises)</span>
+                                    </div>
+                                    <button className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 bg-indigo-100/50 px-3 py-1.5 rounded-lg transition-colors border border-indigo-200/50">Configurer</button>
+                                </div>
+                             </div>
+                          )}
                        </div>
-                       <button className="mt-3 w-full py-2 bg-slate-900 text-white text-[10px] font-bold rounded-lg uppercase tracking-wider">Configurer</button>
+
+                       {/* PayPal */}
+                       <div className={`relative group p-5 rounded-[1.5rem] border-2 transition-all duration-300 overflow-hidden ${paymentSettings.paypalEnabled ? 'bg-gradient-to-br from-white to-slate-50/50 border-indigo-500 shadow-xl shadow-indigo-100/50' : 'bg-white border-slate-100 shadow-sm hover:border-slate-300 hover:shadow-md'}`}>
+                          {paymentSettings.paypalEnabled && <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-bl-[100px] -z-10 transition-all duration-700"></div>}
+                          
+                          <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-4 z-10">
+                                <div className={`w-12 h-12 rounded-[1rem] flex items-center justify-center shrink-0 transition-all duration-300 ${paymentSettings.paypalEnabled ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105' : 'bg-slate-100 text-slate-400'}`}>
+                                   <CreditCard className="w-6 h-6" />
+                                </div>
+                                <div>
+                                   <h4 className={`text-base font-black tracking-tight transition-colors duration-300 ${paymentSettings.paypalEnabled ? 'text-slate-900' : 'text-slate-600'}`}>PayPal</h4>
+                                   <p className="text-xs font-bold text-slate-500 mt-0.5">Paiement sécurisé via PayPal</p>
+                                </div>
+                             </div>
+                             
+                             <button 
+                                onClick={() => setPaymentSettings({ ...paymentSettings, paypalEnabled: !paymentSettings.paypalEnabled })} 
+                                className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none z-10 shadow-inner ${paymentSettings.paypalEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                             >
+                                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm ring-0 transition duration-300 ease-in-out ${paymentSettings.paypalEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                             </button>
+                          </div>
+
+                          {paymentSettings.paypalEnabled && (
+                             <div className="mt-5 pt-4 border-t border-slate-100/80 animate-in slide-in-from-top-2 duration-300">
+                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Adresse Email PayPal</label>
+                                <div className="flex gap-2">
+                                   <input 
+                                      type="email" 
+                                      placeholder="contact@votreboutique.com" 
+                                      value={paymentSettings.paypalEmail || ''} 
+                                      onChange={e => setPaymentSettings({ ...paymentSettings, paypalEmail: e.target.value })} 
+                                      className="flex-1 bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300" 
+                                   />
+                                   <button className="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20 active:scale-95">
+                                      Sauvegarder
+                                   </button>
+                                </div>
+                             </div>
+                          )}
+                       </div>
                     </div>
                  </div>
               )}
