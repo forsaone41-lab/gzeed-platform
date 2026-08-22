@@ -42,6 +42,12 @@ export default function GZeedBuilder() {
     }
   };
 
+  const handleSectionClick = (sectionId: string) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ type: 'SCROLL_TO_SECTION', payload: sectionId }, '*');
+    }
+  };
+
   const handleColorChange = (color: string) => {
     setActiveColor(color);
     updateThemeInIframe({ primaryColor: color });
@@ -284,7 +290,7 @@ export default function GZeedBuilder() {
                   { id: 'products', icon: Box, label: lang === 'ar' ? 'شبكة المنتجات' : lang === 'en' ? 'Product Grid' : 'Grille de Produits' },
                   { id: 'footer', icon: Layout, label: lang === 'ar' ? 'تذييل الصفحة' : lang === 'en' ? 'Footer' : 'Pied de page' }
                 ].map((section, idx) => (
-                  <div key={idx} className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-400 hover:shadow-md transition-all group">
+                  <div key={idx} onClick={() => handleSectionClick(section.id)} className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-400 hover:shadow-md transition-all group">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-cyan-600 transition-colors">
                         <section.icon className="w-4 h-4" />

@@ -1346,6 +1346,27 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (fontFamily) setFontFamily(fontFamily);
         if (cardStyle) setCardStyle(cardStyle);
       }
+      if (event.data?.type === 'SCROLL_TO_SECTION') {
+        const sectionId = event.data.payload;
+        let elementId = '';
+        if (sectionId === 'header') elementId = 'store-header';
+        if (sectionId === 'hero') elementId = 'store-hero';
+        if (sectionId === 'products') elementId = 'store-products';
+        if (sectionId === 'footer') elementId = 'store-footer';
+
+        if (elementId) {
+          const el = document.getElementById(elementId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            el.style.transition = 'all 0.4s ease';
+            const originalShadow = el.style.boxShadow;
+            el.style.boxShadow = '0 0 0 4px #0ea5e9, 0 0 30px rgba(14, 165, 233, 0.4)';
+            setTimeout(() => {
+              el.style.boxShadow = originalShadow;
+            }, 1200);
+          }
+        }
+      }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
@@ -1885,7 +1906,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
      const effBg = bgColor || footerBgColor;
      const effText = textColor || footerTextColor;
      return (
-        <footer className="mt-auto py-12 px-6 border-t" style={{ backgroundColor: effBg, borderColor }}>
+        <footer id="store-footer" className="mt-auto py-12 px-6 border-t" style={{ backgroundColor: effBg, borderColor }}>
            <div className="max-w-4xl mx-auto flex flex-col items-center text-center gap-6">
               <div className="text-xl font-bold" style={{ color: effText }}>{storeLogo ? <img src={storeLogo} alt={storeName} className="h-10 object-contain" /> : storeName}</div>
               <div className="flex flex-wrap justify-center gap-6 text-sm font-medium" style={{ color: effText }}>
@@ -2192,7 +2213,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
     };
 
     return (
-      <header className={`store-header-navbar w-full transition-all duration-300 ${containerStickyClass}`} style={bgStyle}>
+      <header id="store-header" className={`store-header-navbar w-full transition-all duration-300 ${containerStickyClass}`} style={bgStyle}>
         {showTopBar && topBarText && topBarPosition !== 'bottom' && (
           <div className="w-full py-2 px-4 text-center text-xs font-bold overflow-hidden shrink-0 border-b border-black/5" style={{ backgroundColor: topBarBgColor, color: topBarTextColor }}>
             {topBarAnimation === 'marquee' ? (
@@ -5051,7 +5072,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
       <div className={`w-full min-h-screen bg-[#faf8f7] ${fontFamily} flex flex-col`}>
         {page === 'home' && (
            <div className="flex-1 animate-in fade-in duration-700">
-              <HeroBackgroundEditor styleKey="heroBg">
+              <HeroBackgroundEditor styleKey="heroBg" id="store-hero">
                  <div className="relative pt-12 pb-24 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
                     <div className="w-full md:w-1/2 z-10 text-center md:text-left">
                        <div className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}>
@@ -5070,7 +5091,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                  </div>
               </HeroBackgroundEditor>
 
-              <div className="max-w-7xl mx-auto px-4 md:px-8 py-20">
+              <div id="store-products" className="max-w-7xl mx-auto px-4 md:px-8 py-20">
                  <div className="text-center mb-16">
                     <h3 className="text-3xl font-serif text-slate-900 mb-4">{storeIsAr ? 'المنتجات الأكثر مبيعاً' : 'Best Sellers'}</h3>
                     <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: primaryColor }}></div>
