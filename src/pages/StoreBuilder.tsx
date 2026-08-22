@@ -2219,9 +2219,10 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
     );
   };
 
-  const StoreHeaderNavbar = ({ variant = 'light', page, setPage, isModal = false }: any) => {
+  const StoreHeaderNavbar = ({ variant = 'light', page, setPage, isModal = false, headerMenuAlign: propAlign }: any) => {
     if (hiddenSections.includes('header')) return null;
     const isDark = variant === 'dark';
+    const align = propAlign || headerMenuAlign;
     const bgStyle = headerBgColor && headerBgColor !== '#ffffff' 
       ? { backgroundColor: headerBgColor, color: headerTextColor || (isDark ? '#ffffff' : '#0f172a') }
       : (isDark ? { backgroundColor: '#111', color: '#f5f5f5' } : { backgroundColor: '#ffffff', color: headerTextColor || '#0f172a' });
@@ -2253,7 +2254,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
           </div>
         )}
 
-        {headerMenuAlign === 'top' && (
+        {align === 'top' && (
           <div className={`hidden md:flex justify-center items-center gap-8 py-3 px-6 border-b text-xs font-bold ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-100 bg-slate-50/50'}`}>
             {storePages.map((p: any) => (
                <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: menuStyle === 'pill' ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: menuStyle === 'pill' ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
@@ -2261,26 +2262,43 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
           </div>
         )}
 
-        <div className="px-6 py-4 flex items-center justify-between gap-4 border-b border-black/5">
-          <div className="flex items-center gap-4 w-full md:w-auto justify-between">
-             <LogoEditor onClick={() => setPage('home')} className={`text-2xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : ''}`} style={{ color: primaryColor }} />
-             <MobileMenuButton />
-          </div>
+        {align === 'split' ? (
+           <div className="px-6 py-4 grid grid-cols-2 md:grid-cols-3 items-center border-b border-black/5">
+              <div className="hidden md:flex items-center gap-6 text-sm justify-start">
+                {storePages.map((p: any) => (
+                   <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: menuStyle === 'pill' ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: menuStyle === 'pill' ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
+                ))}
+              </div>
+              <div className="flex items-center justify-start md:justify-center gap-4">
+                 <MobileMenuButton />
+                 <LogoEditor onClick={() => setPage('home')} className={`text-2xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : ''}`} style={{ color: primaryColor }} />
+              </div>
+              <div className="flex items-center justify-end gap-4">
+                 <HeaderIconsCluster variant={variant} />
+              </div>
+           </div>
+        ) : (
+           <div className="px-6 py-4 flex items-center justify-between gap-4 border-b border-black/5">
+             <div className="flex items-center gap-4 w-full md:w-auto justify-between">
+                <LogoEditor onClick={() => setPage('home')} className={`text-2xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : ''}`} style={{ color: primaryColor }} />
+                <MobileMenuButton />
+             </div>
 
-          {['center', 'left', 'right'].includes(headerMenuAlign) && (
-            <div className={`hidden md:flex items-center gap-6 text-sm ${headerMenuAlign === 'left' ? 'ml-8 mr-auto' : headerMenuAlign === 'right' ? 'ml-auto mr-8' : 'mx-auto'}`}>
-              {storePages.map((p: any) => (
-                 <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: menuStyle === 'pill' ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: menuStyle === 'pill' ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
-              ))}
-            </div>
-          )}
+             {['center', 'left', 'right'].includes(align) && (
+               <div className={`hidden md:flex items-center gap-6 text-sm ${align === 'left' ? 'ml-8 mr-auto' : align === 'right' ? 'ml-auto mr-8' : 'mx-auto'}`}>
+                 {storePages.map((p: any) => (
+                    <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: menuStyle === 'pill' ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: menuStyle === 'pill' ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
+                 ))}
+               </div>
+             )}
 
-          <div className="hidden md:flex items-center gap-4">
-             <HeaderIconsCluster variant={variant} />
-          </div>
-        </div>
+             <div className="hidden md:flex items-center gap-4">
+                <HeaderIconsCluster variant={variant} />
+             </div>
+           </div>
+        )}
 
-        {headerMenuAlign === 'bottom' && (
+        {align === 'bottom' && (
           <div className={`hidden md:flex justify-center items-center gap-8 py-3 px-6 border-b text-sm font-bold ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-100 bg-slate-50/50'}`}>
             {storePages.map((p: any) => (
                <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: menuStyle === 'pill' ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: menuStyle === 'pill' ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
@@ -4070,42 +4088,47 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
     return (
     <div className={`w-full min-h-full bg-white text-slate-800 flex flex-col font-sans`}>
-      <StoreHeaderNavbar variant="light" page={page} setPage={setPage} isModal={isModal} />
+      <StoreHeaderNavbar variant="light" page={page} setPage={setPage} isModal={isModal} headerMenuAlign="split" />
       <MobileNavPanel page={page} setPage={setPage} />
 
       {page === 'home' && (
          <div className="flex-1 flex flex-col pb-20">
-            {/* Lookbook Hero */}
-            <div className={`w-full bg-[#f8f9fa] flex ${previewDevice === 'mobile' && !isModal ? 'flex-col pt-12' : 'flex-row items-center'} min-h-[500px] relative overflow-hidden`}>
-               <div className={`z-10 ${previewDevice === 'mobile' && !isModal ? 'px-8 pb-12 text-center' : 'pl-24 pr-8 py-16 w-1/2 text-left'}`}>
-                  <h1 className={`text-5xl md:text-7xl font-black text-slate-900 tracking-tighter mb-4 uppercase`} style={{ color: primaryColor }}>{heroTitle || (storeLang === 'ar' ? 'لوك بوك' : storeLang === 'en' ? 'LOOKBOOK' : 'LOOKBOOK')}</h1>
-                  <p className="text-sm text-slate-500 mb-8 max-w-md font-medium leading-relaxed">{heroSubtitle || (storeLang === 'ar' ? 'أحدث إطلالات الربيع. تسوق التشكيلة' : storeLang === 'en' ? 'New Spring drops from Over. Shop the Collection' : 'Nouvelles pièces de printemps. Découvrez la collection')}</p>
-                  <button className="px-8 py-3 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-colors rounded-full" style={btnStyle}>{heroButtonText || (storeLang === 'ar' ? 'تسوق التشكيلة' : storeLang === 'en' ? 'Shop Collection' : 'Découvrir la collection')}</button>
+            {/* Lumina Beauty Hero */}
+            <div className={`w-full flex ${previewDevice === 'mobile' && !isModal ? 'flex-col' : 'flex-row'} min-h-[600px] relative overflow-hidden`} style={{ backgroundColor: '#efebe7' }}>
+               <div className={`${previewDevice === 'mobile' && !isModal ? 'w-full h-[400px]' : 'w-1/2'} relative`}>
+                  <img src={heroImage || "https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=800&auto=format&fit=crop"} className="absolute inset-0 w-full h-full object-cover" alt="Beauty" />
                </div>
-               <div className={`absolute right-0 top-0 bottom-0 ${previewDevice === 'mobile' && !isModal ? 'w-full opacity-30 pointer-events-none' : 'w-1/2'} bg-cover bg-top`} style={{ backgroundImage: `url(${heroImage || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop'})` }}>
+               <div className={`z-10 ${previewDevice === 'mobile' && !isModal ? 'px-8 py-12 text-center' : 'px-16 py-16 w-1/2 flex flex-col justify-center text-left'}`}>
+                  <EditableText as="h1" text={heroTitle || (storeLang === 'ar' ? 'بشرة متألقة في انتظارك.' : storeLang === 'en' ? 'RADIANT SKIN AWAITS.' : 'UNE PEAU ÉCLATANTE VOUS ATTEND.')} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className={`text-4xl md:text-6xl font-serif text-[#333] tracking-tight mb-4`} styleKey="heroTitle" />
+                  <EditableText as="p" text={heroSubtitle || (storeLang === 'ar' ? 'اكتشفي الإشراقة مع تشكيلتنا الفاخرة للعناية بالبشرة.' : storeLang === 'en' ? 'Discover the glow with our premium skincare collection.' : 'Découvrez l\'éclat avec notre collection de soins premium.')} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-sm md:text-base text-[#555] mb-8 max-w-md font-serif italic" styleKey="heroSubtitle" />
+                  <button onClick={() => setPage('collections')} className="px-8 py-3 text-white text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity self-start" style={{ backgroundColor: '#d4a373' }}>{heroButtonText || (storeLang === 'ar' ? 'تسوقي الآن' : storeLang === 'en' ? 'SHOP NOW' : 'DÉCOUVRIR')}</button>
                </div>
             </div>
 
-            {/* Sub-banner (Lookbook block) */}
+            {/* Sub-banner (Bestsellers block) */}
             {!hiddenSections.includes('categories') && (
                <div className="max-w-6xl mx-auto w-full px-4 py-20 text-center">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4 font-serif">{homeCollectionsTitle || 'New & Stylish Collections'}</h3>
-                  <p className="text-slate-400 text-xs max-w-xl mx-auto mb-16 leading-relaxed">{storeLang === 'ar' ? 'تصاميم مختارة بعناية لتناسب كل مناسبة.' : storeLang === 'en' ? 'Carefully curated pieces for every occasion.' : 'Des pièces soigneusement sélectionnées pour chaque occasion.'}</p>
+                  <h3 className="text-3xl font-serif text-[#333] mb-2 uppercase tracking-wide">{homeCollectionsTitle || 'BESTSELLERS'}</h3>
+                  <p className="text-[#666] text-sm max-w-xl mx-auto mb-16 font-serif italic">{storeLang === 'ar' ? 'التشكيلة' : storeLang === 'en' ? 'Collection' : 'Collection'}</p>
 
-                  <div className={`grid gap-8 ${previewDevice === 'mobile' && !isModal ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                     <div className="bg-[#f8f9fa] p-8 flex items-center gap-6 text-left hover:shadow-lg transition-shadow">
-                        <div className="flex-1">
-                           <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{storeLang === 'ar' ? 'تشكيلة نسائية جديدة' : storeLang === 'en' ? "New Women's Collection" : 'Nouvelle collection femme'}</h4>
-                           <button onClick={() => setPage('collections')} className="text-[10px] font-bold uppercase tracking-widest mt-6" style={{ color: primaryColor }}>{storeLang === 'ar' ? 'اكتشف الآن' : storeLang === 'en' ? 'Discover Now' : 'Découvrir'}</button>
+                  <div className={`grid gap-8 ${previewDevice === 'mobile' && !isModal ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                     <div className="p-4 flex flex-col items-center text-center group cursor-pointer" onClick={() => setPage('collections')}>
+                        <div className="w-full aspect-[4/5] bg-[#efebe7] mb-6 overflow-hidden">
+                           <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                         </div>
-                        <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop" className="w-1/3 aspect-[3/4] object-cover" />
+                        <h4 className="text-lg font-serif text-[#333] mb-2">{storeLang === 'ar' ? 'العناية بالبشرة' : storeLang === 'en' ? "Skincare" : 'Soins de la peau'}</h4>
                      </div>
-                     <div className="bg-[#f8f9fa] p-8 flex items-center gap-6 text-left hover:shadow-lg transition-shadow">
-                        <div className="flex-1">
-                           <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{storeLang === 'ar' ? 'أحدث تشكيلة رجالية' : storeLang === 'en' ? "Top Men's Collection" : 'Top collection homme'}</h4>
-                           <button onClick={() => setPage('collections')} className="text-[10px] font-bold uppercase tracking-widest mt-6" style={{ color: primaryColor }}>{storeLang === 'ar' ? 'اكتشف الآن' : storeLang === 'en' ? 'Discover Now' : 'Découvrir'}</button>
+                     <div className="p-4 flex flex-col items-center text-center group cursor-pointer" onClick={() => setPage('collections')}>
+                        <div className="w-full aspect-[4/5] bg-[#efebe7] mb-6 overflow-hidden">
+                           <img src="https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                         </div>
-                        <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop" className="w-1/3 aspect-[3/4] object-cover" />
+                        <h4 className="text-lg font-serif text-[#333] mb-2">{storeLang === 'ar' ? 'مكياج' : storeLang === 'en' ? "Makeup" : 'Maquillage'}</h4>
+                     </div>
+                     <div className="p-4 flex flex-col items-center text-center group cursor-pointer" onClick={() => setPage('collections')}>
+                        <div className="w-full aspect-[4/5] bg-[#efebe7] mb-6 overflow-hidden">
+                           <img src="https://images.unsplash.com/photo-1615397323145-219159040854?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        </div>
+                        <h4 className="text-lg font-serif text-[#333] mb-2">{storeLang === 'ar' ? 'عطور' : storeLang === 'en' ? "Fragrance" : 'Parfums'}</h4>
                      </div>
                   </div>
                </div>
