@@ -1489,201 +1489,81 @@ export default function GZeedDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
                   {
+                    id: "streetwear",
+                    category: "store",
+                    name: lang === "ar" ? "ستريت وير برو" : lang === "en" ? "Streetwear Pro" : "Streetwear Pro",
+                    image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "تصميم عصري للملابس" : lang === "en" ? "Modern fashion layout" : "Layout mode moderne",
+                  },
+                  {
                     id: "minimalist",
                     category: "store",
-                    name:
-                      lang === "ar"
-                        ? "أزياء مينيماليست"
-                        : lang === "en"
-                          ? "Minimalist Fashion"
-                          : "Minimalist Fashion",
-                    image: "/images/themes/tech.png",
-                    desc:
-                      lang === "ar"
-                        ? "متجر إلكتروني للملابس"
-                        : lang === "en"
-                          ? "Fashion E-commerce Store"
-                          : "Boutique E-commerce Mode",
+                    name: lang === "ar" ? "مينيماليست" : lang === "en" ? "Minimalist" : "Minimaliste",
+                    image: "https://images.unsplash.com/photo-1489987707023-afc7f93c6508?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "تصميم بسيط ونقي" : lang === "en" ? "Clean and simple" : "Propre et simple",
                   },
                   {
                     id: "abaya",
                     category: "store",
-                    name:
-                      lang === "ar"
-                        ? "أزياء عباية"
-                        : lang === "en"
-                          ? "Abaya Fashion"
-                          : "Abaya Fashion",
-                    image: "/images/themes/abaya.png",
-                    desc:
-                      lang === "ar"
-                        ? "متجر إلكتروني للعبايات"
-                        : lang === "en"
-                          ? "Abayas E-commerce Store"
-                          : "Boutique E-commerce Abayas",
+                    name: lang === "ar" ? "عباية فاخرة" : lang === "en" ? "Luxury Abaya" : "Abaya de Luxe",
+                    image: "https://images.unsplash.com/photo-1589465885857-44edb59bbff2?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "تصميم أنيق وفاخر" : lang === "en" ? "Elegant and luxury design" : "Design élégant et luxe",
                   },
                   {
-                    id: "perfume",
+                    id: "sportswear",
                     category: "store",
-                    name:
-                      lang === "ar"
-                        ? "عطور فاخرة"
-                        : lang === "en"
-                          ? "Luxury Perfume"
-                          : "Luxury Perfume",
-                    image: "/images/themes/perfume.png",
-                    desc:
-                      lang === "ar"
-                        ? "متجر إلكتروني للعطور"
-                        : lang === "en"
-                          ? "Perfume E-commerce Store"
-                          : "Boutique E-commerce Parfums",
+                    name: lang === "ar" ? "رياضة نشطة" : lang === "en" ? "Active Sport" : "Sport Actif",
+                    image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "للملابس والمعدات الرياضية" : lang === "en" ? "For sports apparel" : "Pour vêtements de sport",
                   },
                   {
-                    id: "digital",
+                    id: "eco",
                     category: "store",
-                    name:
-                      lang === "ar"
-                        ? "منتجات رقمية"
-                        : lang === "en"
-                          ? "Digital Store"
-                          : "Digital Store",
-                    image: "/demo-assets/digital.png",
-                    desc:
-                      lang === "ar"
-                        ? "لبيع الاشتراكات والبرامج"
-                        : lang === "en"
-                          ? "To sell subscriptions"
-                          : "Pour vendre des abonnements",
+                    name: lang === "ar" ? "طبيعة إيكو" : lang === "en" ? "Eco Nature" : "Eco Nature",
+                    image: "https://images.unsplash.com/photo-1523381294911-8d3cead13475?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "منتجات طبيعية وعضوية" : lang === "en" ? "Natural and organic products" : "Produits naturels et bio",
                   },
                   {
-                    id: "dentist",
-                    category: "website",
-                    name:
-                      lang === "ar"
-                        ? "عيادة أسنان"
-                        : lang === "en"
-                          ? "Dentist Clinic"
-                          : "Dentist Clinic",
-                    image: "/images/themes/dentist.png",
-                    desc:
-                      lang === "ar"
-                        ? "موقع تعريفي لعيادة"
-                        : lang === "en"
-                          ? "Showcase site for clinic"
-                          : "Site vitrine pour clinique",
+                    id: "kids",
+                    category: "store",
+                    name: lang === "ar" ? "أطفال مرحون" : lang === "en" ? "Playful Kids" : "Enfants Ludiques",
+                    image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "تصميم مبهج للأطفال" : lang === "en" ? "Fun design for kids" : "Design amusant pour enfants",
                   },
                   {
-                    id: "omra",
-                    category: "website",
-                    name:
-                      lang === "ar"
-                        ? "عمرة وسياحة"
-                        : lang === "en"
-                          ? "Omra & Tours"
-                          : "Omra & Tours",
-                    image: "/images/themes/tourism_1.png",
-                    desc:
-                      lang === "ar"
-                        ? "موقع لوكالة أسفار"
-                        : lang === "en"
-                          ? "Travel agency site"
-                          : "Site pour agence de voyage",
+                    id: "blush-studio",
+                    category: "store",
+                    name: lang === "ar" ? "لامود برو" : lang === "en" ? "Lamode App (Pro)" : "Lamode App (Pro)",
+                    image: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "تصميم تطبيقات احترافي" : lang === "en" ? "Pro app-like design" : "Design type application Pro",
                   },
                   {
-                    id: "tourism",
-                    category: "website",
-                    name: lang === "ar" ? "وكالة سياحية" : lang === "en" ? "Tourism Agency" : "Agence de Tourisme",
-                    image: "/images/themes/tourism_1.png",
-                    desc: lang === "ar" ? "موقع وكالة سياحية" : lang === "en" ? "Tourism agency site" : "Site d'agence de tourisme",
+                    id: "emerald-market",
+                    category: "store",
+                    name: lang === "ar" ? "ألتيميت ستور" : lang === "en" ? "Ultimate Store (Pro)" : "Ultimate Store (Pro)",
+                    image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "متجر شامل ومتكامل" : lang === "en" ? "Comprehensive store design" : "Design de boutique complet",
                   },
                   {
-                    id: "vacation-deals",
-                    category: "website",
-                    name: lang === "ar" ? "عروض العطل" : lang === "en" ? "Vacation Deals" : "Offres de Vacances",
-                    image: "/images/themes/tourism_2.png",
-                    desc: lang === "ar" ? "موقع عروض سياحية" : lang === "en" ? "Vacation deals site" : "Site d'offres de vacances",
+                    id: "atelier",
+                    category: "store",
+                    name: lang === "ar" ? "مطبخ أتيليي" : lang === "en" ? "Atelier Kitchen" : "Atelier Cuisine",
+                    image: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "مثالي للمطاعم والمقاهي" : lang === "en" ? "Perfect for restaurants" : "Parfait pour les restaurants",
                   },
                   {
                     id: "mazia",
-                    category: "website",
-                    name: lang === "ar" ? "مازيا" : lang === "en" ? "Mazia" : "Mazia",
-                    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "موقع شركة عامة" : lang === "en" ? "Corporate site" : "Site d'entreprise",
-                  },
-                  {
-                    id: "bidla",
-                    category: "website",
-                    name: lang === "ar" ? "بذلة (خياطة)" : lang === "en" ? "Bidla (Tailor)" : "Bidla (Tailleur)",
-                    image: "https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "موقع خياط / مصمم" : lang === "en" ? "Tailor / Designer site" : "Site de tailleur / créateur",
-                  },
-                  {
-                    id: "car-rental",
-                    category: "website",
-                    name: lang === "ar" ? "كراء السيارات" : lang === "en" ? "Car Rental" : "Location de Voitures",
-                    image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "موقع وكالة كراء السيارات" : lang === "en" ? "Car rental agency site" : "Site d'agence de location de voitures",
-                  },
-                  {
-                    id: "service-pro",
-                    category: "website",
-                    name: lang === "ar" ? "خدمات احترافية" : lang === "en" ? "Pro Services" : "Services Pro",
-                    image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "موقع للخدمات والصيانة" : lang === "en" ? "Maintenance & Services site" : "Site de maintenance et services",
-                  },
-                  {
-                    id: "apartment",
-                    category: "website",
-                    name: lang === "ar" ? "عقارات وشقق" : lang === "en" ? "Real Estate" : "Immobilier",
-                    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "موقع وكالة عقارية" : lang === "en" ? "Real estate agency site" : "Site d'agence immobilière",
-                  },
-                  {
-                    id: "beauty-salon",
-                    category: "website",
-                    name: lang === "ar" ? "صالون تجميل" : lang === "en" ? "Beauty Salon" : "Salon de Beauté",
-                    image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "موقع صالون حلاقة وتجميل" : lang === "en" ? "Beauty & Hair salon site" : "Site de salon de coiffure et beauté",
-                  },
-                  {
-                    id: "traiteur",
-                    category: "website",
-                    name: lang === "ar" ? "ممَون حفلات" : lang === "en" ? "Event Caterer" : "Traiteur",
-                    image: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "موقع خدمات تقديم الطعام" : lang === "en" ? "Catering services site" : "Site de services traiteur",
-                  },
-                  {
-                    id: "logistics",
-                    category: "website",
-                    name: lang === "ar" ? "نقل ولوجستيك" : lang === "en" ? "Logistics" : "Logistique",
-                    image: "https://images.unsplash.com/photo-1586528116311-ad8ed7c663e0?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "موقع شركة شحن" : lang === "en" ? "Shipping company site" : "Site d'entreprise de transport",
-                  },
-                  {
-                    id: "city-rentals",
-                    category: "website",
-                    name: lang === "ar" ? "كراء بالمدينة" : lang === "en" ? "City Rentals" : "Locations Urbaines",
-                    image: "https://images.unsplash.com/photo-1549187774-b4e9b0445b41?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "موقع تأجير حضري" : lang === "en" ? "Urban rental site" : "Site de location urbaine",
+                    category: "store",
+                    name: lang === "ar" ? "مازيا ديزاين" : lang === "en" ? "Mazia Design" : "Mazia Design",
+                    image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "تصميم فريد وجذاب" : lang === "en" ? "Unique and attractive design" : "Design unique et attractif",
                   },
                   {
                     id: "blank",
                     category: "dev",
-                    name:
-                      lang === "ar"
-                        ? "قالب فارغ (للمطورين)"
-                        : lang === "en"
-                          ? "Blank Theme (Dev)"
-                          : "Thème Vide (Dev)",
-                    image:
-                      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop",
-                    desc:
-                      lang === "ar"
-                        ? "ابنِ موقعك من الصفر بالكود"
-                        : lang === "en"
-                          ? "Create from scratch with code"
-                          : "Créez depuis zéro avec du code",
+                    name: lang === "ar" ? "قالب فارغ (للمطورين)" : lang === "en" ? "Blank Theme (Dev)" : "Thème Vide (Dev)",
+                    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop",
+                    desc: lang === "ar" ? "أكواد فارغة للبدء من الصفر" : lang === "en" ? "Start from scratch" : "Commencer de zéro",
                   },
                 ]
                   .filter(
