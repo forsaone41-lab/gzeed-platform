@@ -24,8 +24,16 @@ import { useLang } from '../contexts/LangContext';
 export default function GZeedBuilder() {
   const { lang, isAr } = useLang();
   const navigate = useNavigate();
-  const activeThemeId = localStorage.getItem('gzeed_active_theme');
+  const [activeThemeId, setActiveThemeId] = useState(localStorage.getItem('gzeed_active_theme') || 'glamour-beauty');
   const domainName = localStorage.getItem('gzeed_domain_name') || 'store-123.gzeed.com';
+
+  const handleThemeChange = (themeId: string) => {
+    setActiveThemeId(themeId);
+    localStorage.setItem('gzeed_active_theme', themeId);
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.location.reload();
+    }
+  };
   const [deviceScale, setDeviceScale] = useState<'desktop' | 'mobile'>('desktop');
   const [activeSidebarTab, setActiveSidebarTab] = useState<'theme' | 'sections' | 'settings'>('theme');
   const [isPublishing, setIsPublishing] = useState(false);
@@ -242,6 +250,26 @@ export default function GZeedBuilder() {
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             {activeSidebarTab === 'theme' && (
               <div className="space-y-8 animate-fade-in">
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'قالب المتجر' : lang === 'en' ? 'Store Theme' : 'Thème de la boutique'}</h3>
+                  <div className="relative">
+                    <select 
+                      value={activeThemeId}
+                      onChange={(e) => handleThemeChange(e.target.value)}
+                      className="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-cyan-500 focus:border-cyan-500 block p-3 font-bold cursor-pointer appearance-none"
+                    >
+                      <option value="glamour-beauty">{lang === 'ar' ? 'مكياج وتجميل' : 'Glamour Beauty'}</option>
+                      <option value="emerald-market">{lang === 'ar' ? 'ألتيميت ستور' : 'Ultimate Store (Pro)'}</option>
+                      <option value="atelier">{lang === 'ar' ? 'مطبخ أتيليي' : 'Atelier Kitchen'}</option>
+                      <option value="eco">{lang === 'ar' ? 'طبيعة إيكو' : 'Eco Nature'}</option>
+                      <option value="streetwear">{lang === 'ar' ? 'ستريت وير برو' : 'Streetwear Pro'}</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'الألوان الأساسية' : lang === 'en' ? 'Brand Colors' : 'Couleurs de la marque'}</h3>
                   <div className="grid grid-cols-5 gap-3">
