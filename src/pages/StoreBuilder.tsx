@@ -5166,26 +5166,120 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
     
     return (
       <div className={`w-full min-h-screen bg-[#faf8f7] ${fontFamily} flex flex-col`}>
+        <StoreHeaderNavbar variant="light" page={page} setPage={setPage} isModal={isModal} />
         {page === 'home' && (
            <div className="flex-1 animate-in fade-in duration-700">
               {!hiddenSections.includes('hero') && (
                  <HeroBackgroundEditor styleKey="heroBg" id="store-hero">
-                    <div className="relative pt-12 pb-24 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
-                       <div className="w-full md:w-1/2 z-10 text-center md:text-left">
-                          <div className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}>
-                             {storeIsAr ? 'مجموعة جديدة' : 'NOUVELLE COLLECTION'}
+                    {(() => {
+                      const slides = heroSlides && heroSlides.length > 0
+                        ? heroSlides
+                        : [{ image: heroImage, title: heroTitle || (storeIsAr ? 'جمالك الطبيعي، يبرز أكثر' : 'Révélez votre beauté naturelle.'), subtitle: heroSubtitle || (storeIsAr ? 'اكتشفي أحدث منتجات التجميل والعناية بالبشرة.' : 'Découvrez nos derniers produits de soin et maquillage.') }];
+                      const curIdx = activeHeroSlide % slides.length;
+                      const curSlide = slides[curIdx];
+                      const isMobile = previewDevice === 'mobile' && !isModal;
+
+                      if (heroSliderStyle === 'fullscreen') {
+                        return (
+                          <div className="relative w-full overflow-hidden group bg-slate-900" style={{ minHeight: `${isModal ? heroHeight + 150 : heroHeight}px` }}>
+                            {slides.map((s: any, i: number) => (
+                              <div key={i} className="absolute inset-0 transition-opacity duration-1000" style={{ opacity: curIdx === i ? 1 : 0 }}>
+                                <img src={s.image || heroImage || "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800&auto=format&fit=crop"} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/40"></div>
+                              </div>
+                            ))}
+                            <div className="relative z-10 w-full flex flex-col justify-center items-center text-center p-6 md:p-12 h-full min-h-[inherit]">
+                               <div key={`fs-text-${curIdx}`} style={{ animation: 'heroFadeSlide 0.5s ease forwards' }}>
+                                 <h1 className={`${isMobile ? 'text-4xl' : 'text-6xl'} font-serif text-white leading-tight mb-6 drop-shadow-md`}>{curSlide?.title}</h1>
+                                 <p className={`text-white/90 mb-8 max-w-lg mx-auto drop-shadow-md ${isMobile ? 'text-sm' : 'text-lg'}`}>{curSlide?.subtitle}</p>
+                               </div>
+                               <button onClick={() => { const link = curSlide?.buttonLink || 'collections'; if (link.startsWith('http')) window.open(link, '_blank'); else setPage(link); }} className="px-10 py-4 rounded-full text-slate-900 bg-white font-bold tracking-wide shadow-xl transition-transform hover:scale-105">
+                                 {curSlide?.buttonText || heroButtonText || (storeIsAr ? 'تسوقي الآن' : 'Découvrir')}
+                               </button>
+                            </div>
+                            {slides.length > 1 && (
+                              <>
+                                <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-20">
+                                  {slides.map((_: any, i: number) => (
+                                    <button key={i} onClick={() => setActiveHeroSlide(i)} className="rounded-full transition-all" style={{ width: curIdx === i ? '24px' : '8px', height: '8px', backgroundColor: curIdx === i ? 'white' : 'rgba(255,255,255,0.4)' }} />
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                            <style>{`@keyframes heroFadeSlide { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }`}</style>
                           </div>
-                          <EditableText as="h1" text={heroTitle || (storeIsAr ? 'جمالك الطبيعي، يبرز أكثر' : 'Révélez votre beauté naturelle.')} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className="text-5xl md:text-6xl font-serif text-slate-900 leading-tight mb-6" styleKey="heroTitle" />
-                          <EditableText as="p" text={heroSubtitle || (storeIsAr ? 'اكتشفي أحدث منتجات التجميل والعناية بالبشرة.' : 'Découvrez nos derniers produits de soin et maquillage.')} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-lg text-slate-600 mb-8 max-w-md mx-auto md:mx-0" styleKey="heroSubtitle" />
-                          <button onClick={() => setPage('collections')} className="px-10 py-4 rounded-full text-white font-bold tracking-wide shadow-xl transition-transform hover:scale-105" style={{ backgroundColor: primaryColor }}>
-                             {storeIsAr ? 'تسوقي الآن' : 'Découvrir'}
-                          </button>
-                       </div>
-                       <div className="w-full md:w-1/2 relative">
-                          <div className="absolute inset-0 bg-gradient-to-tr from-pink-100 to-rose-50 rounded-full blur-3xl opacity-70"></div>
-                          <img src={heroImage || "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800&auto=format&fit=crop"} className="relative z-10 rounded-[2rem] shadow-2xl object-cover aspect-[4/5] w-full max-w-md mx-auto transform -rotate-2 hover:rotate-0 transition-transform duration-500" alt="Beauty" />
-                       </div>
-                    </div>
+                        );
+                      }
+
+                      if (heroSliderStyle === 'classic') {
+                        return (
+                          <div className="relative w-full overflow-hidden group bg-rose-50" style={{ minHeight: `${isModal ? heroHeight + 150 : heroHeight}px` }}>
+                            {slides.map((s: any, i: number) => (
+                              <div key={i} className="absolute inset-0 transition-opacity duration-1000" style={{ opacity: curIdx === i ? 1 : 0 }}>
+                                <img src={s.image || heroImage || "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800&auto=format&fit=crop"} className="w-full h-full object-cover" />
+                              </div>
+                            ))}
+                            <div className="absolute inset-0 flex items-center justify-center p-4 z-10">
+                               <div key={`cl-text-${curIdx}`} className="bg-white/95 backdrop-blur-md p-8 md:p-12 text-center shadow-2xl max-w-xl w-full rounded-[2rem]" style={{ animation: 'heroFadeSlide 0.5s ease forwards' }}>
+                                 <h1 className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-serif text-slate-900 leading-tight mb-4`}>{curSlide?.title}</h1>
+                                 <p className={`text-slate-600 mb-8 max-w-sm mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>{curSlide?.subtitle}</p>
+                                 <button onClick={() => { const link = curSlide?.buttonLink || 'collections'; if (link.startsWith('http')) window.open(link, '_blank'); else setPage(link); }} className="px-10 py-4 rounded-full text-white font-bold tracking-wide shadow-xl transition-transform hover:scale-105 mx-auto block" style={{ backgroundColor: primaryColor }}>
+                                   {curSlide?.buttonText || heroButtonText || (storeIsAr ? 'تسوقي الآن' : 'Découvrir')}
+                                 </button>
+                               </div>
+                            </div>
+                            {slides.length > 1 && (
+                              <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-20">
+                                {slides.map((_: any, i: number) => (
+                                  <button key={i} onClick={() => setActiveHeroSlide(i)} className="rounded-full transition-all border border-white" style={{ width: curIdx === i ? '24px' : '8px', height: '8px', backgroundColor: curIdx === i ? primaryColor : 'transparent' }} />
+                                ))}
+                              </div>
+                            )}
+                            <style>{`@keyframes heroFadeSlide { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }`}</style>
+                          </div>
+                        );
+                      }
+
+                      // default: split (glamour-beauty's original layout)
+                      return (
+                        <div className="relative pt-12 pb-24 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12 group">
+                           <div className="w-full md:w-1/2 z-10 text-center md:text-left">
+                              <div className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}>
+                                 {storeIsAr ? 'مجموعة جديدة' : 'NOUVELLE COLLECTION'}
+                              </div>
+                              <h1 className="text-5xl md:text-6xl font-serif text-slate-900 leading-tight mb-6 animate-in slide-in-from-bottom-4 fade-in duration-500" key={`glam-title-${curIdx}`}>
+                                 {curSlide?.title}
+                              </h1>
+                              <p className="text-lg text-slate-600 mb-8 max-w-md mx-auto md:mx-0 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-100" key={`glam-sub-${curIdx}`}>
+                                 {curSlide?.subtitle}
+                              </p>
+                              <button onClick={() => { const link = curSlide?.buttonLink || 'collections'; if (link.startsWith('http')) window.open(link, '_blank'); else setPage(link); }} className="px-10 py-4 rounded-full text-white font-bold tracking-wide shadow-xl transition-transform hover:scale-105" style={{ backgroundColor: primaryColor }}>
+                                 {curSlide?.buttonText || heroButtonText || (storeIsAr ? 'تسوقي الآن' : 'Découvrir')}
+                              </button>
+                           </div>
+                           <div className="w-full md:w-1/2 relative">
+                              <div className="absolute inset-0 bg-gradient-to-tr from-pink-100 to-rose-50 rounded-full blur-3xl opacity-70"></div>
+                              <div className="relative z-10 w-full max-w-md mx-auto aspect-[4/5] rounded-[2rem] shadow-2xl overflow-hidden transform -rotate-2 hover:rotate-0 transition-transform duration-500">
+                                {slides.map((sl: any, i: number) => (
+                                  <img key={i} src={sl.image || "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800&auto=format&fit=crop"} className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000" style={{ opacity: curIdx === i ? 1 : 0 }} alt={sl.title || ''} />
+                                ))}
+                                {!isLiveStore && (
+                                  <button onClick={() => setIsHeroImagePickerOpen(true)} className="absolute top-3 right-3 bg-white/90 backdrop-blur text-slate-800 px-3 py-1.5 rounded-full text-xs font-bold shadow-md z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <ImageIcon className="w-3.5 h-3.5 inline mr-1" />{storeIsAr ? 'تغيير' : 'Edit'}
+                                  </button>
+                                )}
+                              </div>
+                              {slides.length > 1 && (
+                                <div className="absolute -bottom-6 left-0 right-0 flex justify-center gap-2">
+                                  {slides.map((_: any, i: number) => (
+                                    <button key={i} onClick={() => setActiveHeroSlide(i)} className="rounded-full transition-all duration-300 border border-slate-300" style={{ width: curIdx === i ? '24px' : '8px', height: '8px', backgroundColor: curIdx === i ? primaryColor : 'transparent' }} />
+                                  ))}
+                                </div>
+                              )}
+                           </div>
+                        </div>
+                      );
+                    })()}
                  </HeroBackgroundEditor>
               )}
 
