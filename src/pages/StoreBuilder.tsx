@@ -2820,6 +2820,11 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                         <div className="absolute inset-0 bg-black/40"></div>
                       </div>
                     ))}
+                    {!isLiveStore && (
+                      <button onClick={() => setIsHeroImagePickerOpen(true)} className="absolute top-3 right-3 bg-white/90 backdrop-blur text-slate-800 px-3 py-1.5 rounded-full text-xs font-bold shadow-md z-20 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white border border-slate-200">
+                        <ImageIcon className="w-3.5 h-3.5" />{storeLang === 'ar' ? 'تغيير' : 'Edit'}
+                      </button>
+                    )}
                     <div className="relative z-10 w-full flex flex-col justify-center items-center text-center p-6 md:p-12 h-full min-h-[inherit]">
                        <div key={`fs-text-${curIdx}`} style={{ animation: 'heroFadeSlide 0.5s ease forwards' }}>
                          <h1 className={`${isMobile ? 'text-4xl' : 'text-6xl'} font-bold text-white mb-4 drop-shadow-md`}>{curSlide?.title}</h1>
@@ -2836,8 +2841,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                             <button key={i} onClick={() => setActiveHeroSlide(i)} className="rounded-full transition-all" style={{ width: curIdx === i ? '24px' : '8px', height: '8px', backgroundColor: curIdx === i ? 'white' : 'rgba(255,255,255,0.4)' }} />
                           ))}
                         </div>
-                        <button onClick={goPrev} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40"><ChevronLeft className="w-5 h-5"/></button>
-                        <button onClick={goNext} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40"><ChevronRight className="w-5 h-5"/></button>
+                        <button onClick={goPrev} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40 z-20"><ChevronLeft className="w-5 h-5"/></button>
+                        <button onClick={goNext} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40 z-20"><ChevronRight className="w-5 h-5"/></button>
                       </>
                     )}
                     <style>{`@keyframes heroFadeSlide { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }`}</style>
@@ -2853,8 +2858,13 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                         <img src={s.image || heroImage} className="w-full h-full object-cover" />
                       </div>
                     ))}
-                    <div className="absolute inset-0 flex items-center justify-center p-4 z-10">
-                       <div key={`cl-text-${curIdx}`} className="bg-white/95 backdrop-blur-md p-8 md:p-12 text-center shadow-2xl max-w-xl w-full" style={{ borderRadius: getCardRadius(), animation: 'heroFadeSlide 0.5s ease forwards' }}>
+                    {!isLiveStore && (
+                      <button onClick={() => setIsHeroImagePickerOpen(true)} className="absolute top-3 right-3 bg-white/90 backdrop-blur text-slate-800 px-3 py-1.5 rounded-full text-xs font-bold shadow-md z-20 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white border border-slate-200">
+                        <ImageIcon className="w-3.5 h-3.5" />{storeLang === 'ar' ? 'تغيير' : 'Edit'}
+                      </button>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center p-4 z-10 pointer-events-none">
+                       <div key={`cl-text-${curIdx}`} className="bg-white/95 backdrop-blur-md p-8 md:p-12 text-center shadow-2xl max-w-xl w-full pointer-events-auto" style={{ borderRadius: getCardRadius(), animation: 'heroFadeSlide 0.5s ease forwards' }}>
                          <h1 className={`${isMobile ? 'text-3xl' : 'text-4xl'} font-serif mb-4 text-slate-900`}>{curSlide?.title}</h1>
                          <p className={`text-slate-500 mb-8 max-w-sm mx-auto ${isMobile ? 'text-xs' : 'text-sm'}`}>{curSlide?.subtitle}</p>
                          <button onClick={() => { const link = curSlide?.buttonLink || 'collections'; if (link.startsWith('http')) window.open(link, '_blank'); else setPage(link); }} className={`w-max ${isMobile ? 'px-6 py-3 text-xs' : 'px-10 py-4 text-sm'} text-white tracking-widest transition-opacity hover:opacity-90 mx-auto block`} style={{ backgroundColor: primaryColor, borderRadius: getCardRadius() }}>
@@ -2869,8 +2879,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                             <button key={i} onClick={() => setActiveHeroSlide(i)} className="rounded-full transition-all border border-white" style={{ width: curIdx === i ? '24px' : '8px', height: '8px', backgroundColor: curIdx === i ? primaryColor : 'transparent' }} />
                           ))}
                         </div>
-                        <button onClick={goPrev} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/50 text-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/90 shadow-md"><ChevronLeft className="w-5 h-5"/></button>
-                        <button onClick={goNext} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/50 text-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/90 shadow-md"><ChevronRight className="w-5 h-5"/></button>
+                        <button onClick={goPrev} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/50 text-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/90 shadow-md z-20"><ChevronLeft className="w-5 h-5"/></button>
+                        <button onClick={goNext} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/50 text-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/90 shadow-md z-20"><ChevronRight className="w-5 h-5"/></button>
                       </>
                     )}
                     <style>{`@keyframes heroFadeSlide { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }`}</style>
