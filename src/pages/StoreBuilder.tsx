@@ -870,7 +870,8 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   const [allCollectionsTitle, setAllCollectionsTitle] = useState(config.allCollectionsTitle || 'All Products');
   const [homeBlocks, setHomeBlocks] = useState<string[]>(config.homeBlocks || ['hero', 'collections', 'products']);
   const [sliderImages, setSliderImages] = useState<string[]>(config.sliderImages || []);
-  const [heroSlides, setHeroSlides] = useState<Array<{image: string; title: string; subtitle: string}>>(config.heroSlides || []);
+  const [heroSlides, setHeroSlides] = useState<Array<{image: string; title: string; subtitle: string; buttonText?: string; buttonLink?: string}>>(config.heroSlides || []);
+  const [heroSliderStyle, setHeroSliderStyle] = useState(config.heroSliderStyle || 'classic');
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
   const [activeSidebarSection, setActiveSidebarSection] = useState<string>('hero');
   
@@ -1386,6 +1387,9 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.storePages !== undefined) setStorePages(payload.storePages);
         if (payload.footerSettings !== undefined) setFooterSettings((prev: any) => ({ ...prev, ...payload.footerSettings }));
         if (payload.homeCollectionsTitle !== undefined) setHomeCollectionsTitle(payload.homeCollectionsTitle);
+        if (payload.heroButtonText !== undefined) setHeroButtonText(payload.heroButtonText);
+        if (payload.heroSlides !== undefined) setHeroSlides(payload.heroSlides);
+        if (payload.heroSliderStyle !== undefined) setHeroSliderStyle(payload.heroSliderStyle);
       }
     };
     window.addEventListener('message', handleMessage);
@@ -2786,11 +2790,77 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               const isMobile = previewDevice === 'mobile' && !isModal;
               const goNext = () => setActiveHeroSlide(i => (i + 1) % slides.length);
               const goPrev = () => setActiveHeroSlide(i => (i - 1 + slides.length) % slides.length);
+              if (heroSliderStyle === 'fullscreen') {
+                return (
+                  <div className="relative w-full overflow-hidden group bg-slate-900" style={{ minHeight: `${isModal ? heroHeight + 150 : heroHeight}px` }}>
+                    {slides.map((s: any, i: number) => (
+                      <div key={i} className="absolute inset-0 transition-opacity duration-1000" style={{ opacity: curIdx === i ? 1 : 0 }}>
+                        <img src={s.image || heroImage} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40"></div>
+                      </div>
+                    ))}
+                    <div className="relative z-10 w-full flex flex-col justify-center items-center text-center p-6 md:p-12 h-full min-h-[inherit]">
+                       <div key={`fs-text-${curIdx}`} style={{ animation: 'heroFadeSlide 0.5s ease forwards' }}>
+                         <h1 className={`${isMobile ? 'text-4xl' : 'text-6xl'} font-bold text-white mb-4 drop-shadow-md`}>{curSlide?.title}</h1>
+                         <p className={`text-white/90 mb-8 max-w-lg mx-auto drop-shadow-md ${isMobile ? 'text-sm' : 'text-lg'}`}>{curSlide?.subtitle}</p>
+                       </div>
+                       <button onClick={() => { const link = curSlide?.buttonLink || 'collections'; if (link.startsWith('http')) window.open(link, '_blank'); else setPage(link); }} className={`w-max ${isMobile ? 'px-8 py-3 text-xs' : 'px-12 py-4 text-sm'} text-slate-900 bg-white font-bold tracking-widest transition-transform hover:scale-105 shadow-xl`} style={{ borderRadius: getCardRadius() }}>
+                         {curSlide?.buttonText || heroButtonText || tr('DISCOVER')}
+                       </button>
+                    </div>
+                    {slides.length > 1 && (
+                      <>
+                        <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-20">
+                          {slides.map((_: any, i: number) => (
+                            <button key={i} onClick={() => setActiveHeroSlide(i)} className="rounded-full transition-all" style={{ width: curIdx === i ? '24px' : '8px', height: '8px', backgroundColor: curIdx === i ? 'white' : 'rgba(255,255,255,0.4)' }} />
+                          ))}
+                        </div>
+                        <button onClick={goPrev} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40"><ChevronLeft className="w-5 h-5"/></button>
+                        <button onClick={goNext} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40"><ChevronRight className="w-5 h-5"/></button>
+                      </>
+                    )}
+                    <style>{`@keyframes heroFadeSlide { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }`}</style>
+                  </div>
+                );
+              }
+
+              if (heroSliderStyle === 'classic') {
+                return (
+                  <div className="relative w-full overflow-hidden group bg-slate-100" style={{ minHeight: `${isModal ? heroHeight + 150 : heroHeight}px` }}>
+                    {slides.map((s: any, i: number) => (
+                      <div key={i} className="absolute inset-0 transition-opacity duration-1000" style={{ opacity: curIdx === i ? 1 : 0 }}>
+                        <img src={s.image || heroImage} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                    <div className="absolute inset-0 flex items-center justify-center p-4 z-10">
+                       <div key={`cl-text-${curIdx}`} className="bg-white/95 backdrop-blur-md p-8 md:p-12 text-center shadow-2xl max-w-xl w-full" style={{ borderRadius: getCardRadius(), animation: 'heroFadeSlide 0.5s ease forwards' }}>
+                         <h1 className={`${isMobile ? 'text-3xl' : 'text-4xl'} font-serif mb-4 text-slate-900`}>{curSlide?.title}</h1>
+                         <p className={`text-slate-500 mb-8 max-w-sm mx-auto ${isMobile ? 'text-xs' : 'text-sm'}`}>{curSlide?.subtitle}</p>
+                         <button onClick={() => { const link = curSlide?.buttonLink || 'collections'; if (link.startsWith('http')) window.open(link, '_blank'); else setPage(link); }} className={`w-max ${isMobile ? 'px-6 py-3 text-xs' : 'px-10 py-4 text-sm'} text-white tracking-widest transition-opacity hover:opacity-90 mx-auto block`} style={{ backgroundColor: primaryColor, borderRadius: getCardRadius() }}>
+                           {curSlide?.buttonText || heroButtonText || tr('DISCOVER')}
+                         </button>
+                       </div>
+                    </div>
+                    {slides.length > 1 && (
+                      <>
+                        <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-20">
+                          {slides.map((_: any, i: number) => (
+                            <button key={i} onClick={() => setActiveHeroSlide(i)} className="rounded-full transition-all border border-white" style={{ width: curIdx === i ? '24px' : '8px', height: '8px', backgroundColor: curIdx === i ? primaryColor : 'transparent' }} />
+                          ))}
+                        </div>
+                        <button onClick={goPrev} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/50 text-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/90 shadow-md"><ChevronLeft className="w-5 h-5"/></button>
+                        <button onClick={goNext} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/50 text-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/90 shadow-md"><ChevronRight className="w-5 h-5"/></button>
+                      </>
+                    )}
+                    <style>{`@keyframes heroFadeSlide { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }`}</style>
+                  </div>
+                );
+              }
+
+              // default split layout
               return (
                 <div className={`flex ${isMobile ? 'flex-col' : 'flex-col md:flex-row'} relative overflow-hidden bg-white group`} style={{ minHeight: isMobile ? undefined : `${isModal ? heroHeight + 150 : heroHeight}px` }}>
-                  {/* LEFT: text content */}
                   <div className={`relative z-10 flex flex-col justify-center ${isMobile ? 'p-6' : 'p-12'}`} style={{ flex: isMobile ? undefined : '0 0 42%' }}>
-                    {/* Slide dots */}
                     {slides.length > 1 && (
                       <div className="flex gap-2 mb-5">
                         {slides.map((_: any, i: number) => (
@@ -2801,7 +2871,6 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                         ))}
                       </div>
                     )}
-                    {/* Animated title & subtitle */}
                     <div key={`slide-text-${curIdx}`} style={{ animation: 'heroFadeSlide 0.5s ease forwards' }}>
                       <h1 className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-light leading-tight mb-4`} style={{ color: primaryColor }}>
                         {curSlide?.title}
@@ -2810,10 +2879,9 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                         {curSlide?.subtitle}
                       </p>
                     </div>
-                    <button onClick={() => setPage('collections')} className={`w-max ${isMobile ? 'px-6 py-3 text-xs' : 'px-10 py-4 text-sm'} text-white tracking-widest transition-opacity hover:opacity-80`} style={{ backgroundColor: primaryColor }}>
-                      {tr(heroButtonText || 'DISCOVER')}
+                    <button onClick={() => { const link = curSlide?.buttonLink || 'collections'; if (link.startsWith('http')) window.open(link, '_blank'); else setPage(link); }} className={`w-max ${isMobile ? 'px-6 py-3 text-xs' : 'px-10 py-4 text-sm'} text-white tracking-widest transition-opacity hover:opacity-80`} style={{ backgroundColor: primaryColor }}>
+                      {curSlide?.buttonText || heroButtonText || tr('DISCOVER')}
                     </button>
-                    {/* Prev / Next arrows */}
                     {slides.length > 1 && (
                       <div className="flex gap-3 mt-7">
                         <button onClick={goPrev} className="w-9 h-9 border border-gray-300 flex items-center justify-center text-gray-500 hover:border-gray-800 hover:text-gray-800 transition-all">
@@ -2825,7 +2893,6 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                       </div>
                     )}
                   </div>
-                  {/* RIGHT: image crossfade */}
                   <div className="relative overflow-hidden" style={{ flex: isMobile ? 'none' : '1', height: isMobile ? '260px' : undefined, width: isMobile ? '100%' : undefined }}>
                     {slides.map((sl: any, i: number) => (
                       <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: curIdx === i ? 1 : 0 }}>

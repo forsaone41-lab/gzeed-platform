@@ -53,11 +53,44 @@ export default function GZeedBuilder() {
     { id: 'collections', title: 'التشكيلات', isDefault: true },
     { id: 'about', title: 'من نحن', isDefault: false }
   ]);
+  const [heroSlides, setHeroSlides] = useState<Array<{image: string; title: string; subtitle: string; buttonText?: string; buttonLink?: string}>>([]);
   const [newPageName, setNewPageName] = useState('');
 
   const updateConfigInIframe = (payload: any) => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
       iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_CONFIG', payload }, '*');
+    }
+  };
+
+  const handleAddSlide = () => {
+    const newSlides = [...heroSlides, { image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop', title: 'New Slide', subtitle: 'Slide subtitle', buttonText: 'Discover', buttonLink: 'collections' }];
+    setHeroSlides(newSlides);
+    updateConfigInIframe({ heroSlides: newSlides });
+  };
+
+  const handleUpdateSlide = (idx: number, key: string, value: string) => {
+    const newSlides = [...heroSlides];
+    newSlides[idx] = { ...newSlides[idx], [key]: value };
+    setHeroSlides(newSlides);
+    updateConfigInIframe({ heroSlides: newSlides });
+  };
+
+  const handleRemoveSlide = (idx: number) => {
+    const newSlides = heroSlides.filter((_, i) => i !== idx);
+    setHeroSlides(newSlides);
+    updateConfigInIframe({ heroSlides: newSlides });
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          handleUpdateSlide(idx, 'image', reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -440,6 +473,65 @@ export default function GZeedBuilder() {
                            <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'النص الفرعي' : 'Hero Subtitle'}</label>
                            <input type="text" onChange={(e) => updateConfigInIframe({ heroSubtitle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="Discover our latest..." />
                         </div>
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'نص الزر' : 'Button Text'}</label>
+                           <input type="text" onChange={(e) => updateConfigInIframe({ heroButtonText: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="Shop Now" />
+                        </div>
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'نمط السلايدر (Slideshow)' : 'Slideshow Style'}</label>
+                           <select onChange={(e) => updateConfigInIframe({ heroSliderStyle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                             <option value="classic">{lang === 'ar' ? 'كلاسيكي (Classic)' : 'Classic'}</option>
+                             <option value="fullscreen">{lang === 'ar' ? 'شاشة كاملة (Fullscreen)' : 'Fullscreen'}</option>
+                             <option value="split">{lang === 'ar' ? 'منقسم (Split)' : 'Split'}</option>
+                           </select>
+                        </div>
+                        
+                        <div className="pt-4 border-t border-slate-100">
+                           <div className="flex items-center justify-between mb-4">
+                             <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'الصور (Slides)' : 'Slides'}</label>
+                             <button onClick={handleAddSlide} className="px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1">
+                               <Plus className="w-3 h-3" /> {lang === 'ar' ? 'إضافة' : 'Add'}
+                             </button>
+                           </div>
+                           
+                           {heroSlides.length === 0 && (
+                             <div className="text-center p-4 border border-dashed border-slate-200 rounded-xl text-slate-400 text-sm">
+                               {lang === 'ar' ? 'لا توجد صور. سيتم استخدام الواجهة الافتراضية.' : 'No slides. Default hero will be used.'}
+                             </div>
+                           )}
+
+                           <div className="space-y-3">
+                             {heroSlides.map((slide, idx) => (
+                               <div key={idx} className="p-4 border border-slate-200 rounded-xl bg-white space-y-3 relative group">
+                                 <button onClick={() => handleRemoveSlide(idx)} className="absolute top-2 right-2 p-1.5 bg-red-50 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                   <X className="w-4 h-4" />
+                                 </button>
+                                 <div className="flex gap-3 items-center">
+                                   <div className="w-16 h-16 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 relative">
+                                     {slide.image ? <img src={slide.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-400 text-[10px]">No Img</div>}
+                                     <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity">
+                                       <Upload className="w-4 h-4 text-white" />
+                                       <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, idx)} className="hidden" />
+                                     </label>
+                                   </div>
+                                   <div className="flex-1 space-y-2">
+                                     <input type="text" value={slide.image} onChange={(e) => handleUpdateSlide(idx, 'image', e.target.value)} placeholder="Image URL (Unsplash, etc.)" className="w-full p-2 border border-slate-200 rounded-md text-xs" />
+                                     <input type="text" value={slide.title} onChange={(e) => handleUpdateSlide(idx, 'title', e.target.value)} placeholder="Slide Title" className="w-full p-2 border border-slate-200 rounded-md text-xs" />
+                                   </div>
+                                 </div>
+                                 <div className="grid grid-cols-2 gap-2">
+                                   <input type="text" value={slide.buttonText || ''} onChange={(e) => handleUpdateSlide(idx, 'buttonText', e.target.value)} placeholder="Button Text" className="w-full p-2 border border-slate-200 rounded-md text-xs" />
+                                   <select value={slide.buttonLink || ''} onChange={(e) => handleUpdateSlide(idx, 'buttonLink', e.target.value)} className="w-full p-2 border border-slate-200 rounded-md text-xs bg-white">
+                                     <option value="">{lang === 'ar' ? 'رابط الزر...' : 'Button Link...'}</option>
+                                     <option value="collections">{lang === 'ar' ? 'التشكيلات' : 'Collections'}</option>
+                                     <option value="products">{lang === 'ar' ? 'المنتجات' : 'Products'}</option>
+                                     <option value="about">{lang === 'ar' ? 'من نحن' : 'About'}</option>
+                                   </select>
+                                 </div>
+                               </div>
+                             ))}
+                           </div>
+                        </div>
                      </div>
                   )}
                   {activeConfigSection === 'categories' && (
@@ -486,9 +578,38 @@ export default function GZeedBuilder() {
 
 
             {activeSidebarTab === 'settings' && (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-400 text-center animate-fade-in">
-                <Settings className="w-12 h-12 mb-4 animate-spin-slow opacity-50" />
-                <p className="font-medium max-w-[200px]">{lang === 'ar' ? 'إعدادات المتجر العامة ستظهر هنا قريباً.' : lang === 'en' ? 'General store settings will appear here soon.' : 'Les paramètres généraux apparaîtront ici bientôt.'}</p>
+              <div className="space-y-6 animate-fade-in">
+                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'اسم المتجر' : 'Store Name'}</label>
+                    <input type="text" className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="My Store" defaultValue="Atelier" />
+                 </div>
+                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'النطاق (Domain)' : 'Store Domain'}</label>
+                    <input type="text" className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="mystore.com" defaultValue="mystore.com" />
+                 </div>
+                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'لغة المتجر' : 'Store Language'}</label>
+                    <select className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                      <option value="fr">{lang === 'ar' ? 'الفرنسية' : 'French'}</option>
+                      <option value="ar">{lang === 'ar' ? 'العربية' : 'Arabic'}</option>
+                      <option value="en">{lang === 'ar' ? 'الإنجليزية' : 'English'}</option>
+                    </select>
+                 </div>
+                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'العملة' : 'Currency'}</label>
+                    <select className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                      <option value="MAD">MAD (درهم مغربي)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                    </select>
+                 </div>
+                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'حالة المتجر' : 'Store Status'}</label>
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+                      <span className="text-sm font-bold text-slate-700">{lang === 'ar' ? 'نشط (Live)' : 'Live'}</span>
+                    </div>
+                 </div>
               </div>
             )}
           </div>
