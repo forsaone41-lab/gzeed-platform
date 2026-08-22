@@ -5065,7 +5065,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                     </div>
                     <div className="w-full md:w-1/2 relative">
                        <div className="absolute inset-0 bg-gradient-to-tr from-pink-100 to-rose-50 rounded-full blur-3xl opacity-70"></div>
-                       <img src="https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=800&auto=format&fit=crop" className="relative z-10 rounded-[2rem] shadow-2xl object-cover aspect-[4/5] w-full max-w-md mx-auto transform -rotate-2 hover:rotate-0 transition-transform duration-500" alt="Beauty" />
+                       <img src={heroImage || "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800&auto=format&fit=crop"} className="relative z-10 rounded-[2rem] shadow-2xl object-cover aspect-[4/5] w-full max-w-md mx-auto transform -rotate-2 hover:rotate-0 transition-transform duration-500" alt="Beauty" />
                     </div>
                  </div>
               </HeroBackgroundEditor>
