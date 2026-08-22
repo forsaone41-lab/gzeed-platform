@@ -302,7 +302,7 @@ export default function GZeedBuilder() {
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'الألوان الأساسية' : lang === 'en' ? 'Brand Colors' : 'Couleurs de la marque'}</h3>
                   <div className="grid grid-cols-5 gap-3">
-                    {['#0f172a', '#06b6d4', '#8b5cf6', '#ec4899', '#10b981'].map((color, idx) => (
+                    {['#0f172a', '#1e3a8a', '#7c3aed', '#db2777', '#dc2626', '#d97706', '#16a34a', '#0891b2', '#b48a44', '#64748b', '#06b6d4', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#000000'].map((color, idx) => (
                       <button 
                         key={idx} 
                         onClick={() => handleColorChange(color)}
@@ -356,6 +356,7 @@ export default function GZeedBuilder() {
                 {[
                   { id: 'header', icon: Layout, label: lang === 'ar' ? 'الشريط العلوي' : lang === 'en' ? 'Header Navigation' : 'En-tête' },
                   { id: 'hero', icon: Palette, label: lang === 'ar' ? 'الواجهة الرئيسية' : lang === 'en' ? 'Hero Banner' : 'Bannière Héro' },
+                  { id: 'categories', icon: Layers, label: lang === 'ar' ? 'تصنيفات المنتجات' : lang === 'en' ? 'Category Grid' : 'Grille de Catégories' },
                   { id: 'products', icon: Box, label: lang === 'ar' ? 'شبكة المنتجات' : lang === 'en' ? 'Product Grid' : 'Grille de Produits' },
                   { id: 'footer', icon: Layout, label: lang === 'ar' ? 'تذييل الصفحة' : lang === 'en' ? 'Footer' : 'Pied de page' }
                 ].map((section, idx) => (
@@ -441,11 +442,43 @@ export default function GZeedBuilder() {
                         </div>
                      </div>
                   )}
-                  
-                  {(activeConfigSection === 'products' || activeConfigSection === 'footer') && (
-                     <div className="p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
-                        <Settings className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">{lang === 'ar' ? 'يمكنك تعديل هذا القسم مباشرة من الشاشة الجانبية' : 'You can edit this section directly from the preview'}</p>
+                  {activeConfigSection === 'categories' && (
+                     <div className="space-y-4">
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'عنوان التصنيفات' : 'Categories Title'}</label>
+                           <input type="text" onChange={(e) => updateConfigInIframe({ homeCollectionsTitle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="Trending Now" />
+                        </div>
+                     </div>
+                  )}
+
+                  {activeConfigSection === 'products' && (
+                     <div className="space-y-4">
+                        <div className="p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
+                           <Box className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                           <p className="text-sm">{lang === 'ar' ? 'إعدادات شبكة المنتجات' : 'Product Grid Settings'}</p>
+                           <p className="text-xs mt-2">{lang === 'ar' ? 'يمكنك اختيار المنتجات المعروضة من لوحة التحكم' : 'You can choose displayed products from the dashboard'}</p>
+                        </div>
+                     </div>
+                  )}
+
+                  {activeConfigSection === 'footer' && (
+                     <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار سياسة الخصوصية' : 'Show Privacy Policy'}</span>
+                           <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ footerSettings: { showPrivacy: e.target.checked } })} />
+                        </div>
+                        <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار الشروط والأحكام' : 'Show Terms & Conditions'}</span>
+                           <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ footerSettings: { showTerms: e.target.checked } })} />
+                        </div>
+                        <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار سياسة ملفات تعريف الارتباط' : 'Show Cookies Policy'}</span>
+                           <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ footerSettings: { showCookies: e.target.checked } })} />
+                        </div>
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'نص حقوق النشر' : 'Copyright Text'}</label>
+                           <input type="text" onChange={(e) => updateConfigInIframe({ footerSettings: { copyright: e.target.value } })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="© 2026 My Store" />
+                        </div>
                      </div>
                   )}
                </div>

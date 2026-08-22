@@ -1384,6 +1384,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.showHeaderLang !== undefined) setShowHeaderLang(payload.showHeaderLang);
         if (payload.showHeaderAccount !== undefined) setShowHeaderAccount(payload.showHeaderAccount);
         if (payload.storePages !== undefined) setStorePages(payload.storePages);
+        if (payload.footerSettings !== undefined) setFooterSettings((prev: any) => ({ ...prev, ...payload.footerSettings }));
+        if (payload.homeCollectionsTitle !== undefined) setHomeCollectionsTitle(payload.homeCollectionsTitle);
       }
     };
     window.addEventListener('message', handleMessage);
@@ -4015,31 +4017,34 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
             </div>
 
             {/* Sub-banner (Lookbook block) */}
-            <div className="max-w-6xl mx-auto w-full px-4 py-20 text-center">
-               <h3 className="text-2xl font-bold text-slate-900 mb-4 font-serif">{homeCollectionsTitle || 'New & Stylish Collections'}</h3>
-               <p className="text-slate-400 text-xs max-w-xl mx-auto mb-16 leading-relaxed">{storeLang === 'ar' ? 'تصاميم مختارة بعناية لتناسب كل مناسبة.' : storeLang === 'en' ? 'Carefully curated pieces for every occasion.' : 'Des pièces soigneusement sélectionnées pour chaque occasion.'}</p>
+            {!hiddenSections.includes('categories') && (
+               <div className="max-w-6xl mx-auto w-full px-4 py-20 text-center">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4 font-serif">{homeCollectionsTitle || 'New & Stylish Collections'}</h3>
+                  <p className="text-slate-400 text-xs max-w-xl mx-auto mb-16 leading-relaxed">{storeLang === 'ar' ? 'تصاميم مختارة بعناية لتناسب كل مناسبة.' : storeLang === 'en' ? 'Carefully curated pieces for every occasion.' : 'Des pièces soigneusement sélectionnées pour chaque occasion.'}</p>
 
-               <div className={`grid gap-8 ${previewDevice === 'mobile' && !isModal ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                  <div className="bg-[#f8f9fa] p-8 flex items-center gap-6 text-left hover:shadow-lg transition-shadow">
-                     <div className="flex-1">
-                        <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{storeLang === 'ar' ? 'تشكيلة نسائية جديدة' : storeLang === 'en' ? "New Women's Collection" : 'Nouvelle collection femme'}</h4>
-                        <button onClick={() => setPage('collections')} className="text-[10px] font-bold uppercase tracking-widest mt-6" style={{ color: primaryColor }}>{storeLang === 'ar' ? 'اكتشف الآن' : storeLang === 'en' ? 'Discover Now' : 'Découvrir'}</button>
+                  <div className={`grid gap-8 ${previewDevice === 'mobile' && !isModal ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                     <div className="bg-[#f8f9fa] p-8 flex items-center gap-6 text-left hover:shadow-lg transition-shadow">
+                        <div className="flex-1">
+                           <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{storeLang === 'ar' ? 'تشكيلة نسائية جديدة' : storeLang === 'en' ? "New Women's Collection" : 'Nouvelle collection femme'}</h4>
+                           <button onClick={() => setPage('collections')} className="text-[10px] font-bold uppercase tracking-widest mt-6" style={{ color: primaryColor }}>{storeLang === 'ar' ? 'اكتشف الآن' : storeLang === 'en' ? 'Discover Now' : 'Découvrir'}</button>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop" className="w-1/3 aspect-[3/4] object-cover" />
                      </div>
-                     <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop" className="w-1/3 aspect-[3/4] object-cover" />
-                  </div>
-                  <div className="bg-[#f8f9fa] p-8 flex items-center gap-6 text-left hover:shadow-lg transition-shadow">
-                     <div className="flex-1">
-                        <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{storeLang === 'ar' ? 'أحدث تشكيلة رجالية' : storeLang === 'en' ? "Top Men's Collection" : 'Top collection homme'}</h4>
-                        <button onClick={() => setPage('collections')} className="text-[10px] font-bold uppercase tracking-widest mt-6" style={{ color: primaryColor }}>{storeLang === 'ar' ? 'اكتشف الآن' : storeLang === 'en' ? 'Discover Now' : 'Découvrir'}</button>
+                     <div className="bg-[#f8f9fa] p-8 flex items-center gap-6 text-left hover:shadow-lg transition-shadow">
+                        <div className="flex-1">
+                           <h4 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{storeLang === 'ar' ? 'أحدث تشكيلة رجالية' : storeLang === 'en' ? "Top Men's Collection" : 'Top collection homme'}</h4>
+                           <button onClick={() => setPage('collections')} className="text-[10px] font-bold uppercase tracking-widest mt-6" style={{ color: primaryColor }}>{storeLang === 'ar' ? 'اكتشف الآن' : storeLang === 'en' ? 'Discover Now' : 'Découvrir'}</button>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop" className="w-1/3 aspect-[3/4] object-cover" />
                      </div>
-                     <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop" className="w-1/3 aspect-[3/4] object-cover" />
                   </div>
                </div>
-            </div>
+            )}
 
             {/* Products Grid */}
-            <div className="mx-auto w-full px-4 py-8" style={{ maxWidth: `${siteMaxWidth}px` }}>
-               <div className="flex items-center justify-between mb-12">
+            {!hiddenSections.includes('products') && (
+               <div className="mx-auto w-full px-4 py-8" style={{ maxWidth: `${siteMaxWidth}px` }}>
+                  <div className="flex items-center justify-between mb-12">
                   <h3 className="text-xl font-bold text-slate-900 uppercase tracking-tight">{storeLang === 'ar' ? '#وصل_حديثاً' : storeLang === 'en' ? '#New Arrivals' : '#Nouveautés'}</h3>
                   <div className="flex gap-6 text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden md:flex">
                      <span className="text-slate-900 border-b-2 border-slate-900 pb-1">All</span>
@@ -4070,6 +4075,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                   ))}
                </div>
             </div>
+            )}
             
             {/* Dynamic Blocks */}
             <div className="w-full flex flex-col items-center">
