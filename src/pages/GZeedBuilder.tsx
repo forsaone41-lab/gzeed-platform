@@ -18,7 +18,8 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
-  Trash2
+  Trash2,
+  X
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
