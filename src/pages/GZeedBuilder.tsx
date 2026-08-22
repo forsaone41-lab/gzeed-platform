@@ -17,7 +17,8 @@ import {
   Plus,
   ExternalLink,
   Eye,
-  EyeOff
+  EyeOff,
+  Trash2
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
@@ -47,11 +48,32 @@ export default function GZeedBuilder() {
   const [activeCardStyle, setActiveCardStyle] = useState('rounded');
   const [hiddenSections, setHiddenSections] = useState<string[]>([]);
   const [activeConfigSection, setActiveConfigSection] = useState<string | null>(null);
+  const [storePages, setStorePages] = useState<{id: string, title: string, isDefault?: boolean}[]>([
+    { id: 'home', title: 'الرئيسية', isDefault: true },
+    { id: 'collections', title: 'التشكيلات', isDefault: true },
+    { id: 'about', title: 'من نحن', isDefault: false }
+  ]);
+  const [newPageName, setNewPageName] = useState('');
 
   const updateConfigInIframe = (payload: any) => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
       iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_CONFIG', payload }, '*');
     }
+  };
+
+  const handleAddPage = () => {
+    if (!newPageName.trim()) return;
+    const newPage = { id: `page_${Date.now()}`, title: newPageName, isDefault: false };
+    const newPages = [...storePages, newPage];
+    setStorePages(newPages);
+    setNewPageName('');
+    updateConfigInIframe({ storePages: newPages });
+  };
+
+  const handleRemovePage = (id: string) => {
+    const newPages = storePages.filter(p => p.id !== id);
+    setStorePages(newPages);
+    updateConfigInIframe({ storePages: newPages });
   };
 
   const handleToggleSection = (sectionId: string, e: React.MouseEvent) => {
@@ -382,6 +404,27 @@ export default function GZeedBuilder() {
                         <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
                            <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار الحساب' : 'Show Account'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showHeaderAccount: e.target.checked })} />
+                        </div>
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 mt-6">
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-4">{lang === 'ar' ? 'قوائم المتجر' : 'Store Menus'}</label>
+                           <div className="space-y-2 mb-4">
+                              {storePages.map(page => (
+                                <div key={page.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg">
+                                  <span className="text-sm font-bold text-slate-700">{page.title}</span>
+                                  {!page.isDefault && (
+                                    <button onClick={() => handleRemovePage(page.id)} className="text-red-400 hover:text-red-600 p-1">
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                           </div>
+                           <div className="flex gap-2">
+                              <input type="text" value={newPageName} onChange={e => setNewPageName(e.target.value)} placeholder={lang === 'ar' ? 'اسم القائمة...' : 'Menu Name...'} className="flex-1 p-2 border border-slate-200 rounded-lg text-sm" />
+                              <button onClick={handleAddPage} className="p-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
+                                 <Plus className="w-5 h-5" />
+                              </button>
+                           </div>
                         </div>
                      </div>
                   )}

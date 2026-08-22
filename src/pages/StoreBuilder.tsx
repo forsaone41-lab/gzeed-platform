@@ -1383,6 +1383,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.showHeaderSearch !== undefined) setShowHeaderSearch(payload.showHeaderSearch);
         if (payload.showHeaderLang !== undefined) setShowHeaderLang(payload.showHeaderLang);
         if (payload.showHeaderAccount !== undefined) setShowHeaderAccount(payload.showHeaderAccount);
+        if (payload.storePages !== undefined) setStorePages(payload.storePages);
       }
     };
     window.addEventListener('message', handleMessage);
