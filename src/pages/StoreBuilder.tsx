@@ -862,12 +862,12 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   const [comingSoonMessage, setComingSoonMessage] = useState(config.comingSoonMessage || '');
 
   // Theme Inline Texts
-  const [heroTitle, setHeroTitle] = useState(config.heroTitle || 'New Collection');
+  const [heroTitle, setHeroTitle] = useState(config.heroTitle || '');
   const [hiddenSections, setHiddenSections] = useState<string[]>(config.hiddenSections || []);
-  const [heroSubtitle, setHeroSubtitle] = useState(config.heroSubtitle || 'Discover our latest premium quality garments.');
-  const [heroButtonText, setHeroButtonText] = useState(config.heroButtonText || 'Shop Now');
-  const [homeCollectionsTitle, setHomeCollectionsTitle] = useState(config.homeCollectionsTitle || 'Trending Now');
-  const [allCollectionsTitle, setAllCollectionsTitle] = useState(config.allCollectionsTitle || 'All Products');
+  const [heroSubtitle, setHeroSubtitle] = useState(config.heroSubtitle || '');
+  const [heroButtonText, setHeroButtonText] = useState(config.heroButtonText || '');
+  const [homeCollectionsTitle, setHomeCollectionsTitle] = useState(config.homeCollectionsTitle || '');
+  const [allCollectionsTitle, setAllCollectionsTitle] = useState(config.allCollectionsTitle || '');
   const [homeBlocks, setHomeBlocks] = useState<string[]>(config.homeBlocks || ['hero', 'collections', 'products']);
   const [sliderImages, setSliderImages] = useState<string[]>(config.sliderImages || []);
   const [heroSlides, setHeroSlides] = useState<Array<{image: string; title: string; subtitle: string; buttonText?: string; buttonLink?: string}>>(config.heroSlides || []);
@@ -2074,7 +2074,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
     const langFlags: Record<string, { code: string; label: string }> = {
       fr: { code: 'fr', label: 'FR' },
       en: { code: 'gb', label: 'EN' },
-      ar: { code: 'sa', label: 'AR' },
+      ar: { code: 'ma', label: 'AR' },
     };
     const nextLang: Record<string, 'fr' | 'en' | 'ar'> = { fr: 'en', en: 'ar', ar: 'fr' };
     const currentLang = langFlags[storeLang] || langFlags.fr;

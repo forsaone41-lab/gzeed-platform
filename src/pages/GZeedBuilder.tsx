@@ -56,6 +56,8 @@ export default function GZeedBuilder() {
     { id: 'collections', title: 'التشكيلات', isDefault: true },
     { id: 'about', title: 'من نحن', isDefault: false }
   ]);
+  const [storeLang, setStoreLang] = useState('fr');
+  const [storeCurrency, setStoreCurrency] = useState('MAD');
   const [heroSlides, setHeroSlides] = useState<Array<{image: string; title: string; subtitle: string; buttonText?: string; buttonLink?: string}>>([]);
   const [newPageName, setNewPageName] = useState('');
 
@@ -623,7 +625,10 @@ export default function GZeedBuilder() {
                  </div>
                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'لغة المتجر' : 'Store Language'}</label>
-                    <select onChange={(e) => updateConfigInIframe({ storeLang: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                    <select value={storeLang} onChange={(e) => {
+                      setStoreLang(e.target.value);
+                      updateConfigInIframe({ storeLang: e.target.value });
+                    }} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
                       <option value="fr">{lang === 'ar' ? 'الفرنسية' : 'French'}</option>
                       <option value="ar">{lang === 'ar' ? 'العربية' : 'Arabic'}</option>
                       <option value="en">{lang === 'ar' ? 'الإنجليزية' : 'English'}</option>
@@ -631,10 +636,20 @@ export default function GZeedBuilder() {
                  </div>
                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'العملة' : 'Currency'}</label>
-                    <select onChange={(e) => updateConfigInIframe({ storeCurrency: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                    <select value={storeCurrency} onChange={(e) => {
+                      setStoreCurrency(e.target.value);
+                      updateConfigInIframe({ storeCurrency: e.target.value });
+                    }} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
                       <option value="MAD">MAD (درهم مغربي)</option>
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>
+                    </select>
+                 </div>
+                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'الخط' : 'Font'}</label>
+                    <select value={activeFont} onChange={(e) => handleFontChange(e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                      <option value="font-sans">Inter / System Sans</option>
+                      <option value="font-serif">Playfair / Serif</option>
                     </select>
                  </div>
                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
