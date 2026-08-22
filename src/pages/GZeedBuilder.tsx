@@ -569,7 +569,7 @@ export default function GZeedBuilder() {
                         </div>
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                            <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'نص حقوق النشر' : 'Copyright Text'}</label>
-                           <input type="text" onChange={(e) => updateConfigInIframe({ footerSettings: { copyright: e.target.value } })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="© 2026 My Store" />
+                           <input type="text" onChange={(e) => updateConfigInIframe({ footerSettings: { copyright: e.target.value } })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="(c) 2026 My Store" />
                         </div>
                      </div>
                   )}
@@ -581,15 +581,15 @@ export default function GZeedBuilder() {
               <div className="space-y-6 animate-fade-in">
                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'اسم المتجر' : 'Store Name'}</label>
-                    <input type="text" className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="My Store" defaultValue="Atelier" />
+                    <input type="text" onChange={(e) => updateConfigInIframe({ storeName: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="My Store" defaultValue="Atelier" />
                  </div>
                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'النطاق (Domain)' : 'Store Domain'}</label>
-                    <input type="text" className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="mystore.com" defaultValue="mystore.com" />
+                    <input type="text" onChange={(e) => updateConfigInIframe({ storeDomain: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="mystore.com" defaultValue="mystore.com" />
                  </div>
                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'لغة المتجر' : 'Store Language'}</label>
-                    <select className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                    <select onChange={(e) => updateConfigInIframe({ storeLang: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
                       <option value="fr">{lang === 'ar' ? 'الفرنسية' : 'French'}</option>
                       <option value="ar">{lang === 'ar' ? 'العربية' : 'Arabic'}</option>
                       <option value="en">{lang === 'ar' ? 'الإنجليزية' : 'English'}</option>
@@ -597,7 +597,7 @@ export default function GZeedBuilder() {
                  </div>
                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'العملة' : 'Currency'}</label>
-                    <select className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                    <select onChange={(e) => updateConfigInIframe({ storeCurrency: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
                       <option value="MAD">MAD (درهم مغربي)</option>
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>

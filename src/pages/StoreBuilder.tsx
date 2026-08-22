@@ -491,7 +491,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
         'Home': { en: 'Home', fr: 'Accueil', ar: 'الرئيسية' },
         'Collections': { en: 'Collections', fr: 'Collections', ar: 'التشكيلات' },
         'About': { en: 'About', fr: 'À propos', ar: 'من نحن' },
-        '© 2026 My Brand. Tous droits réservés.': { en: '© 2026 My Brand. All rights reserved.', fr: '© 2026 My Brand. Tous droits réservés.', ar: '© 2026 My Brand. جميع الحقوق محفوظة.' },
+        '(c) 2026 My Brand. Tous droits reserves.': { en: '(c) 2026 My Brand. All rights reserved.', fr: '(c) 2026 My Brand. Tous droits reserves.', ar: '(c) 2026 My Brand. جميع الحقوق محفوظة.' },
         'Accueil': { en: 'Home', fr: 'Accueil', ar: 'الرئيسية' },
         'Produits': { en: 'Products', fr: 'Produits', ar: 'المنتجات' },
         'All Products ✨': { en: 'All Products ✨', fr: 'Tous les produits ✨', ar: 'جميع المنتجات ✨' },
@@ -929,8 +929,8 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
     { id: 'about', title: 'About', isDefault: false }
   ]);
   const [footerSettings, setFooterSettings] = useState(config.footerSettings || {
-    copyright: '© 2024 Mon Magasin. Tous droits réservés.',
-    links: ['À Propos', 'Contact', 'Politique de Retour', 'Termes & Conditions']
+    copyright: '(c) 2026 My Store. Tous droits reserves.',
+    links: ['A Propos', 'Contact', 'Politique de Retour', 'Termes & Conditions']
   });
   const [showReviews, setShowReviews] = useState(config.showReviews !== undefined ? config.showReviews : true);
   const [paymentSettings, setPaymentSettings] = useState(config.paymentSettings || {
@@ -1390,6 +1390,9 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.heroButtonText !== undefined) setHeroButtonText(payload.heroButtonText);
         if (payload.heroSlides !== undefined) setHeroSlides(payload.heroSlides);
         if (payload.heroSliderStyle !== undefined) setHeroSliderStyle(payload.heroSliderStyle);
+        if (payload.storeName !== undefined) setStoreName(payload.storeName);
+        if (payload.storeLang !== undefined) setStoreLang(payload.storeLang);
+        // storeDomain and storeCurrency can be added to config state if needed later
       }
     };
     window.addEventListener('message', handleMessage);
