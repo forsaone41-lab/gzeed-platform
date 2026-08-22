@@ -19,7 +19,9 @@ import {
   Eye,
   Trash2,
   X,
-  Upload
+  Upload,
+  Globe,
+  Search
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
@@ -56,6 +58,32 @@ export default function GZeedBuilder() {
   ]);
   const [heroSlides, setHeroSlides] = useState<Array<{image: string; title: string; subtitle: string; buttonText?: string; buttonLink?: string}>>([]);
   const [newPageName, setNewPageName] = useState('');
+
+  const [slideUnsplashPickerIdx, setSlideUnsplashPickerIdx] = useState<number | null>(null);
+  const [unsplashSearchQuery, setUnsplashSearchQuery] = useState('');
+  const [unsplashSearchResults, setUnsplashSearchResults] = useState<string[]>([]);
+  const [isSearchingUnsplash, setIsSearchingUnsplash] = useState(false);
+  const [unsplashSearchError, setUnsplashSearchError] = useState('');
+  const UNSPLASH_ACCESS_KEY = '-9T6_bObqAOMmPEAo_lhLYpyYXeyDrmhNNuCSxBpCM8';
+
+  const searchUnsplashPhotos = async (query: string) => {
+     if (!query.trim()) { setUnsplashSearchResults([]); setUnsplashSearchError(''); return; }
+     setIsSearchingUnsplash(true);
+     setUnsplashSearchError('');
+     try {
+        const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=24&orientation=landscape`, {
+           headers: { Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}` }
+        });
+        if (!res.ok) throw new Error('Unsplash request failed');
+        const data = await res.json();
+        setUnsplashSearchResults((data.results || []).map((p: any) => p.urls?.regular).filter(Boolean));
+     } catch (e) {
+        setUnsplashSearchError(lang === 'ar' ? 'تعذر البحث، حاول مرة أخرى' : 'Search failed, please try again');
+        setUnsplashSearchResults([]);
+     } finally {
+        setIsSearchingUnsplash(false);
+     }
+  };
 
   const updateConfigInIframe = (payload: any) => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -508,13 +536,18 @@ export default function GZeedBuilder() {
                                    <X className="w-4 h-4" />
                                  </button>
                                  <div className="flex gap-3 items-center">
-                                   <div className="w-16 h-16 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 relative">
-                                     {slide.image ? <img src={slide.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-400 text-[10px]">No Img</div>}
-                                     <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity">
-                                       <Upload className="w-4 h-4 text-white" />
-                                       <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, idx)} className="hidden" />
-                                     </label>
-                                   </div>
+                                    <div className="w-16 h-16 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 relative group/img">
+                                      {slide.image ? <img src={slide.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-400 text-[10px]">No Img</div>}
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                        <label className="cursor-pointer hover:bg-white/20 p-1 rounded-md transition-colors w-full text-center flex items-center justify-center">
+                                          <Upload className="w-3.5 h-3.5 text-white" />
+                                          <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, idx)} className="hidden" />
+                                        </label>
+                                        <button onClick={() => setSlideUnsplashPickerIdx(idx)} className="cursor-pointer hover:bg-white/20 p-1 rounded-md transition-colors w-full flex items-center justify-center">
+                                          <Search className="w-3.5 h-3.5 text-white" />
+                                        </button>
+                                      </div>
+                                    </div>
                                    <div className="flex-1 space-y-2">
                                      <input type="text" value={slide.image} onChange={(e) => handleUpdateSlide(idx, 'image', e.target.value)} placeholder="Image URL (Unsplash, etc.)" className="w-full p-2 border border-slate-200 rounded-md text-xs" />
                                      <input type="text" value={slide.title} onChange={(e) => handleUpdateSlide(idx, 'title', e.target.value)} placeholder="Slide Title" className="w-full p-2 border border-slate-200 rounded-md text-xs" />
@@ -656,6 +689,49 @@ export default function GZeedBuilder() {
           </div>
         </main>
       </div>
+
+      {slideUnsplashPickerIdx !== null && (
+         <div className="fixed inset-0 z-[9999] bg-slate-900/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => setSlideUnsplashPickerIdx(null)}>
+            <div className="bg-white w-full sm:max-w-3xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh' }}>
+               <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                  <h3 className="font-bold text-slate-800">{lang === 'ar' ? 'بحث في Unsplash' : 'Search Unsplash'}</h3>
+                  <button onClick={() => setSlideUnsplashPickerIdx(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-500"><X className="w-5 h-5"/></button>
+               </div>
+               
+               <div className="p-4 bg-slate-50">
+                  <form onSubmit={(e) => { e.preventDefault(); searchUnsplashPhotos(unsplashSearchQuery); }} className="relative">
+                     <Search className={`absolute w-5 h-5 text-slate-400 top-3 ${lang === 'ar' ? 'right-3' : 'left-3'}`} />
+                     <input type="text" value={unsplashSearchQuery} onChange={(e) => setUnsplashSearchQuery(e.target.value)} placeholder={lang === 'ar' ? 'ابحث عن صور (مثال: أزياء، عطور...)' : 'Search photos (e.g., fashion, perfume...)'} className={`w-full bg-white border border-slate-200 rounded-xl py-3 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${lang === 'ar' ? 'pr-10 pl-4' : 'pl-10 pr-4'}`} />
+                     <button type="submit" disabled={isSearchingUnsplash || !unsplashSearchQuery.trim()} className={`absolute top-2 ${lang === 'ar' ? 'left-2' : 'right-2'} bg-slate-900 text-white px-4 py-1.5 rounded-lg text-sm font-bold disabled:opacity-50 hover:bg-slate-800`}>
+                       {isSearchingUnsplash ? '...' : (lang === 'ar' ? 'بحث' : 'Search')}
+                     </button>
+                  </form>
+                  {unsplashSearchError && <p className="text-red-500 text-xs mt-2 font-medium">{unsplashSearchError}</p>}
+               </div>
+
+               <div className="p-4 overflow-y-auto flex-1 bg-white min-h-[300px]">
+                  {unsplashSearchResults.length > 0 ? (
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {unsplashSearchResults.map((url, i) => (
+                           <div key={i} onClick={() => {
+                             handleUpdateSlide(slideUnsplashPickerIdx, 'image', url);
+                             setSlideUnsplashPickerIdx(null);
+                           }} className="aspect-square rounded-xl overflow-hidden cursor-pointer group relative border border-slate-100 shadow-sm">
+                             <img src={url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                             <div className="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/20 transition-colors"></div>
+                           </div>
+                        ))}
+                     </div>
+                  ) : (
+                     <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                        <Globe className="w-12 h-12 mb-3 text-slate-200" />
+                        <p className="font-medium text-sm">{lang === 'ar' ? 'ابحث عن صور عالية الجودة مجاناً' : 'Search high quality photos for free'}</p>
+                     </div>
+                  )}
+               </div>
+            </div>
+         </div>
+      )}
     </div>
   );
 }
