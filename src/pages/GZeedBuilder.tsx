@@ -15,7 +15,9 @@ import {
   Redo,
   Box,
   Plus,
-  ExternalLink
+  ExternalLink,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
@@ -35,7 +37,17 @@ export default function GZeedBuilder() {
   const [activeColor, setActiveColor] = useState('#0f172a');
   const [activeFont, setActiveFont] = useState('font-sans');
   const [activeCardStyle, setActiveCardStyle] = useState('rounded');
+  const [hiddenSections, setHiddenSections] = useState<string[]>([]);
 
+  const handleToggleSection = (sectionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setHiddenSections(prev => 
+      prev.includes(sectionId) ? prev.filter(s => s !== sectionId) : [...prev, sectionId]
+    );
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ type: 'TOGGLE_SECTION', payload: sectionId }, '*');
+    }
+  };
   const updateThemeInIframe = (payload: any) => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
       iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_THEME', payload }, '*');
@@ -290,14 +302,19 @@ export default function GZeedBuilder() {
                   { id: 'products', icon: Box, label: lang === 'ar' ? 'شبكة المنتجات' : lang === 'en' ? 'Product Grid' : 'Grille de Produits' },
                   { id: 'footer', icon: Layout, label: lang === 'ar' ? 'تذييل الصفحة' : lang === 'en' ? 'Footer' : 'Pied de page' }
                 ].map((section, idx) => (
-                  <div key={idx} onClick={() => handleSectionClick(section.id)} className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-400 hover:shadow-md transition-all group">
+                  <div key={idx} onClick={() => handleSectionClick(section.id)} className={`p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-400 hover:shadow-md transition-all group ${hiddenSections.includes(section.id) ? 'opacity-50 grayscale' : ''}`}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-cyan-600 transition-colors">
                         <section.icon className="w-4 h-4" />
                       </div>
                       <span className="font-bold text-slate-700">{section.label}</span>
                     </div>
-                    <Settings className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="flex items-center gap-2">
+                      <button onClick={(e) => handleToggleSection(section.id, e)} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+                        {hiddenSections.includes(section.id) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                      <Settings className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
                   </div>
                 ))}
                 <button className="w-full py-4 mt-6 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-cyan-400 hover:text-cyan-600 hover:bg-cyan-50 transition-all flex items-center justify-center gap-2">

@@ -863,6 +863,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
 
   // Theme Inline Texts
   const [heroTitle, setHeroTitle] = useState(config.heroTitle || 'New Collection');
+  const [hiddenSections, setHiddenSections] = useState<string[]>(config.hiddenSections || []);
   const [heroSubtitle, setHeroSubtitle] = useState(config.heroSubtitle || 'Discover our latest premium quality garments.');
   const [heroButtonText, setHeroButtonText] = useState(config.heroButtonText || 'Shop Now');
   const [homeCollectionsTitle, setHomeCollectionsTitle] = useState(config.homeCollectionsTitle || 'Trending Now');
@@ -1366,6 +1367,13 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
             }, 1200);
           }
         }
+      }
+      if (event.data?.type === 'TOGGLE_SECTION') {
+        setHiddenSections(prev => 
+          prev.includes(event.data.payload) 
+            ? prev.filter(s => s !== event.data.payload)
+            : [...prev, event.data.payload]
+        );
       }
     };
     window.addEventListener('message', handleMessage);
@@ -1903,6 +1911,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
 
   const ThemeFooter = ({ bgColor, textColor, setPage }: any) => {
+     if (hiddenSections.includes('footer')) return null;
      const effBg = bgColor || footerBgColor;
      const effText = textColor || footerTextColor;
      return (
@@ -2192,6 +2201,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
   };
 
   const StoreHeaderNavbar = ({ variant = 'light', page, setPage, isModal = false }: any) => {
+    if (hiddenSections.includes('header')) return null;
     const isDark = variant === 'dark';
     const bgStyle = headerBgColor && headerBgColor !== '#ffffff' 
       ? { backgroundColor: headerBgColor, color: headerTextColor || (isDark ? '#ffffff' : '#0f172a') }
@@ -5072,26 +5082,29 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
       <div className={`w-full min-h-screen bg-[#faf8f7] ${fontFamily} flex flex-col`}>
         {page === 'home' && (
            <div className="flex-1 animate-in fade-in duration-700">
-              <HeroBackgroundEditor styleKey="heroBg" id="store-hero">
-                 <div className="relative pt-12 pb-24 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
-                    <div className="w-full md:w-1/2 z-10 text-center md:text-left">
-                       <div className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}>
-                          {storeIsAr ? 'مجموعة جديدة' : 'NOUVELLE COLLECTION'}
+              {!hiddenSections.includes('hero') && (
+                 <HeroBackgroundEditor styleKey="heroBg" id="store-hero">
+                    <div className="relative pt-12 pb-24 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
+                       <div className="w-full md:w-1/2 z-10 text-center md:text-left">
+                          <div className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}>
+                             {storeIsAr ? 'مجموعة جديدة' : 'NOUVELLE COLLECTION'}
+                          </div>
+                          <EditableText as="h1" text={heroTitle || (storeIsAr ? 'جمالك الطبيعي، يبرز أكثر' : 'Révélez votre beauté naturelle.')} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className="text-5xl md:text-6xl font-serif text-slate-900 leading-tight mb-6" styleKey="heroTitle" />
+                          <EditableText as="p" text={heroSubtitle || (storeIsAr ? 'اكتشفي أحدث منتجات التجميل والعناية بالبشرة.' : 'Découvrez nos derniers produits de soin et maquillage.')} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-lg text-slate-600 mb-8 max-w-md mx-auto md:mx-0" styleKey="heroSubtitle" />
+                          <button onClick={() => setPage('collections')} className="px-10 py-4 rounded-full text-white font-bold tracking-wide shadow-xl transition-transform hover:scale-105" style={{ backgroundColor: primaryColor }}>
+                             {storeIsAr ? 'تسوقي الآن' : 'Découvrir'}
+                          </button>
                        </div>
-                       <EditableText as="h1" text={heroTitle || (storeIsAr ? 'جمالك الطبيعي، يبرز أكثر' : 'Révélez votre beauté naturelle.')} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className="text-5xl md:text-6xl font-serif text-slate-900 leading-tight mb-6" styleKey="heroTitle" />
-                       <EditableText as="p" text={heroSubtitle || (storeIsAr ? 'اكتشفي أحدث منتجات التجميل والعناية بالبشرة.' : 'Découvrez nos derniers produits de soin et maquillage.')} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-lg text-slate-600 mb-8 max-w-md mx-auto md:mx-0" styleKey="heroSubtitle" />
-                       <button onClick={() => setPage('collections')} className="px-10 py-4 rounded-full text-white font-bold tracking-wide shadow-xl transition-transform hover:scale-105" style={{ backgroundColor: primaryColor }}>
-                          {storeIsAr ? 'تسوقي الآن' : 'Découvrir'}
-                       </button>
+                       <div className="w-full md:w-1/2 relative">
+                          <div className="absolute inset-0 bg-gradient-to-tr from-pink-100 to-rose-50 rounded-full blur-3xl opacity-70"></div>
+                          <img src={heroImage || "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800&auto=format&fit=crop"} className="relative z-10 rounded-[2rem] shadow-2xl object-cover aspect-[4/5] w-full max-w-md mx-auto transform -rotate-2 hover:rotate-0 transition-transform duration-500" alt="Beauty" />
+                       </div>
                     </div>
-                    <div className="w-full md:w-1/2 relative">
-                       <div className="absolute inset-0 bg-gradient-to-tr from-pink-100 to-rose-50 rounded-full blur-3xl opacity-70"></div>
-                       <img src={heroImage || "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800&auto=format&fit=crop"} className="relative z-10 rounded-[2rem] shadow-2xl object-cover aspect-[4/5] w-full max-w-md mx-auto transform -rotate-2 hover:rotate-0 transition-transform duration-500" alt="Beauty" />
-                    </div>
-                 </div>
-              </HeroBackgroundEditor>
+                 </HeroBackgroundEditor>
+              )}
 
-              <div id="store-products" className="max-w-7xl mx-auto px-4 md:px-8 py-20">
+              {!hiddenSections.includes('products') && (
+                 <div id="store-products" className="max-w-7xl mx-auto px-4 md:px-8 py-20">
                  <div className="text-center mb-16">
                     <h3 className="text-3xl font-serif text-slate-900 mb-4">{storeIsAr ? 'المنتجات الأكثر مبيعاً' : 'Best Sellers'}</h3>
                     <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: primaryColor }}></div>
@@ -5110,7 +5123,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                        </div>
                     ))}
                  </div>
-              </div>
+                 </div>
+              )}
            </div>
         )}
 
