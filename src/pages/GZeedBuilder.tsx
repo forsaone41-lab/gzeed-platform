@@ -17,9 +17,9 @@ import {
   Plus,
   ExternalLink,
   Eye,
-  EyeOff,
   Trash2,
-  X
+  X,
+  Upload
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
