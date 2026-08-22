@@ -1516,6 +1516,13 @@ export default function GZeedDashboard() {
                     image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop",
                     desc: lang === "ar" ? "تصميم عصري للملابس" : lang === "en" ? "Modern fashion layout" : "Layout mode moderne",
                   },
+                  {
+                    id: "glamour-beauty",
+                    category: "store",
+                    name: lang === "ar" ? "مكياج وتجميل" : lang === "en" ? "Glamour Beauty" : "Glamour Beauté",
+                    image: "https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "قالب متطور لمستحضرات التجميل" : lang === "en" ? "Advanced layout for cosmetics" : "Layout avancé pour cosmétiques",
+                  },
                 ]
                   .filter(
                     (theme) =>

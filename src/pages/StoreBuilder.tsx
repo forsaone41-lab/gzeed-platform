@@ -41,6 +41,7 @@ const THEMES = [
   { id: 'streetwear', name: 'Streetwear Pro', layout: 'hero-center', defaultColor: '#0f172a', defaultFont: 'font-sans', tier: 'free', previewImg: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop' },
   { id: 'minimalist', name: 'Minimalist', layout: 'split-screen', defaultColor: '#171717', defaultFont: 'font-serif', tier: 'free', previewImg: 'https://images.unsplash.com/photo-1489987707023-afc7f93c6508?q=80&w=800&auto=format&fit=crop' },
   // PRO themes - locked behind the store's subscription_tier (admin-controlled, see stores.subscription_tier)
+  { id: 'glamour-beauty', name: 'Glamour Beauty', layout: 'glamour-beauty', defaultColor: '#ec4899', defaultFont: 'font-serif', tier: 'pro', previewImg: 'https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=800&auto=format&fit=crop' },
   { id: 'abaya', name: 'Luxury Abaya', layout: 'elegant', defaultColor: '#b48a44', defaultFont: 'font-serif', tier: 'pro', previewImg: 'https://images.unsplash.com/photo-1589465885857-44edb59bbff2?q=80&w=800&auto=format&fit=crop' },
   { id: 'sportswear', name: 'Active Sport', layout: 'hero-center', defaultColor: '#84cc16', defaultFont: 'font-sans', tier: 'pro', previewImg: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800&auto=format&fit=crop' },
   { id: 'eco', name: 'Eco Nature', layout: 'split-screen', defaultColor: '#4d7c0f', defaultFont: 'font-serif', tier: 'pro', previewImg: 'https://images.unsplash.com/photo-1523381294911-8d3cead13475?q=80&w=800&auto=format&fit=crop' },
@@ -5041,6 +5042,133 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
     );
   };
 
+  // ======= LAYOUT GLAMOUR (BEAUTY & COSMETICS) =======
+  const LayoutGlamour = ({ isModal = false, page, setPage, activeProductId, navigateToProduct, buyMode, categories, activeCategory, setActiveCategory, filteredProducts, sortBy, setSortBy, setIsCartOpen, submitGlobalOrder, storeProducts }: any) => {
+    const primaryColor = config?.primaryColor || activeTheme?.defaultColor;
+    const fontFamily = config?.fontFamily || activeTheme?.defaultFont;
+    
+    return (
+      <div className={`w-full min-h-screen bg-[#faf8f7] ${fontFamily} flex flex-col`}>
+        {page === 'home' && (
+           <div className="flex-1 animate-in fade-in duration-700">
+              <HeroBackgroundEditor styleKey="heroBg">
+                 <div className="relative pt-12 pb-24 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
+                    <div className="w-full md:w-1/2 z-10 text-center md:text-left">
+                       <div className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6" style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}>
+                          {storeIsAr ? 'مجموعة جديدة' : 'NOUVELLE COLLECTION'}
+                       </div>
+                       <EditableText as="h1" text={heroTitle || (storeIsAr ? 'جمالك الطبيعي، يبرز أكثر' : 'Révélez votre beauté naturelle.')} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className="text-5xl md:text-6xl font-serif text-slate-900 leading-tight mb-6" styleKey="heroTitle" />
+                       <EditableText as="p" text={heroSubtitle || (storeIsAr ? 'اكتشفي أحدث منتجات التجميل والعناية بالبشرة.' : 'Découvrez nos derniers produits de soin et maquillage.')} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-lg text-slate-600 mb-8 max-w-md mx-auto md:mx-0" styleKey="heroSubtitle" />
+                       <button onClick={() => setPage('collections')} className="px-10 py-4 rounded-full text-white font-bold tracking-wide shadow-xl transition-transform hover:scale-105" style={{ backgroundColor: primaryColor }}>
+                          {storeIsAr ? 'تسوقي الآن' : 'Découvrir'}
+                       </button>
+                    </div>
+                    <div className="w-full md:w-1/2 relative">
+                       <div className="absolute inset-0 bg-gradient-to-tr from-pink-100 to-rose-50 rounded-full blur-3xl opacity-70"></div>
+                       <img src="https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=800&auto=format&fit=crop" className="relative z-10 rounded-[2rem] shadow-2xl object-cover aspect-[4/5] w-full max-w-md mx-auto transform -rotate-2 hover:rotate-0 transition-transform duration-500" alt="Beauty" />
+                    </div>
+                 </div>
+              </HeroBackgroundEditor>
+
+              <div className="max-w-7xl mx-auto px-4 md:px-8 py-20">
+                 <div className="text-center mb-16">
+                    <h3 className="text-3xl font-serif text-slate-900 mb-4">{storeIsAr ? 'المنتجات الأكثر مبيعاً' : 'Best Sellers'}</h3>
+                    <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: primaryColor }}></div>
+                 </div>
+                 
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {storeProducts.map((p: any) => (
+                       <div key={p.id} onClick={() => navigateToProduct(p.id)} className="group cursor-pointer bg-white rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all duration-300">
+                          <div className="relative aspect-square rounded-xl overflow-hidden mb-4 bg-slate-50">
+                             <img src={getCoverImage(p) as string} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={p.name} />
+                          </div>
+                          <div className="text-center px-2">
+                             <h4 className="font-serif text-lg text-slate-900 mb-1 line-clamp-1">{p.name}</h4>
+                             <p className="text-sm font-bold" style={{ color: primaryColor }}>{p.price} MAD</p>
+                          </div>
+                       </div>
+                    ))}
+                 </div>
+              </div>
+           </div>
+        )}
+
+        {page === 'product' && activeProductId && (() => {
+           const product = storeProducts.find((p: any) => p.id === activeProductId);
+           if (!product) return null;
+           return (
+              <div className="flex-1 max-w-6xl mx-auto px-4 md:px-8 py-12 animate-in fade-in">
+                 <button onClick={() => setPage('home')} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 mb-8"><ArrowLeft className="w-4 h-4"/> {storeIsAr ? 'العودة' : 'Retour'}</button>
+                 <div className="bg-white rounded-[2rem] shadow-sm p-6 md:p-12 flex flex-col md:flex-row gap-12">
+                    <div className="w-full md:w-1/2">
+                       <img src={getCoverImage(product) as string} className="w-full aspect-square object-cover rounded-2xl bg-slate-50" />
+                    </div>
+                    <div className="w-full md:w-1/2 flex flex-col justify-center">
+                       <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: primaryColor }}>{product.category || (storeIsAr ? 'مستحضرات تجميل' : 'Cosmétiques')}</p>
+                       <h1 className="text-3xl md:text-4xl font-serif text-slate-900 mb-4">{product.name}</h1>
+                       <div className="text-3xl font-light text-slate-900 mb-8">{product.price} MAD</div>
+                       <p className="text-slate-600 mb-10 leading-relaxed text-sm md:text-base">{product.description || (storeIsAr ? 'منتج رائع يعتني بجمالك.' : 'Un produit parfait pour votre routine beauté.')}</p>
+                       <button onClick={() => setPage('checkout')} className="w-full py-4 rounded-full text-white font-bold shadow-lg transition-transform hover:scale-[1.02] flex items-center justify-center gap-3" style={{ backgroundColor: primaryColor }}>
+                          <ShoppingBag className="w-5 h-5" /> {storeIsAr ? 'اشتري الآن' : 'Acheter maintenant'}
+                       </button>
+                    </div>
+                 </div>
+              </div>
+           );
+        })()}
+
+        {page === 'checkout' && (
+           <div className="flex-1 max-w-3xl mx-auto px-4 md:px-8 py-12 animate-in fade-in">
+              <div className="flex items-center mb-8">
+                 <button onClick={() => setPage('product')} className="w-10 h-10 border border-slate-200 rounded-full flex items-center justify-center hover:bg-slate-50 mr-4"><ArrowLeft className="w-4 h-4 text-slate-900" /></button>
+                 <h2 className="text-2xl font-serif text-slate-900">{storeIsAr ? 'إتمام الطلب' : 'Finaliser la commande'}</h2>
+              </div>
+              <div className="bg-white p-8 border border-pink-100 shadow-xl shadow-pink-100/50 rounded-3xl">
+                 <CheckoutForm
+                     storeIsAr={storeIsAr}
+                     onSubmit={submitGlobalOrder}
+                     product={storeProducts.find((p: any) => p.id === activeProductId) || storeProducts[0]}
+                     quantity={1}
+                  />
+              </div>
+           </div>
+        )}
+
+        {page === 'collections' && (
+           <div className="flex-1 max-w-7xl mx-auto px-4 md:px-8 py-12 animate-in fade-in">
+              <h2 className="text-3xl font-serif text-slate-900 mb-10 text-center">{storeIsAr ? 'كل المنتجات' : 'Tous les produits'}</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                 {filteredProducts.map((p: any) => (
+                    <div key={p.id} onClick={() => navigateToProduct(p.id)} className="group cursor-pointer bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all">
+                       <div className="relative aspect-square rounded-xl overflow-hidden mb-4 bg-slate-50">
+                          <img src={getCoverImage(p) as string} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                       </div>
+                       <h4 className="font-serif text-slate-800 mb-1 text-sm md:text-base line-clamp-1 text-center">{p.name}</h4>
+                       <p className="font-bold text-center text-sm" style={{ color: primaryColor }}>{p.price} MAD</p>
+                    </div>
+                 ))}
+              </div>
+           </div>
+        )}
+
+        {page === 'success' && (
+           <div className="flex-1 max-w-2xl mx-auto px-4 py-24 text-center animate-in fade-in">
+              <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg shadow-pink-100" style={{ backgroundColor: `${primaryColor}15` }}>
+                 <CheckCircle className="w-12 h-12" style={{ color: primaryColor }} />
+              </div>
+              <h2 className="text-3xl font-serif text-slate-900 mb-4">{storeIsAr ? 'شكراً لطلبك!' : 'Merci pour votre commande !'}</h2>
+              <p className="text-slate-500 mb-10">{storeIsAr ? 'سنتصل بك قريباً لتأكيد الطلب.' : 'Nous vous contacterons bientôt pour confirmer.'}</p>
+              <button onClick={() => setPage('home')} className="px-10 py-3 rounded-full text-white font-bold transition-transform hover:scale-105" style={{ backgroundColor: primaryColor }}>
+                 {storeIsAr ? 'العودة للمتجر' : 'Retour à la boutique'}
+              </button>
+           </div>
+        )}
+
+        <ThemeFooter setPage={setPage} />
+      </div>
+    );
+  };
+
   const Layout = () => {
        if (activeTheme.layout === 'hero-center') return <LayoutHeroCenter {...props} />;
        if (activeTheme.layout === 'split-screen' || activeTheme.layout === 'sidebar-right') return <LayoutSplitScreen {...props} />;
@@ -5053,6 +5181,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
        if (activeTheme.layout === 'pro-lamode') return <LayoutProLamode {...props} />;
        if (activeTheme.layout === 'clement') return <LayoutClement {...props} />;
        if (activeTheme.layout === 'atelier') return <LayoutAtelier {...props} />;
+       if (activeTheme.layout === 'glamour-beauty') return <LayoutGlamour {...props} />;
        return <LayoutHeroCenter {...props} />;
     };
 
