@@ -46,6 +46,13 @@ export default function GZeedBuilder() {
   const [activeFont, setActiveFont] = useState('font-sans');
   const [activeCardStyle, setActiveCardStyle] = useState('rounded');
   const [hiddenSections, setHiddenSections] = useState<string[]>([]);
+  const [activeConfigSection, setActiveConfigSection] = useState<string | null>(null);
+
+  const updateConfigInIframe = (payload: any) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_CONFIG', payload }, '*');
+    }
+  };
 
   const handleToggleSection = (sectionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -322,7 +329,7 @@ export default function GZeedBuilder() {
               </div>
             )}
             
-            {activeSidebarTab === 'sections' && (
+            {activeSidebarTab === 'sections' && !activeConfigSection && (
               <div className="space-y-3 animate-fade-in">
                 {[
                   { id: 'header', icon: Layout, label: lang === 'ar' ? 'الشريط العلوي' : lang === 'en' ? 'Header Navigation' : 'En-tête' },
@@ -330,7 +337,7 @@ export default function GZeedBuilder() {
                   { id: 'products', icon: Box, label: lang === 'ar' ? 'شبكة المنتجات' : lang === 'en' ? 'Product Grid' : 'Grille de Produits' },
                   { id: 'footer', icon: Layout, label: lang === 'ar' ? 'تذييل الصفحة' : lang === 'en' ? 'Footer' : 'Pied de page' }
                 ].map((section, idx) => (
-                  <div key={idx} onClick={() => handleSectionClick(section.id)} className={`p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-400 hover:shadow-md transition-all group ${hiddenSections.includes(section.id) ? 'opacity-50 grayscale' : ''}`}>
+                  <div key={idx} onClick={() => { handleSectionClick(section.id); setActiveConfigSection(section.id); }} className={`p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-400 hover:shadow-md transition-all group ${hiddenSections.includes(section.id) ? 'opacity-50 grayscale' : ''}`}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-cyan-600 transition-colors">
                         <section.icon className="w-4 h-4" />
@@ -351,6 +358,56 @@ export default function GZeedBuilder() {
                 </button>
               </div>
             )}
+
+            {activeSidebarTab === 'sections' && activeConfigSection && (
+               <div className="space-y-6 animate-fade-in">
+                  <button onClick={() => setActiveConfigSection(null)} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900">
+                     <ArrowLeft className="w-4 h-4" /> {lang === 'ar' ? 'رجوع للأقسام' : 'Back to Sections'}
+                  </button>
+                  
+                  {activeConfigSection === 'header' && (
+                     <div className="space-y-4">
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'رابط شعار المتجر' : 'Store Logo URL'}</label>
+                           <input type="text" onChange={(e) => updateConfigInIframe({ storeLogo: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="https://..." />
+                        </div>
+                        <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار البحث' : 'Show Search'}</span>
+                           <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showHeaderSearch: e.target.checked })} />
+                        </div>
+                        <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار اللغة' : 'Show Language'}</span>
+                           <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showHeaderLang: e.target.checked })} />
+                        </div>
+                        <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار الحساب' : 'Show Account'}</span>
+                           <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showHeaderAccount: e.target.checked })} />
+                        </div>
+                     </div>
+                  )}
+
+                  {activeConfigSection === 'hero' && (
+                     <div className="space-y-4">
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'العنوان الرئيسي' : 'Hero Title'}</label>
+                           <input type="text" onChange={(e) => updateConfigInIframe({ heroTitle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="New Collection" />
+                        </div>
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'النص الفرعي' : 'Hero Subtitle'}</label>
+                           <input type="text" onChange={(e) => updateConfigInIframe({ heroSubtitle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="Discover our latest..." />
+                        </div>
+                     </div>
+                  )}
+                  
+                  {(activeConfigSection === 'products' || activeConfigSection === 'footer') && (
+                     <div className="p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
+                        <Settings className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">{lang === 'ar' ? 'يمكنك تعديل هذا القسم مباشرة من الشاشة الجانبية' : 'You can edit this section directly from the preview'}</p>
+                     </div>
+                  )}
+               </div>
+            )}
+
 
             {activeSidebarTab === 'settings' && (
               <div className="flex flex-col items-center justify-center py-20 text-slate-400 text-center animate-fade-in">

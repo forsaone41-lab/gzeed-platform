@@ -1375,6 +1375,15 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
             : [...prev, event.data.payload]
         );
       }
+      if (event.data?.type === 'UPDATE_CONFIG') {
+        const payload = event.data.payload;
+        if (payload.storeLogo !== undefined) setStoreLogo(payload.storeLogo);
+        if (payload.heroTitle !== undefined) setHeroTitle(payload.heroTitle);
+        if (payload.heroSubtitle !== undefined) setHeroSubtitle(payload.heroSubtitle);
+        if (payload.showHeaderSearch !== undefined) setShowHeaderSearch(payload.showHeaderSearch);
+        if (payload.showHeaderLang !== undefined) setShowHeaderLang(payload.showHeaderLang);
+        if (payload.showHeaderAccount !== undefined) setShowHeaderAccount(payload.showHeaderAccount);
+      }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
