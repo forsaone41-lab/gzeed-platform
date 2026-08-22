@@ -1489,55 +1489,6 @@ export default function GZeedDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
                   {
-                    id: "streetwear",
-                    category: "store",
-                    name: lang === "ar" ? "ستريت وير برو" : lang === "en" ? "Streetwear Pro" : "Streetwear Pro",
-                    image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "تصميم عصري للملابس" : lang === "en" ? "Modern fashion layout" : "Layout mode moderne",
-                  },
-                  {
-                    id: "minimalist",
-                    category: "store",
-                    name: lang === "ar" ? "مينيماليست" : lang === "en" ? "Minimalist" : "Minimaliste",
-                    image: "https://images.unsplash.com/photo-1489987707023-afc7f93c6508?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "تصميم بسيط ونقي" : lang === "en" ? "Clean and simple" : "Propre et simple",
-                  },
-                  {
-                    id: "abaya",
-                    category: "store",
-                    name: lang === "ar" ? "عباية فاخرة" : lang === "en" ? "Luxury Abaya" : "Abaya de Luxe",
-                    image: "https://images.unsplash.com/photo-1589465885857-44edb59bbff2?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "تصميم أنيق وفاخر" : lang === "en" ? "Elegant and luxury design" : "Design élégant et luxe",
-                  },
-                  {
-                    id: "sportswear",
-                    category: "store",
-                    name: lang === "ar" ? "رياضة نشطة" : lang === "en" ? "Active Sport" : "Sport Actif",
-                    image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "للملابس والمعدات الرياضية" : lang === "en" ? "For sports apparel" : "Pour vêtements de sport",
-                  },
-                  {
-                    id: "eco",
-                    category: "store",
-                    name: lang === "ar" ? "طبيعة إيكو" : lang === "en" ? "Eco Nature" : "Eco Nature",
-                    image: "https://images.unsplash.com/photo-1523381294911-8d3cead13475?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "منتجات طبيعية وعضوية" : lang === "en" ? "Natural and organic products" : "Produits naturels et bio",
-                  },
-                  {
-                    id: "kids",
-                    category: "store",
-                    name: lang === "ar" ? "أطفال مرحون" : lang === "en" ? "Playful Kids" : "Enfants Ludiques",
-                    image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "تصميم مبهج للأطفال" : lang === "en" ? "Fun design for kids" : "Design amusant pour enfants",
-                  },
-                  {
-                    id: "blush-studio",
-                    category: "store",
-                    name: lang === "ar" ? "لامود برو" : lang === "en" ? "Lamode App (Pro)" : "Lamode App (Pro)",
-                    image: "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "تصميم تطبيقات احترافي" : lang === "en" ? "Pro app-like design" : "Design type application Pro",
-                  },
-                  {
                     id: "emerald-market",
                     category: "store",
                     name: lang === "ar" ? "ألتيميت ستور" : lang === "en" ? "Ultimate Store (Pro)" : "Ultimate Store (Pro)",
@@ -1552,18 +1503,18 @@ export default function GZeedDashboard() {
                     desc: lang === "ar" ? "مثالي للمطاعم والمقاهي" : lang === "en" ? "Perfect for restaurants" : "Parfait pour les restaurants",
                   },
                   {
-                    id: "mazia",
+                    id: "eco",
                     category: "store",
-                    name: lang === "ar" ? "مازيا ديزاين" : lang === "en" ? "Mazia Design" : "Mazia Design",
-                    image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "تصميم فريد وجذاب" : lang === "en" ? "Unique and attractive design" : "Design unique et attractif",
+                    name: lang === "ar" ? "طبيعة إيكو" : lang === "en" ? "Eco Nature" : "Eco Nature",
+                    image: "https://images.unsplash.com/photo-1523381294911-8d3cead13475?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "منتجات طبيعية وعضوية" : lang === "en" ? "Natural and organic products" : "Produits naturels et bio",
                   },
                   {
-                    id: "blank",
-                    category: "dev",
-                    name: lang === "ar" ? "قالب فارغ (للمطورين)" : lang === "en" ? "Blank Theme (Dev)" : "Thème Vide (Dev)",
-                    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop",
-                    desc: lang === "ar" ? "أكواد فارغة للبدء من الصفر" : lang === "en" ? "Start from scratch" : "Commencer de zéro",
+                    id: "streetwear",
+                    category: "store",
+                    name: lang === "ar" ? "ستريت وير برو" : lang === "en" ? "Streetwear Pro" : "Streetwear Pro",
+                    image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "تصميم عصري للملابس" : lang === "en" ? "Modern fashion layout" : "Layout mode moderne",
                   },
                 ]
                   .filter(
