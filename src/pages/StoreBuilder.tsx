@@ -5325,9 +5325,13 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
   };
 
   // ======= LAYOUT GLAMOUR (BEAUTY & COSMETICS) =======
-  const LayoutGlamour = ({ isModal = false, page, setPage, activeProductId, navigateToProduct, buyMode, categories, activeCategory, setActiveCategory, filteredProducts, sortBy, setSortBy, setIsCartOpen, submitGlobalOrder, storeProducts }: any) => {
+  const LayoutGlamour = ({ isModal = false, page, setPage, activeProductId, navigateToProduct, buyMode, categories, activeCategory, setActiveCategory, filteredProducts, sortBy, setSortBy, setIsCartOpen, submitGlobalOrder, storeProducts, quickBuyContext, setQuickBuyContext }: any) => {
     const primaryColor = config?.primaryColor || activeTheme?.defaultColor;
     const fontFamily = config?.fontFamily || activeTheme?.defaultFont;
+    const [selectedSize, setSelectedSize] = useState<string>('');
+    const [selectedColor, setSelectedColor] = useState<string>('');
+    const [selectedCustomVariants, setSelectedCustomVariants] = useState<Record<string, string>>({});
+    const [quantity, setQuantity] = useState(1);
     
     return (
       <div className={`w-full min-h-screen bg-[#faf8f7] ${fontFamily} flex flex-col`}>
@@ -5488,10 +5492,82 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: primaryColor }}>{product.category || (storeIsAr ? 'مستحضرات تجميل' : 'Cosmétiques')}</p>
                        <h1 className={`${pdpTitleSize} font-serif text-slate-900 mb-4`}>{product.name}</h1>
                        <div className="text-3xl font-light text-slate-900 mb-8">{product.price} MAD</div>
-                       <p className={`text-slate-600 mb-10 leading-relaxed ${pdpDescSize}`}>{product.description || (storeIsAr ? 'منتج رائع يعتني بجمالك.' : 'Un produit parfait pour votre routine beauté.')}</p>
-                       <button onClick={() => setPage('checkout')} className={`w-full rounded-full text-white font-bold shadow-lg transition-transform hover:scale-[1.02] flex items-center justify-center gap-3 ${pdpButtonSize}`} style={{ backgroundColor: primaryColor }}>
-                          <ShoppingBag className="w-5 h-5" /> {storeIsAr ? 'اشتري الآن' : 'Acheter maintenant'}
-                       </button>
+                       <p className={`text-slate-600 mb-8 leading-relaxed ${pdpDescSize}`}>{product.description || (storeIsAr ? 'منتج رائع يعتني بجمالك.' : 'Un produit parfait pour votre routine beauté.')}</p>
+
+                       <div className="space-y-6 mb-8">
+                          {product.colors?.filter((c:string)=>c.trim()!=='').length > 0 && (
+                             <div>
+                                <span className="text-sm font-bold uppercase tracking-widest text-slate-800 mb-3 block">{storeIsAr ? 'لون' : 'Couleur'}</span>
+                                <div className="flex gap-2">
+                                   {product.colors.filter((c:string)=>c.trim()!=='').map((c: string) => (
+                                      <button key={tr(c)} onClick={() => setSelectedColor(c)} className={`w-8 h-8 rounded-full border-2 transition-transform ${selectedColor === c ? 'border-slate-900 scale-110' : 'border-transparent hover:scale-105 shadow-sm'}`} style={{ backgroundColor: c }} />
+                                   ))}
+                                </div>
+                             </div>
+                          )}
+                          {product.sizes?.filter((s:string)=>s.trim()!=='').length > 0 && (
+                             <div>
+                                <div className="flex items-center justify-between mb-3">
+                                   <span className="text-sm font-bold uppercase tracking-widest text-slate-800 block">{storeIsAr ? 'المقاس' : 'Taille'}</span>
+                                   <SizeGuideButton ficheId={product.ficheId} />
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                   {product.sizes.map((s: string) => (
+                                      <button key={s} onClick={() => setSelectedSize(s)} className={`min-w-[40px] h-10 px-3 text-sm font-bold uppercase tracking-widest transition-colors border rounded-xl ${selectedSize === s ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-900'}`}>
+                                         {s}
+                                      </button>
+                                   ))}
+                                </div>
+                             </div>
+                          )}
+                          {product.customVariants?.map((v: any, vi: number) => (
+                             <div key={vi}>
+                                <span className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-3 block">{v.name}</span>
+                                <div className="flex flex-wrap gap-2">
+                                   {v.options?.map((opt: any, oi: number) => (
+                                      <button key={oi} onClick={() => setSelectedCustomVariants(prev => ({...prev, [v.name]: opt.name}))} className={`flex items-center gap-2 px-4 py-2 text-sm font-bold border rounded-xl transition-colors ${selectedCustomVariants[v.name] === opt.name ? 'border-slate-900 bg-slate-900 text-white' : 'bg-white border-slate-200 hover:border-slate-900 text-slate-700'}`}>
+                                         {opt.image && <img src={opt.image} alt={opt.name} className="w-5 h-5 rounded-full object-cover" />}
+                                         {opt.name}
+                                      </button>
+                                   ))}
+                                </div>
+                             </div>
+                          ))}
+
+                          <div>
+                             <span className="text-sm font-bold uppercase tracking-widest text-slate-800 mb-3 block">{storeIsAr ? 'الكمية' : 'Quantité'}</span>
+                             <div className="flex items-center gap-4">
+                                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 border border-slate-200 rounded-xl flex items-center justify-center text-lg hover:border-slate-900 transition-colors">-</button>
+                                <span className="text-base font-bold w-4 text-center">{quantity}</span>
+                                <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 border border-slate-200 rounded-xl flex items-center justify-center text-lg hover:border-slate-900 transition-colors">+</button>
+                             </div>
+                          </div>
+                       </div>
+
+                       <div className="flex flex-col gap-3">
+                         {(buyMode === 'both' || buyMode === 'cart') && (
+                            <button onClick={(e) => handleAddToCart(e, product, quantity, selectedColor, selectedSize, selectedCustomVariants)} className={`w-full rounded-full text-slate-900 bg-white border-2 border-slate-900 font-bold transition-transform hover:scale-[1.02] flex items-center justify-center gap-3 ${pdpButtonSize}`}>
+                               {storeIsAr ? 'أضف للسلة' : 'Ajouter au panier'}
+                            </button>
+                         )}
+                         {(buyMode === 'both' || buyMode === 'direct') && (
+                            <button onClick={() => {
+                                 if (product.colors?.filter((c:string)=>c.trim()!=='').length > 0 && !selectedColor) { alert(storeIsAr ? 'الرجاء اختيار اللون أولاً' : 'Veuillez choisir une couleur d\'abord'); return; }
+                                 if (product.sizes?.filter((s:string)=>s.trim()!=='').length > 0 && !selectedSize) { alert(storeIsAr ? 'الرجاء اختيار المقاس أولاً' : 'Veuillez choisir une taille d\'abord'); return; }
+                                 if (product.customVariants?.length > 0) {
+                                    const missing = product.customVariants.find((v:any) => !selectedCustomVariants[v.name]);
+                                    if (missing) {
+                                       alert(storeIsAr ? `الرجاء اختيار ${missing.name} أولاً` : `Veuillez choisir ${missing.name} d'abord`);
+                                       return;
+                                    }
+                                 }
+                                 setQuickBuyContext?.({ product, quantity, selectedColor, selectedSize, customVariants: selectedCustomVariants, setPage });
+                                 if (!setQuickBuyContext) setPage('checkout');
+                            }} className={`w-full rounded-full text-white font-bold shadow-lg transition-transform hover:scale-[1.02] flex items-center justify-center gap-3 ${pdpButtonSize}`} style={{ backgroundColor: primaryColor }}>
+                               <ShoppingBag className="w-5 h-5" /> {storeIsAr ? 'اشتري الآن' : 'Acheter maintenant'}
+                            </button>
+                         )}
+                       </div>
                     </div>
                  </div>
 
