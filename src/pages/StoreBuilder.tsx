@@ -186,9 +186,14 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
   }, [adminIsAr]);
-  const [platformMode, setPlatformModeState] = useState<'gestion'|'builder'>(
-     (localStorage.getItem('beya_platform_mode') as any) || (config.storeName ? 'gestion' : 'builder')
-  );
+  const [platformMode, setPlatformModeState] = useState<'gestion'|'builder'>(() => {
+    try {
+      const hashParts = window.location.hash.split('?');
+      const params = hashParts.length > 1 ? new URLSearchParams(hashParts[1]) : new URLSearchParams();
+      if (params.get('preview') === '1') return 'builder';
+    } catch {}
+    return (localStorage.getItem('beya_platform_mode') as any) || (config.storeName ? 'gestion' : 'builder');
+  });
   const setPlatformMode = (mode: 'gestion'|'builder') => {
      localStorage.setItem('beya_platform_mode', mode);
      setPlatformModeState(mode);
@@ -225,7 +230,16 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
 
   const [storeName, setStoreName] = useState(config.storeName || '');
   const [storeSlug, setStoreSlug] = useState(config.storeSlug || '');
-  const [showPreview, setShowPreview] = useState(false);
+  // Detect if we're loaded inside GZeedBuilder as an iframe preview
+  const _hashParams = (() => {
+    try {
+      const hashParts = window.location.hash.split('?');
+      return hashParts.length > 1 ? new URLSearchParams(hashParts[1]) : new URLSearchParams();
+    } catch { return new URLSearchParams(); }
+  })();
+  const _isEmbedPreview = _hashParams.get('preview') === '1';
+
+  const [showPreview, setShowPreview] = useState(_isEmbedPreview);
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
   const [previewProductId, setPreviewProductId] = useState<number | null>(null);
   const [previewDevice, setPreviewDevice] = useState<'desktop'|'mobile'>('desktop');
@@ -270,12 +284,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
       if (saved) return JSON.parse(saved);
     } catch (e) { console.error(e); }
     const nowMs = Date.now();
-    return [
-      { id: '#1042', customer: 'Youssef El Amrani', amount: '850.00 MAD', status: 'Nouveau', statusColor: 'bg-indigo-100 text-indigo-700', date: 'Il y a 10 min', timestamp: nowMs - 10 * 60 * 1000, storeName: config.storeName || 'BEYA STORE', items: '2 articles', products: [{ name: 'Premium Hoodie', photo: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop', qty: 1, price: '450.00 MAD', options: 'Taille: L, Couleur: Noir' }, { name: 'Cargo Pants', photo: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800&auto=format&fit=crop', qty: 1, price: '400.00 MAD', options: 'Taille: M, Couleur: Kaki' }] },
-      { id: '#1041', customer: 'Sara Bennani', amount: '450.00 MAD', status: 'Confirmé', statusColor: 'bg-emerald-100 text-emerald-700', date: 'Il y a 1h', timestamp: nowMs - 45 * 60 * 1000, storeName: config.storeName || 'BEYA STORE', items: '1 article', products: [{ name: 'Essential T-Shirt', photo: 'https://images.unsplash.com/photo-1489987707023-afc7f93c6508?q=80&w=800&auto=format&fit=crop', qty: 1, price: '450.00 MAD', options: 'Taille: S, Couleur: Blanc' }] },
-      { id: '#1040', customer: 'Karim Tazi', amount: '1200.00 MAD', status: 'En cours', statusColor: 'bg-amber-100 text-amber-700', date: 'Hier', timestamp: nowMs - 14 * 3600 * 1000, storeName: config.storeName || 'BEYA STORE', items: '3 articles', products: [{ name: 'Classic Sneakers', photo: 'https://images.unsplash.com/photo-1589465885857-44edb59bbff2?q=80&w=800&auto=format&fit=crop', qty: 2, price: '400.00 MAD', options: 'Pointure: 42, Couleur: Blanc' }, { name: 'Cargo Pants', photo: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800&auto=format&fit=crop', qty: 1, price: '400.00 MAD', options: 'Taille: L, Couleur: Noir' }] },
-      { id: '#1039', customer: 'Maha Alami', amount: '350.00 MAD', status: 'Refusé', statusColor: 'bg-rose-100 text-rose-700', date: 'Hier', timestamp: nowMs - 38 * 3600 * 1000, storeName: config.storeName || 'BEYA STORE', items: '1 article', products: [{ name: 'Summer Dress', photo: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=800&auto=format&fit=crop', qty: 1, price: '350.00 MAD', options: 'Taille: M, Couleur: Rouge' }] }
-    ];
+    return [];
   });
 
   useEffect(() => {
@@ -531,7 +540,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   };
   
   // Customization States (The PRO way)
-  const [activeTheme, setActiveTheme] = useState(config.activeTheme || THEMES[0]);
+  const [activeTheme, setActiveTheme] = useState((typeof config.activeTheme === 'string' ? THEMES.find(t => t.id === config.activeTheme) : config.activeTheme) || THEMES[0]);
   const [primaryColor, setPrimaryColor] = useState(config.primaryColor || THEMES[0].defaultColor);
   const [secondaryColor, setSecondaryColor] = useState(config.secondaryColor || '#ffffff');
   const [borderColor, setBorderColor] = useState(config.borderColor || '#e2e8f0');
@@ -899,14 +908,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   const [showHeaderSearch, setShowHeaderSearch] = useState(config.showHeaderSearch ?? true);
   const [showHeaderAccount, setShowHeaderAccount] = useState(config.showHeaderAccount ?? true);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [storeProducts, setStoreProducts] = useState(config.storeProducts || [
-    { id: 1, name: 'Premium Hoodie', price: '450.00', category: 'Outerwear', image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=800' },
-    { id: 2, name: 'Essential T-Shirt', price: '150.00', category: 'Tops', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=800' },
-    { id: 3, name: 'Cargo Pants', price: '350.00', category: 'Bottoms', image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&q=80&w=800' },
-    { id: 4, name: 'Classic Sneakers', price: '550.00', category: 'Shoes', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800' },
-    { id: 5, name: 'Summer Dress', price: '290.00', category: 'Dresses', image: 'https://images.unsplash.com/photo-1515347619152-16b713b194d2?auto=format&fit=crop&q=80&w=800' },
-    { id: 6, name: 'Leather Jacket', price: '890.00', category: 'Outerwear', image: 'https://images.unsplash.com/photo-1551028719-0c124a1119ce?auto=format&fit=crop&q=80&w=800' }
-  ]);
+  const [storeProducts, setStoreProducts] = useState<any[]>(config.storeProducts || []);
   const [newProduct, setNewProduct] = useState({ name: '', price: '' });
   const [appsConfig, setAppsConfig] = useState<Record<string, string>>(config.appsConfig || {});
   const [deliveryCompanies, setDeliveryCompanies] = useState<any[]>(config.deliveryCompanies || [
@@ -1017,28 +1019,6 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
            }
            let { data, error } = await query.single();
            
-           // Fallback for SaaS local previews ONLY: if domain not found and NOT a production domain, grab the latest saved store
-           const isCustomProductionDomain = currentDomain !== 'localhost' && !currentDomain.includes('vercel.app') && !currentDomain.includes('127.0.0.1');
-           if (!data && !isCustomProductionDomain) {
-              const fallback = await supabase
-                 .from('stores')
-                 .select('config_json')
-                 .eq('domain', 'latest_saved_store')
-                 .single();
-              
-              if (fallback.data) {
-                  data = fallback.data;
-              } else {
-                  // Final fallback
-                  const lastResort = await supabase
-                     .from('stores')
-                     .select('config_json')
-                     .order('updated_at', { ascending: false })
-                     .limit(1)
-                     .single();
-                  data = lastResort.data;
-              }
-           }
            
            if (!data || !data.config_json) {
               setStoreNotFound(true);
@@ -1060,50 +1040,51 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
               if (conf.seoDescription) setSeoDescription(conf.seoDescription);
               if (conf.comingSoonMode !== undefined) setComingSoonMode(conf.comingSoonMode);
               if (conf.comingSoonMessage) setComingSoonMessage(conf.comingSoonMessage);
-              // Check if there is a preview_theme in the URL hash
-              const hashParts = window.location.hash.split('?');
-              let previewThemeId = null;
-              if (hashParts.length > 1) {
-                  const urlParams = new URLSearchParams(hashParts[1]);
-                  previewThemeId = urlParams.get('theme');
+              // Check if there is a preview_theme in the URL search or hash
+              const searchParams = new URLSearchParams(window.location.search);
+              let previewThemeId = searchParams.get('theme');
+
+              if (!previewThemeId) {
+                  const hashParts = window.location.hash.split('?');
+                  if (hashParts.length > 1) {
+                      const urlParams = new URLSearchParams(hashParts[1]);
+                      previewThemeId = urlParams.get('theme');
+                  }
               }
               
+              let themeSwitched = false;
               if (previewThemeId) {
-                  const themeMap: Record<string, string> = {
-                      'minimalist': 'pop-fashion',
-                      'abaya': 'blush-studio',
-                      'perfume': 'jewelry',
-                      'digital': 'tech',
-                      'dentist': 'editorial-noir',
-                      'omra': 'emerald-market',
-                      'tourism': 'emerald-market',
-                      'vacation-deals': 'emerald-market',
-                      'mazia': 'luxury',
-                      'bidla': 'atelier',
-                      'car-rental': 'tech',
-                      'service-pro': 'tech',
-                      'apartment': 'furniture',
-                      'beauty-salon': 'cosmetics',
-                      'traiteur': 'atelier',
-                      'logistics': 'tech',
-                      'city-rentals': 'furniture',
-                      'blank': 'streetwear'
-                  };
-                  const mappedId = themeMap[previewThemeId] || previewThemeId;
-                  const overrideTheme = THEMES.find(t => t.id === mappedId);
+                  const overrideTheme = THEMES.find(t => t.id === previewThemeId);
                   
                   if (overrideTheme) {
                       setActiveTheme(overrideTheme);
-                      if (!conf.primaryColor) setPrimaryColor(overrideTheme.defaultColor);
+                      
+                      // Check if theme actually changed
+                      const savedThemeId = typeof conf.activeTheme === 'string' ? conf.activeTheme : conf.activeTheme?.id;
+                      if (savedThemeId !== overrideTheme.id) {
+                          themeSwitched = true;
+                          setPrimaryColor(overrideTheme.defaultColor);
+                          setFontFamily(overrideTheme.defaultFont);
+                          setHeroImage(overrideTheme.previewImg);
+                      } else {
+                          if (!conf.primaryColor) setPrimaryColor(overrideTheme.defaultColor);
+                      }
                   } else {
-                      if (conf.activeTheme) setActiveTheme(conf.activeTheme);
+                      if (conf.activeTheme) {
+                          const tObj = typeof conf.activeTheme === 'string' ? THEMES.find(t => t.id === conf.activeTheme) : conf.activeTheme;
+                          if (tObj) setActiveTheme(tObj);
+                      }
                   }
               } else {
-                  if (conf.activeTheme) setActiveTheme(conf.activeTheme);
+                  if (conf.activeTheme) {
+                      const tObj = typeof conf.activeTheme === 'string' ? THEMES.find(t => t.id === conf.activeTheme) : conf.activeTheme;
+                      if (tObj) setActiveTheme(tObj);
+                  }
               }
-              if (conf.primaryColor) setPrimaryColor(conf.primaryColor);
-              if (conf.fontFamily) setFontFamily(conf.fontFamily);
-              if (conf.heroImage) setHeroImage(conf.heroImage);
+              
+              if (!themeSwitched && conf.primaryColor) setPrimaryColor(conf.primaryColor);
+              if (!themeSwitched && conf.fontFamily) setFontFamily(conf.fontFamily);
+              if (!themeSwitched && conf.heroImage) setHeroImage(conf.heroImage);
               if (conf.heroTitle) setHeroTitle(conf.heroTitle);
               if (conf.heroSubtitle) setHeroSubtitle(conf.heroSubtitle);
               if (conf.heroButtonText) setHeroButtonText(conf.heroButtonText);
@@ -1378,6 +1359,10 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
       }
       if (event.data?.type === 'UPDATE_CONFIG') {
         const payload = event.data.payload;
+        if (payload.activeTheme !== undefined) {
+           const tObj = typeof payload.activeTheme === 'string' ? THEMES.find(t => t.id === payload.activeTheme) : payload.activeTheme;
+           if (tObj) setActiveTheme(tObj);
+        }
         if (payload.storeLogo !== undefined) setStoreLogo(payload.storeLogo);
         if (payload.heroTitle !== undefined) setHeroTitle(payload.heroTitle);
         if (payload.heroSubtitle !== undefined) setHeroSubtitle(payload.heroSubtitle);
@@ -1622,16 +1607,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
           ...(referredByAffiliateId ? { created_by_affiliate_id: referredByAffiliateId } : {})
        }, { onConflict: 'domain' });
 
-       // Only update latest_saved_store if no custom domain is set, preventing cross-tenant contamination
-       if (!customDomain) {
-          await supabase.from('stores').upsert({
-             domain: 'latest_saved_store',
-             config_json: storeConfig,
-             name: storeName,
-             updated_at: new Date(),
-             ...(referredByAffiliateId ? { created_by_affiliate_id: referredByAffiliateId } : {})
-          }, { onConflict: 'domain' });
-       }
+       // latest_saved_store fallback removed to prevent cross-tenant contamination
 
        if (referredByAffiliateId) {
           try { sessionStorage.removeItem('beya_ref_affiliate_id'); } catch (e) { /* ignore */ }
@@ -1902,7 +1878,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                         </div>
                      ) : (
                      <div className="grid grid-cols-3 gap-2">
-                        {(heroSearchQuery.trim() !== '' ? heroSearchResults : (HERO_PHOTO_CATEGORIES.find(c => c.id === heroPickerCategory)?.photos || [])).map((url, idx) => (
+                         {(heroSearchQuery.trim() !== '' ? heroSearchResults : (HERO_PHOTO_CATEGORIES.find(c => c.id === heroPickerCategory)?.photos || [])).map((url, idx) => (
                            <div
                               key={idx}
                               onClick={() => { setHeroImage(url); setIsHeroImagePickerOpen(false); }}
@@ -2649,6 +2625,19 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                 </div>
                              </div>
                           )}
+                           {p.customVariants?.map((v: any, vi: number) => (
+                              <div key={vi} className="mb-4">
+                                 <span className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block">{v.name}</span>
+                                 <div className="flex flex-wrap gap-2">
+                                    {v.options?.map((opt: any, oi: number) => (
+                                       <button key={oi} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold border rounded-lg transition-colors bg-white/10 border-current hover:opacity-80">
+                                          {opt.image && <img src={opt.image} alt={opt.name} className="w-4 h-4 rounded-full object-cover" />}
+                                          {opt.name}
+                                       </button>
+                                    ))}
+                                 </div>
+                              </div>
+                           ))}
                           <div>
                              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 block">{storeIsAr ? 'الكمية' : 'Quantité'}</span>
                              <div className="flex items-center justify-between bg-slate-50 w-32 px-4 py-2 rounded-lg border border-slate-200">
@@ -3056,6 +3045,19 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                 </div>
                              </div>
                           )}
+                           {p.customVariants?.map((v: any, vi: number) => (
+                              <div key={vi} className="mb-4">
+                                 <span className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block">{v.name}</span>
+                                 <div className="flex flex-wrap gap-2">
+                                    {v.options?.map((opt: any, oi: number) => (
+                                       <button key={oi} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold border rounded-lg transition-colors bg-white/10 border-current hover:opacity-80">
+                                          {opt.image && <img src={opt.image} alt={opt.name} className="w-4 h-4 rounded-full object-cover" />}
+                                          {opt.name}
+                                       </button>
+                                    ))}
+                                 </div>
+                              </div>
+                           ))}
                           <div>
                              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4 block">Quantity</span>
                              <div className="flex items-center justify-between border-b border-gray-200 w-24 pb-2">
@@ -3275,6 +3277,19 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                 </div>
                              </div>
                           )}
+                           {p.customVariants?.map((v: any, vi: number) => (
+                              <div key={vi} className="mb-4">
+                                 <span className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block">{v.name}</span>
+                                 <div className="flex flex-wrap gap-2">
+                                    {v.options?.map((opt: any, oi: number) => (
+                                       <button key={oi} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold border rounded-lg transition-colors bg-white/10 border-current hover:opacity-80">
+                                          {opt.image && <img src={opt.image} alt={opt.name} className="w-4 h-4 rounded-full object-cover" />}
+                                          {opt.name}
+                                       </button>
+                                    ))}
+                                 </div>
+                              </div>
+                           ))}
                           <div>
                              <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-4 block">Quantity</span>
                              <div className="flex items-center justify-between border-b border-white/20 w-24 pb-2">
@@ -3535,6 +3550,19 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                 </div>
                              </div>
                           )}
+                           {p.customVariants?.map((v: any, vi: number) => (
+                              <div key={vi} className="mb-4">
+                                 <span className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block">{v.name}</span>
+                                 <div className="flex flex-wrap gap-2">
+                                    {v.options?.map((opt: any, oi: number) => (
+                                       <button key={oi} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold border rounded-lg transition-colors bg-white/10 border-current hover:opacity-80">
+                                          {opt.image && <img src={opt.image} alt={opt.name} className="w-4 h-4 rounded-full object-cover" />}
+                                          {opt.name}
+                                       </button>
+                                    ))}
+                                 </div>
+                              </div>
+                           ))}
                           <div>
                              <span className="text-sm font-black uppercase tracking-wider text-slate-400 mb-3 block">Quantity</span>
                              <div className="flex items-center justify-between bg-slate-50 w-40 px-4 py-2 rounded-xl border-4 border-slate-100">
@@ -3774,6 +3802,19 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                           </div>
                        </div>
                     )}
+                     {product.customVariants?.map((v: any, vi: number) => (
+                        <div key={vi} className="mb-4">
+                           <span className="text-[11px] font-bold uppercase tracking-widest text-[#666] mb-2 block">{v.name}</span>
+                           <div className="flex flex-wrap gap-2">
+                              {v.options?.map((opt: any, oi: number) => (
+                                 <button key={oi} className="flex items-center gap-1.5 min-w-[40px] h-10 px-3 text-[11px] font-bold uppercase border border-[#ddd] hover:border-[#1a1a1a] transition-colors bg-white text-[#444]">
+                                    {opt.image && <img src={opt.image} alt={opt.name} className="w-5 h-5 rounded-full object-cover" />}
+                                    {opt.name}
+                                 </button>
+                              ))}
+                           </div>
+                        </div>
+                     ))}
                     
                     <div>
                        <span className="text-[11px] font-bold uppercase tracking-widest text-[#666] mb-3 block">{storeIsAr ? 'الكمية' : 'Quantité'}</span>
@@ -4014,6 +4055,19 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                           </div>
                        </div>
                     )}
+                           {p.customVariants?.map((v: any, vi: number) => (
+                              <div key={vi} className="mb-4">
+                                 <span className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block">{v.name}</span>
+                                 <div className="flex flex-wrap gap-2">
+                                    {v.options?.map((opt: any, oi: number) => (
+                                       <button key={oi} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold border rounded-lg transition-colors bg-white/10 border-current hover:opacity-80">
+                                          {opt.image && <img src={opt.image} alt={opt.name} className="w-4 h-4 rounded-full object-cover" />}
+                                          {opt.name}
+                                       </button>
+                                    ))}
+                                 </div>
+                              </div>
+                           ))}
 
                     <div>
                        <span className="text-[11px] font-bold uppercase tracking-widest text-[#666] mb-3 block">{storeIsAr ? 'الكمية' : 'Quantité'}</span>
@@ -5718,7 +5772,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
     );
   };
 
-  if (isLiveStore) {
+  if (isLiveStore || _isEmbedPreview) {
     if (isLoadingLiveConfig) {
        return (
           <div className="w-full h-screen bg-white flex flex-col items-center justify-center">

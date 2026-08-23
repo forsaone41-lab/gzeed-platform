@@ -12,41 +12,7 @@ export default function ProjectSelection() {
     () => localStorage.getItem("gzeed_app_waitlist") === "true",
   );
   const [isJoiningAppWaitlist, setIsJoiningAppWaitlist] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // If they already have a project type, redirect to dashboard
-    const checkExisting = async () => {
-      const localType = localStorage.getItem("gzeed_project_type");
-      // if (localType) {
-      //   navigate("/dashboard", { replace: true });
-      //   return;
-      // }
-      
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data } = await supabase
-            .from("user_settings")
-            .select("project_type")
-            .eq("user_id", user.id)
-            .single();
-            
-          if (data && data.project_type) {
-            localStorage.setItem("gzeed_project_type", data.project_type);
-            // navigate("/dashboard", { replace: true });
-            // return;
-          }
-        }
-      } catch (err) {
-        console.error("Error checking project type:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkExisting();
-  }, [navigate]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSelectProjectType = async (type: string) => {
     localStorage.setItem("gzeed_project_type", type);

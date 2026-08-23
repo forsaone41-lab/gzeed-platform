@@ -17,11 +17,13 @@ import {
   Plus,
   ExternalLink,
   Eye,
+  EyeOff,
   Trash2,
   X,
   Upload,
   Globe,
-  Search
+  Search,
+  Code
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
@@ -35,11 +37,14 @@ export default function GZeedBuilder() {
     setActiveThemeId(themeId);
     localStorage.setItem('gzeed_active_theme', themeId);
     if (iframeRef.current && iframeRef.current.contentWindow) {
-      iframeRef.current.contentWindow.location.reload();
+      // Force update via postMessage just in case the src change isn't enough, 
+      // though the src change itself will trigger an iframe reload.
+      iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_CONFIG', payload: { activeTheme: themeId } }, '*');
     }
   };
   const [deviceScale, setDeviceScale] = useState<'desktop' | 'mobile'>('desktop');
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'theme' | 'sections' | 'settings'>('theme');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'theme' | 'sections' | 'settings' | 'code'>('theme');
+  const [customCode, setCustomCode] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -186,33 +191,10 @@ export default function GZeedBuilder() {
   };
 
   const getThemePreviewUrl = (id: string | null) => {
-    // Priority: Show the user's actual live store preview with their products
-    const storeName = localStorage.getItem('gzeed_store_name');
-    if (storeName && storeName !== 'متجر تجريبي' && storeName !== 'My Store') {
-      return `/#/store/${encodeURIComponent(storeName)}?theme=${id}`;
-    }
-
-    // Fallback to demo themes if no store is created yet
-    if (!id) return '/#/demo/ecommerce/abaya';
-    if (id === 'dentist') return '/#/demo/dentist';
-    if (id === 'omra') return '/#/demo/omra-tours';
-    if (id === 'tourism') return '/#/demo/tourism';
-    if (id === 'vacation-deals') return '/#/demo/vacation-deals';
-    if (id === 'mazia') return '/#/demo/mazia';
-    if (id === 'bidla') return '/#/demo/bidla';
-    if (id === 'car-rental') return '/#/demo/car-rental';
-    if (id === 'service-pro') return '/#/demo/service-pro';
-    if (id === 'apartment') return '/#/demo/apartment';
-    if (id === 'beauty-salon') return '/#/demo/beauty-salon';
-    if (id === 'traiteur') return '/#/demo/traiteur';
-    if (id === 'logistics') return '/#/demo/logistics';
-    if (id === 'city-rentals') return '/#/demo/city-rentals';
-    
-    if (id === 'digital') return '/#/demo/ecommerce/iptv';
-    if (id === 'perfume') return '/#/demo/ecommerce/luxury-perfume';
-    if (id === 'abaya') return '/#/demo/ecommerce/abaya';
-    if (id === 'minimalist') return '/#/demo/ecommerce/minimalist';
-    return `/#/demo/ecommerce/${id}`;
+    // Load the store builder in builder/preview mode using the app's HashRouter path.
+    // preview=1 tells StoreBuilder to auto-activate showPreview + builder mode.
+    const themeParam = id ? `&theme=${encodeURIComponent(id)}` : '';
+    return `/#/store-builder?preview=1${themeParam}`;
   };
 
   const handlePublish = () => {
@@ -323,7 +305,8 @@ export default function GZeedBuilder() {
             {[
               { id: 'theme', icon: Palette, label: lang === 'ar' ? 'المظهر' : lang === 'en' ? 'Theme' : 'Thème' },
               { id: 'sections', icon: Layers, label: lang === 'ar' ? 'الأقسام' : lang === 'en' ? 'Sections' : 'Sections' },
-              { id: 'settings', icon: Settings, label: lang === 'ar' ? 'إعدادات' : lang === 'en' ? 'Settings' : 'Paramètres' }
+              { id: 'settings', icon: Settings, label: lang === 'ar' ? 'إعدادات' : lang === 'en' ? 'Settings' : 'Paramètres' },
+              { id: 'code', icon: Code, label: lang === 'ar' ? 'كود (جديد)' : lang === 'en' ? 'Code' : 'Code' }
             ].map(tab => {
               const Icon = tab.icon;
               const isActive = activeSidebarTab === tab.id;
@@ -351,11 +334,20 @@ export default function GZeedBuilder() {
                       onChange={(e) => handleThemeChange(e.target.value)}
                       className="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-cyan-500 focus:border-cyan-500 block p-3 font-bold cursor-pointer appearance-none"
                     >
-                      <option value="glamour-beauty">{lang === 'ar' ? 'مكياج وتجميل' : 'Glamour Beauty'}</option>
-                      <option value="emerald-market">{lang === 'ar' ? 'ألتيميت ستور' : 'Ultimate Store (Pro)'}</option>
-                      <option value="atelier">{lang === 'ar' ? 'مطبخ أتيليي' : 'Atelier Kitchen'}</option>
-                      <option value="eco">{lang === 'ar' ? 'طبيعة إيكو' : 'Eco Nature'}</option>
-                      <option value="streetwear">{lang === 'ar' ? 'ستريت وير برو' : 'Streetwear Pro'}</option>
+                      <option value="streetwear">Streetwear Pro</option>
+                      <option value="minimalist">Minimalist</option>
+                      <option value="glamour-beauty">Glamour Beauty</option>
+                      <option value="abaya">Luxury Abaya</option>
+                      <option value="kids">Playful Kids</option>
+                      <option value="clement">Clement Design</option>
+                      <option value="xton">Xton (Tech/Digital)</option>
+                      <option value="mazia">Mazia</option>
+                      <option value="emerald-market">Ultimate Store</option>
+                      <option value="atelier">Atelier Kitchen</option>
+                      <option value="blush-studio">Lamode App</option>
+                      <option value="pop-fashion">Simple Minimal</option>
+                      <option value="eco">Eco Nature</option>
+                      <option value="sportswear">Active Sport</option>
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
                       <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -614,50 +606,107 @@ export default function GZeedBuilder() {
 
 
             {activeSidebarTab === 'settings' && (
+               <div className="space-y-6 animate-fade-in">
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'اسم المتجر' : 'Store Name'}</label>
+                     <input
+                       type="text"
+                       defaultValue={localStorage.getItem('gzeed_store_name') || ''}
+                       onChange={(e) => {
+                         localStorage.setItem('gzeed_store_name', e.target.value);
+                         updateConfigInIframe({ storeName: e.target.value });
+                       }}
+                       className="w-full p-3 border border-slate-200 rounded-lg text-sm"
+                       placeholder={lang === 'ar' ? 'اسم متجرك' : 'Mon Magasin'}
+                     />
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'النطاق (Domain)' : 'Store Domain'}</label>
+                     <input
+                       type="text"
+                       defaultValue={localStorage.getItem('gzeed_domain_name') || ''}
+                       readOnly
+                       className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-100 text-slate-500 cursor-not-allowed"
+                       placeholder="yourstore.gzeed.com"
+                     />
+                     <p className="text-[10px] text-slate-400 mt-1">{lang === 'ar' ? 'يمكن تغيير النطاق من لوحة التحكم ← الإعدادات' : 'Modifiable depuis le Tableau de bord → Paramètres'}</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'لغة المتجر' : 'Store Language'}</label>
+                     <select value={storeLang} onChange={(e) => {
+                       setStoreLang(e.target.value);
+                       updateConfigInIframe({ storeLang: e.target.value });
+                     }} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                       <option value="fr">{lang === 'ar' ? 'الفرنسية' : 'Français'}</option>
+                       <option value="ar">{lang === 'ar' ? 'العربية' : 'Arabe'}</option>
+                       <option value="en">{lang === 'ar' ? 'الإنجليزية' : 'English'}</option>
+                     </select>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'العملة' : 'Devise'}</label>
+                     <select value={storeCurrency} onChange={(e) => {
+                       setStoreCurrency(e.target.value);
+                       updateConfigInIframe({ storeCurrency: e.target.value });
+                     }} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                       <option value="MAD">MAD (درهم مغربي)</option>
+                       <option value="USD">USD ($)</option>
+                       <option value="EUR">EUR (€)</option>
+                     </select>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'الخط' : 'Police'}</label>
+                     <select value={activeFont} onChange={(e) => handleFontChange(e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
+                       <option value="font-sans">Inter / System Sans</option>
+                       <option value="font-serif">Playfair / Serif</option>
+                     </select>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'حالة المتجر' : 'Statut'}</label>
+                     <div className="flex items-center gap-3">
+                       <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+                       <span className="text-sm font-bold text-slate-700">{lang === 'ar' ? 'نشط (Live)' : 'En ligne'}</span>
+                     </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    {lang === 'ar' ? 'العودة للوحة التحكم' : 'Retour au Dashboard'}
+                  </button>
+               </div>
+             )}
+
+            {activeSidebarTab === 'code' && (
               <div className="space-y-6 animate-fade-in">
-                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'اسم المتجر' : 'Store Name'}</label>
-                    <input type="text" onChange={(e) => updateConfigInIframe({ storeName: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="My Store" defaultValue="Atelier" />
+                 <div className="p-5 bg-slate-50 rounded-xl border border-slate-100 text-slate-500 shadow-sm relative overflow-hidden">
+                    <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl pointer-events-none" />
+                    <Code className="w-8 h-8 mb-3 text-indigo-500 relative z-10" />
+                    <p className="text-sm font-black text-slate-900 mb-2 relative z-10">{lang === 'ar' ? 'محرر الأكواد المخصصة (GZeed Engine)' : 'Custom Code Editor (GZeed Engine)'}</p>
+                    <p className="text-xs font-medium leading-relaxed relative z-10">{lang === 'ar' ? 'أضف أكواد HTML/CSS/JS خاصة بك ليتم عرضها في المتجر. هاد الميزة كتخليك تصاوب قوالب احترافية بحال لي فـ Shopify (Liquid) و WordPress.' : 'Add custom HTML/CSS/JS to render in your store, similar to Shopify Liquid.'}</p>
                  </div>
-                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'النطاق (Domain)' : 'Store Domain'}</label>
-                    <input type="text" onChange={(e) => updateConfigInIframe({ storeDomain: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="mystore.com" defaultValue="mystore.com" />
-                 </div>
-                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'لغة المتجر' : 'Store Language'}</label>
-                    <select value={storeLang} onChange={(e) => {
-                      setStoreLang(e.target.value);
-                      updateConfigInIframe({ storeLang: e.target.value });
-                    }} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
-                      <option value="fr">{lang === 'ar' ? 'الفرنسية' : 'French'}</option>
-                      <option value="ar">{lang === 'ar' ? 'العربية' : 'Arabic'}</option>
-                      <option value="en">{lang === 'ar' ? 'الإنجليزية' : 'English'}</option>
-                    </select>
-                 </div>
-                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'العملة' : 'Currency'}</label>
-                    <select value={storeCurrency} onChange={(e) => {
-                      setStoreCurrency(e.target.value);
-                      updateConfigInIframe({ storeCurrency: e.target.value });
-                    }} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
-                      <option value="MAD">MAD (درهم مغربي)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
-                    </select>
-                 </div>
-                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'الخط' : 'Font'}</label>
-                    <select value={activeFont} onChange={(e) => handleFontChange(e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
-                      <option value="font-sans">Inter / System Sans</option>
-                      <option value="font-serif">Playfair / Serif</option>
-                    </select>
-                 </div>
-                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'حالة المتجر' : 'Store Status'}</label>
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-                      <span className="text-sm font-bold text-slate-700">{lang === 'ar' ? 'نشط (Live)' : 'Live'}</span>
+                 <div className="flex flex-col gap-3">
+                    <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'أكوادك المخصصة' : 'Your Custom Code'}</label>
+                    <div className="relative">
+                       <textarea 
+                         value={customCode}
+                         onChange={(e) => setCustomCode(e.target.value)}
+                         className="w-full h-[400px] p-5 bg-[#0f172a] text-[#38bdf8] font-mono text-xs rounded-xl border-none focus:ring-2 focus:ring-indigo-500 resize-none leading-relaxed custom-scrollbar shadow-inner"
+                         placeholder={`<style>\n  /* CSS */\n  .my-custom-btn {\n    background: #000;\n    color: #fff;\n    padding: 10px 20px;\n    border-radius: 8px;\n  }\n</style>\n\n<!-- HTML -->\n<div class="my-custom-btn">\n  Hello GZeed!\n</div>\n\n<script>\n  /* JS */\n  console.log('Code Loaded!');\n</script>`}
+                         dir="ltr"
+                         spellCheck={false}
+                       />
+                       <div className="absolute top-3 right-3 text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-1 rounded border border-slate-700">HTML / JS / CSS</div>
                     </div>
+                    <button 
+                      onClick={() => {
+                        updateConfigInIframe({ customCode });
+                      }}
+                      className="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-black text-sm shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-colors flex items-center justify-center gap-2 hover:scale-[1.02]"
+                    >
+                      <Play className="w-4 h-4" />
+                      {lang === 'ar' ? 'تطبيق الكود على المتجر' : 'Apply Code to Store'}
+                    </button>
                  </div>
               </div>
             )}

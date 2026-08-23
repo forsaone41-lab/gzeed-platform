@@ -13,8 +13,8 @@ export default function GZeedLogin() {
   const [resetSent, setResetSent] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: 'ad@gzeed.com',
+    password: 'admin123'
   });
 
   useEffect(() => {
@@ -27,9 +27,17 @@ export default function GZeedLogin() {
     e.preventDefault();
     if (!formData.email || !formData.password) return;
 
-    // Development bypass for demo account
-    if (formData.email === 'demo@gzeed.com') {
-      navigate('/dashboard');
+    // Development bypass for Admin account
+    if (formData.email.trim().toLowerCase() === 'ad@gzeed.com' && formData.password === 'admin123') {
+      const mockUser = {
+        id: 'admin-gzeed-123',
+        email: 'ad@gzeed.com',
+        role: 'merchant',
+        name: 'GZeed Admin'
+      };
+      localStorage.setItem('textrack_auth', JSON.stringify(mockUser));
+      window.location.hash = '#/dashboard';
+      window.location.reload();
       return;
     }
 

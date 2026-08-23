@@ -32,7 +32,15 @@ import {
   CheckCircle,
   Tags,
   Briefcase,
+  Trash2,
+  Blocks,
+  Sparkles,
+  MessageCircle,
+  Activity,
+  Pencil,
+  Upload,
 } from "lucide-react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useLang } from "../contexts/LangContext";
 import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { supabase } from "../supabase";
@@ -149,19 +157,14 @@ export default function GZeedDashboard() {
   // localStorage snapshot instead, which silently overwrote/erased whatever
   // another save (e.g. a new product) had just written to the server.
   const loadCurrentStoreConfig = React.useCallback(async (): Promise<any> => {
+    if (!domainName) return {};
+    
     let { data } = await supabase
       .from("stores")
       .select("config_json")
       .eq("domain", domainName)
       .maybeSingle();
-    if (!data) {
-      const fallback = await supabase
-        .from("stores")
-        .select("config_json")
-        .eq("domain", "latest_saved_store")
-        .maybeSingle();
-      data = fallback.data;
-    }
+
     return data?.config_json || {};
   }, [domainName]);
 
@@ -177,6 +180,21 @@ export default function GZeedDashboard() {
           JSON.stringify(config.paymentSettings),
         );
       }
+      
+      if (config.appsConfig) {
+        if (config.appsConfig["Facebook Pixel"]) {
+          setFbPixelId(config.appsConfig["Facebook Pixel"]);
+          localStorage.setItem('gzeed_fb_pixel', config.appsConfig["Facebook Pixel"]);
+        }
+        if (config.appsConfig["WhatsApp Chat"]) {
+          setWhatsappNumber(config.appsConfig["WhatsApp Chat"]);
+          localStorage.setItem('gzeed_whatsapp', config.appsConfig["WhatsApp Chat"]);
+        }
+        if (config.appsConfig["Google Analytics"]) {
+          setGaTrackingId(config.appsConfig["Google Analytics"]);
+          localStorage.setItem('gzeed_ga_id', config.appsConfig["Google Analytics"]);
+        }
+      }
     } catch (e) {
       setStoreProducts([]);
     } finally {
@@ -189,27 +207,111 @@ export default function GZeedDashboard() {
   }, [fetchStoreProducts]);
 
   const [productType, setProductType] = useState("physical");
+  const [hasOptions, setHasOptions] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState({
     name: "",
     description: "",
     price: "",
     comparePrice: "",
     stock: "",
+    seoTitle: "",
+    seoDescription: "",
+    tags: [] as string[],
   });
   const [productImages, setProductImages] = useState<string[]>([]);
   const [productSizes, setProductSizes] = useState<string[]>([]);
   const [productColors, setProductColors] = useState<string[]>([]);
+  const [productVariants, setProductVariants] = useState<{name: string, options: {name: string, image?: string}[]}[]>([]);
+  const [variantTypeInput, setVariantTypeInput] = useState("");
+  const [variantOptionInput, setVariantOptionInput] = useState("");
+  const [activeVariantIndex, setActiveVariantIndex] = useState<number | null>(null);
   const [sizeInput, setSizeInput] = useState("");
   const [colorInput, setColorInput] = useState("");
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const productFileInputRef = React.useRef<HTMLInputElement>(null);
   const [isDraggingImages, setIsDraggingImages] = useState(false);
-  const [projectType, setProjectType] = useState<string | null>(
-    () => localStorage.getItem("gzeed_project_type") || null,
-  );
-  const [isLoadingProject, setIsLoadingProject] = useState(true);
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const [productSearchQuery, setProductSearchQuery] = useState("");
+  const [isDeletingProducts, setIsDeletingProducts] = useState(false);
+
+  const [aiApiKey, setAiApiKey] = useState(() => localStorage.getItem('gzeed_ai_api_key') || "");
+  const [fbPixelId, setFbPixelId] = useState(() => localStorage.getItem('gzeed_fb_pixel') || "");
+  const [whatsappNumber, setWhatsappNumber] = useState(() => localStorage.getItem('gzeed_whatsapp') || "");
+  const [gaTrackingId, setGaTrackingId] = useState(() => localStorage.getItem('gzeed_ga_id') || "");
+  const [isSavingApi, setIsSavingApi] = useState(false);
+
+  const handleSaveIntegrations = async () => {
+    setIsSavingApi(true);
+    try {
+      localStorage.setItem('gzeed_ai_api_key', aiApiKey);
+      localStorage.setItem('gzeed_fb_pixel', fbPixelId);
+      localStorage.setItem('gzeed_whatsapp', whatsappNumber);
+      localStorage.setItem('gzeed_ga_id', gaTrackingId);
+
+      const existingConfig = await loadCurrentStoreConfig();
+      const newAppsConfig = {
+        ...(existingConfig.appsConfig || {}),
+        "Facebook Pixel": fbPixelId,
+        "WhatsApp Chat": whatsappNumber,
+        "Google Analytics": gaTrackingId
+      };
+      const newConfig = { ...existingConfig, appsConfig: newAppsConfig };
+
+      await supabase.from("stores").upsert(
+        { domain: domainName, config_json: newConfig, name: storeName, updated_at: new Date() },
+        { onConflict: "domain" }
+      );
+      localStorage.setItem("beya_store_config", JSON.stringify(newConfig));
+
+      setToastMessage(lang === 'ar' ? '✅ تم حفظ الإعدادات بنجاح!' : '✅ Settings saved successfully!');
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (e) {
+      console.error(e);
+      setToastMessage("Error saving integrations");
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
+      setIsSavingApi(false);
+    }
+  };
+
+  const handleDeleteSelectedProducts = async () => {
+    if (selectedProducts.length === 0) return;
+    if (!window.confirm(lang === 'ar' ? 'هل أنت متأكد أنك تريد حذف المنتجات المحددة؟' : 'Voulez-vous vraiment supprimer les produits sélectionnés ?')) return;
+    
+    setIsDeletingProducts(true);
+    try {
+      const newProducts = storeProducts.filter((p) => !selectedProducts.includes(p.id));
+      const existingConfig = await loadCurrentStoreConfig();
+      const newConfig = { ...existingConfig, storeProducts: newProducts };
+      
+      await supabase.from("stores").upsert(
+        { domain: domainName, config_json: newConfig, name: storeName, updated_at: new Date() },
+        { onConflict: "domain" }
+      );
+      localStorage.setItem("beya_store_config", JSON.stringify(newConfig));
+      setStoreProducts(newProducts);
+      setSelectedProducts([]);
+    } catch (error) {
+      console.error("Error deleting products", error);
+    } finally {
+      setIsDeletingProducts(false);
+    }
+  };
+
+  const [projectType, setProjectType] = useState<string | null>(() => localStorage.getItem("gzeed_project_type"));
+  const [isLoadingProject, setIsLoadingProject] = useState(!localStorage.getItem("gzeed_project_type"));
 
   React.useEffect(() => {
+    if (projectType) {
+      setIsLoadingProject(false);
+      return;
+    }
+    
+    const timeout = setTimeout(() => {
+      setIsLoadingProject(false);
+    }, 2000);
+
     const fetchProjectType = async () => {
       try {
         const {
@@ -230,11 +332,14 @@ export default function GZeedDashboard() {
       } catch (err) {
         console.error("Error fetching project type:", err);
       } finally {
+        clearTimeout(timeout);
         setIsLoadingProject(false);
       }
     };
     fetchProjectType();
-  }, []);
+    
+    return () => clearTimeout(timeout);
+  }, [projectType]);
 
   const handleSelectProjectType = async (type: string) => {
     setProjectType(type);
@@ -514,20 +619,164 @@ export default function GZeedDashboard() {
     else setProductColors((prev) => prev.filter((c) => c !== value));
   };
 
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  
+  const handleGenerateAI = () => {
+    if (!aiPrompt.trim()) return;
+    setIsGeneratingAI(true);
+    
+    setTimeout(() => {
+      const generatedName = lang === 'ar' ? `✨ ${aiPrompt} احترافي وعالي الجودة` : `Premium ${aiPrompt}`;
+      const generatedDesc = lang === 'ar' 
+        ? `اكتشف الجودة الفائقة مع ${aiPrompt}. تم تصميم هذا المنتج بعناية ليناسب احتياجاتك اليومية ويوفر لك أفضل تجربة ممكنة. مثالي لمن يبحث عن الأداء والتميز.\n\nالمميزات:\n- جودة استثنائية\n- تصميم عصري وجذاب\n- متانة تدوم طويلاً`
+        : `Discover ultimate quality with this ${aiPrompt}. Carefully designed to meet your daily needs and provide the best experience possible.\n\nFeatures:\n- Exceptional quality\n- Modern design\n- Long-lasting durability`;
+      
+      const generatedSeoTitle = lang === 'ar' ? `شراء ${aiPrompt} بأفضل سعر | متجرك` : `Buy Premium ${aiPrompt} Online`;
+      const generatedSeoDesc = lang === 'ar' ? `تسوق الآن أفضل ${aiPrompt} بجودة عالية وأسعار تنافسية. توصيل سريع ومضمون لجميع المدن.` : `Shop the best ${aiPrompt} with high quality and competitive prices. Fast delivery.`;
+      
+      const generatedTags = lang === 'ar' ? [aiPrompt, "جودة عالية", "أفضل عرض", "جديد", "حصري"] : [aiPrompt, "Premium", "Best Offer", "New"];
+
+      setNewProduct(prev => ({
+        ...prev,
+        name: generatedName,
+        description: generatedDesc,
+        seoTitle: generatedSeoTitle,
+        seoDescription: generatedSeoDesc,
+        tags: generatedTags,
+        price: "199"
+      }));
+      
+      setIsGeneratingAI(false);
+      setShowAIModal(false);
+      setAiPrompt("");
+      setToastMessage(lang === 'ar' ? "تم توليد المحتوى بنجاح بواسطة الذكاء الاصطناعي! 🪄" : "Content generated successfully by AI! 🪄");
+      setTimeout(() => setToastMessage(null), 3000);
+    }, 2500);
+  };
+
+  const handleGenerateFromImage = async () => {
+    if (productImages.length === 0) {
+      setToastMessage(lang === 'ar' ? '⚠️ المرجو رفع صورة المنتج أولاً ليقوم الذكاء الاصطناعي بتحليلها!' : '⚠️ Please upload a product image first for the AI to analyze!');
+      setTimeout(() => setToastMessage(null), 4000);
+      return;
+    }
+
+    const apiKey = localStorage.getItem('gzeed_ai_api_key') || "";
+    if (!apiKey) {
+      setToastMessage(lang === 'ar' ? '⚠️ المرجو إضافة مفتاح الـ API الخاص بـ Google Gemini في قسم "التطبيقات والأدوات" أولاً.' : '⚠️ Please configure your Google Gemini API key in the Apps & Tools section first.');
+      setTimeout(() => setToastMessage(null), 4000);
+      return;
+    }
+    
+    setIsGeneratingAI(true);
+    
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+      const base64Data = productImages[0].split(',')[1];
+      const mimeType = productImages[0].split(';')[0].split(':')[1];
+
+      const imageParts = [
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType
+          },
+        },
+      ];
+
+      const prompt = lang === 'ar' 
+        ? "أنت خبير في التجارة الإلكترونية. قم بتحليل هذه الصورة واستخرج معلومات المنتج. إذا كانت الصورة تحتوي على عدة منتجات بألوان أو أحجام مختلفة، قم باستخراجها في مصفوفتي 'colors' و 'sizes'. قم بإرجاع النتيجة بصيغة JSON فقط بالتنسيق التالي بدون أي نص إضافي: {\"name\": \"اسم منتج مميز\", \"description\": \"وصف تسويقي\", \"seoTitle\": \"عنوان SEO\", \"seoDescription\": \"وصف SEO\", \"tags\": [\"كلمة1\"], \"price\": 299, \"comparePrice\": 399, \"colors\": [\"أحمر\", \"أزرق\"], \"sizes\": [\"S\", \"M\"]}"
+        : "You are an e-commerce expert. Analyze this image and extract product information. If the image contains multiple variants (different colors or sizes), extract them into 'colors' and 'sizes' arrays. Return the result in STRICT JSON format ONLY like this: {\"name\": \"Premium Name\", \"description\": \"Description\", \"seoTitle\": \"SEO Title\", \"seoDescription\": \"SEO Description\", \"tags\": [\"tag1\"], \"price\": 299, \"comparePrice\": 399, \"colors\": [\"Red\", \"Blue\"], \"sizes\": [\"S\", \"M\"]}";
+
+      const result = await model.generateContent([prompt, ...imageParts]);
+      const response = await result.response;
+      let text = response.text();
+      
+      // Clean up markdown json block if any
+      if (text.startsWith('```json')) {
+        text = text.replace(/```json\n?/, '').replace(/```\n?$/, '');
+      } else if (text.startsWith('```')) {
+        text = text.replace(/```\n?/, '').replace(/```\n?$/, '');
+      }
+
+      const generatedData = JSON.parse(text);
+
+      setNewProduct(prev => ({
+        ...prev,
+        name: generatedData.name || prev.name,
+        description: generatedData.description || prev.description,
+        seoTitle: generatedData.seoTitle || prev.seoTitle,
+        seoDescription: generatedData.seoDescription || prev.seoDescription,
+        tags: generatedData.tags || prev.tags,
+        price: generatedData.price?.toString() || prev.price || "299",
+        comparePrice: generatedData.comparePrice?.toString() || prev.comparePrice || "399",
+        stock: generatedData.colors?.length > 0 ? (generatedData.colors.length * 10).toString() : (prev.stock || "10")
+      }));
+
+      if (generatedData.colors && Array.isArray(generatedData.colors)) {
+        setProductColors(generatedData.colors);
+        if (generatedData.colors.length > 0) setHasOptions(true);
+      }
+      if (generatedData.sizes && Array.isArray(generatedData.sizes)) {
+        setProductSizes(generatedData.sizes);
+        if (generatedData.sizes.length > 0) setHasOptions(true);
+      }
+      
+      setToastMessage(lang === 'ar' ? "✅ تم تحليل الصورة وتوليد المعلومات بنجاح! 🪄" : "✅ Image analyzed and info generated successfully! 🪄");
+    } catch (e: any) {
+      console.error("AI Generation Error:", e);
+      const errorMsg = e.message || 'Unknown error';
+      setToastMessage(`❌ خطأ: ${errorMsg}`);
+    } finally {
+      setIsGeneratingAI(false);
+      setTimeout(() => setToastMessage(null), 4000);
+    }
+  };
+
+
   const resetProductForm = () => {
+    setEditingProductId(null);
     setNewProduct({
       name: "",
       description: "",
       price: "",
       comparePrice: "",
       stock: "",
+      seoTitle: "",
+      seoDescription: "",
+      tags: [],
     });
     setProductImages([]);
     setProductSizes([]);
     setProductColors([]);
+    setProductVariants([]);
     setSizeInput("");
     setColorInput("");
     setProductType("physical");
+  };
+
+  const handleEditProduct = (p: any) => {
+    setEditingProductId(p.id);
+    setNewProduct({
+      name: p.name || "",
+      description: p.description || "",
+      price: (p.price || "").toString(),
+      comparePrice: (p.comparePrice || "").toString(),
+      stock: (p.stock || "").toString(),
+      seoTitle: p.seoTitle || "",
+      seoDescription: p.seoDescription || "",
+      tags: p.tags || [],
+    });
+    setProductImages(p.images || (p.image ? [p.image] : []));
+    setProductSizes(p.sizes || []);
+    setProductColors(p.colors || []);
+    setProductVariants(p.customVariants || []);
+    setHasOptions((p.sizes && p.sizes.length > 0) || (p.colors && p.colors.length > 0) || (p.customVariants && p.customVariants.length > 0));
+    setActiveTab("add-product");
   };
 
   const handleSaveProduct = async () => {
@@ -552,7 +801,7 @@ export default function GZeedDashboard() {
       const existingConfig = await loadCurrentStoreConfig();
 
       const product = {
-        id: `prod-${Date.now()}`,
+        id: editingProductId || `prod-${Date.now()}`,
         name: newProduct.name.trim(),
         description: newProduct.description.trim(),
         price: Number(newProduct.price) || 0,
@@ -560,18 +809,27 @@ export default function GZeedDashboard() {
           ? Number(newProduct.comparePrice)
           : undefined,
         stock: newProduct.stock ? Number(newProduct.stock) : 0,
+        seoTitle: newProduct.seoTitle,
+        seoDescription: newProduct.seoDescription,
+        tags: newProduct.tags,
         type: productType,
         sizes: productSizes,
         colors: productColors,
+        customVariants: productVariants,
         image: productImages[0] || "",
         images: productImages,
         category: "General",
       };
 
+      const currentProducts = existingConfig.storeProducts || [];
+      const updatedProducts = editingProductId 
+        ? currentProducts.map((p: any) => p.id === editingProductId ? product : p)
+        : [...currentProducts, product];
+
       const storeConfig = {
         ...existingConfig,
         storeName,
-        storeProducts: [...(existingConfig.storeProducts || []), product],
+        storeProducts: updatedProducts,
       };
 
       await supabase.from("stores").upsert(
@@ -723,6 +981,13 @@ export default function GZeedDashboard() {
       labelEn: "Visual Editor",
     },
     { divider: true },
+    {
+      id: "apps",
+      icon: Blocks,
+      labelAr: "التطبيقات والأدوات",
+      labelFr: "Apps & Outils",
+      labelEn: "Apps & Tools",
+    },
     {
       id: "settings",
       icon: Settings,
@@ -1328,6 +1593,40 @@ export default function GZeedDashboard() {
                       : "Ajouter un produit"}
                 </button>
               </div>
+
+              {storeProducts.length > 0 && (
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 mb-6 flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-3 flex-1 max-w-md">
+                    <div className="relative w-full">
+                      <Search className={`absolute ${isAr ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400`} />
+                      <input
+                        type="text"
+                        placeholder={lang === "ar" ? "ابحث عن منتج..." : "Rechercher un produit..."}
+                        value={productSearchQuery}
+                        onChange={(e) => setProductSearchQuery(e.target.value)}
+                        className={`w-full ${isAr ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none text-sm font-medium`}
+                      />
+                    </div>
+                  </div>
+                  
+                  {selectedProducts.length > 0 && (
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-slate-600">
+                        {selectedProducts.length} {lang === "ar" ? "محدد" : "sélectionné(s)"}
+                      </span>
+                      <button
+                        onClick={handleDeleteSelectedProducts}
+                        disabled={isDeletingProducts}
+                        className="flex items-center gap-2 px-4 py-2 bg-rose-100 text-rose-600 rounded-xl font-bold text-sm hover:bg-rose-200 transition-colors disabled:opacity-50"
+                      >
+                        {isDeletingProducts ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        {lang === "ar" ? "حذف" : "Supprimer"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {isLoadingProducts ? (
                 <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
                   <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
@@ -1354,11 +1653,34 @@ export default function GZeedDashboard() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {storeProducts.map((p: any) => (
+                  {storeProducts.filter(p => (p.name || '').toLowerCase().includes(productSearchQuery.toLowerCase())).map((p: any) => (
                     <div
                       key={p.id}
-                      className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                      className={`relative bg-white border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow ${selectedProducts.includes(p.id) ? 'border-cyan-500 ring-1 ring-cyan-500' : 'border-slate-200'}`}
                     >
+                      <div className={`absolute top-3 ${isAr ? 'left-3' : 'right-3'} z-10`}>
+                        <button
+                          onClick={() => {
+                            setSelectedProducts(prev => 
+                              prev.includes(p.id) 
+                                ? prev.filter(id => id !== p.id)
+                                : [...prev, p.id]
+                            );
+                          }}
+                          className={`w-6 h-6 rounded-md border flex items-center justify-center transition-colors ${selectedProducts.includes(p.id) ? 'bg-cyan-500 border-cyan-500' : 'bg-white border-slate-300'}`}
+                        >
+                          {selectedProducts.includes(p.id) && <Check className="w-4 h-4 text-white" />}
+                        </button>
+                      </div>
+                      <div className={`absolute top-3 ${isAr ? 'right-3' : 'left-3'} z-10`}>
+                        <button
+                          onClick={() => handleEditProduct(p)}
+                          className="w-8 h-8 rounded-full bg-white text-slate-600 hover:text-cyan-600 shadow-md flex items-center justify-center transition-colors"
+                          title={lang === 'ar' ? 'تعديل المنتج' : lang === 'en' ? 'Edit Product' : 'Modifier le produit'}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                      </div>
                       <div className="aspect-square bg-slate-50 flex items-center justify-center overflow-hidden">
                         {p.image ? (
                           <img
@@ -1371,7 +1693,7 @@ export default function GZeedDashboard() {
                         )}
                       </div>
                       <div className="p-4">
-                        <h4 className="font-bold text-slate-900 truncate">
+                        <h4 className="font-bold text-slate-900 truncate pr-8">
                           {p.name}
                         </h4>
                         <div className="flex items-center gap-2 mt-1">
@@ -1489,39 +1811,39 @@ export default function GZeedDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
                   {
-                    id: "emerald-market",
+                    id: "clement",
                     category: "store",
-                    name: lang === "ar" ? "ألتيميت ستور" : lang === "en" ? "Ultimate Store (Pro)" : "Ultimate Store (Pro)",
-                    image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "متجر شامل ومتكامل" : lang === "en" ? "Comprehensive store design" : "Design de boutique complet",
+                    name: lang === "ar" ? "ملابس رجالية" : lang === "en" ? "Clement Fashion" : "Mode Homme (Clement)",
+                    image: "https://images.unsplash.com/photo-1577221084712-45b0445d2b00?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "مثالي للأزياء والملابس الرجالية" : lang === "en" ? "Perfect for men's clothing" : "Idéal pour les vêtements hommes",
                   },
                   {
-                    id: "atelier",
+                    id: "xton",
                     category: "store",
-                    name: lang === "ar" ? "مطبخ أتيليي" : lang === "en" ? "Atelier Kitchen" : "Atelier Cuisine",
-                    image: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "مثالي للمطاعم والمقاهي" : lang === "en" ? "Perfect for restaurants" : "Parfait pour les restaurants",
+                    name: lang === "ar" ? "منتجات رقمية وتقنية" : lang === "en" ? "Digital & Tech (Xton)" : "Produits Digitaux",
+                    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "مثالي للمنتجات الرقمية والإلكترونيات" : lang === "en" ? "Perfect for digital products and electronics" : "Parfait pour les produits digitaux et l'électronique",
                   },
                   {
-                    id: "eco",
+                    id: "abaya",
                     category: "store",
-                    name: lang === "ar" ? "طبيعة إيكو" : lang === "en" ? "Eco Nature" : "Eco Nature",
-                    image: "https://images.unsplash.com/photo-1523381294911-8d3cead13475?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "منتجات طبيعية وعضوية" : lang === "en" ? "Natural and organic products" : "Produits naturels et bio",
+                    name: lang === "ar" ? "عباية فاخرة" : lang === "en" ? "Luxury Abaya" : "Abaya de Luxe",
+                    image: "https://images.unsplash.com/photo-1589465885857-44edb59bbff2?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "تصميم أنيق للعبايات والملابس الفاخرة" : lang === "en" ? "Elegant design for luxury clothing" : "Design élégant pour vêtements de luxe",
                   },
                   {
                     id: "streetwear",
                     category: "store",
                     name: lang === "ar" ? "ستريت وير برو" : lang === "en" ? "Streetwear Pro" : "Streetwear Pro",
                     image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "تصميم عصري للملابس" : lang === "en" ? "Modern fashion layout" : "Layout mode moderne",
+                    desc: lang === "ar" ? "تصميم عصري للملابس الشبابية" : lang === "en" ? "Modern fashion layout" : "Layout mode moderne",
                   },
                   {
-                    id: "glamour-beauty",
+                    id: "kids",
                     category: "store",
-                    name: lang === "ar" ? "مكياج وتجميل" : lang === "en" ? "Glamour Beauty" : "Glamour Beauté",
-                    image: "https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=800&auto=format&fit=crop",
-                    desc: lang === "ar" ? "قالب متطور لمستحضرات التجميل" : lang === "en" ? "Advanced layout for cosmetics" : "Layout avancé pour cosmétiques",
+                    name: lang === "ar" ? "ألعاب وأطفال" : lang === "en" ? "Playful Kids" : "Mode Enfants",
+                    image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=800&auto=format&fit=crop",
+                    desc: lang === "ar" ? "قالب مبهج لمنتجات الأطفال" : lang === "en" ? "Playful layout for kids products" : "Layout ludique pour produits enfants",
                   },
                 ]
                   .filter(
@@ -1627,6 +1949,174 @@ export default function GZeedDashboard() {
                     ? "Open the editor now"
                     : "Ouvrir l'éditeur maintenant"}
               </button>
+            </div>
+          )}
+
+          {activeTab === "apps" && (
+            <div className="max-w-6xl mx-auto animate-fade-in space-y-6 pb-12">
+              <div className="mb-8">
+                <h2 className="text-2xl font-black text-slate-900">
+                  {lang === "ar" ? "التطبيقات والأدوات" : "Apps & Integrations"}
+                </h2>
+                <p className="text-slate-500 font-medium mt-1">
+                  {lang === "ar" ? "قم بربط متجرك مع تطبيقات الطرف الثالث والذكاء الاصطناعي." : "Connect your store with third-party tools and APIs."}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                {/* AI Configuration Card */}
+                <div className="bg-white rounded-2xl border-2 border-violet-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+                  <div className="p-6 bg-gradient-to-r from-violet-600/5 to-fuchsia-600/5 border-b border-violet-100 flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/30">
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-lg">GZeed AI Assistant</h3>
+                      <p className="text-sm font-medium text-slate-500 mt-1">
+                        {lang === "ar" ? "قم بإعداد مفتاح الـ API الخاص بك لتشغيل خدمات الذكاء الاصطناعي لتوليد المحتوى." : "Configure your API key to enable AI content generation and image analysis."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex-1">
+                      <label className="block text-sm font-bold text-slate-700 mb-2">
+                        {lang === "ar" ? "مفتاح API الخاص بك (OpenAI/Gemini)" : "Your API Key (OpenAI/Gemini)"}
+                      </label>
+                      <input
+                        type="password"
+                        value={aiApiKey}
+                        onChange={(e) => setAiApiKey(e.target.value)}
+                        placeholder="sk-..."
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition-all font-medium text-slate-900"
+                        dir="ltr"
+                      />
+                    </div>
+                    <button
+                      onClick={handleSaveIntegrations}
+                      disabled={isSavingApi}
+                      className="mt-6 w-full py-3 bg-slate-900 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 disabled:opacity-70 flex items-center justify-center gap-2 transition-all"
+                    >
+                      {isSavingApi ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                      {lang === "ar" ? "حفظ الإعدادات" : "Save Settings"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Facebook Pixel */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+                  <div className="p-6 border-b border-slate-100 flex items-start gap-4">
+                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
+                      <Activity className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-lg">Facebook Pixel</h3>
+                      <p className="text-sm font-medium text-slate-500 mt-1">
+                        {lang === "ar" ? "تتبع زيارات ومبيعات متجرك عبر فيسبوك." : "Track your store visitors and sales via Facebook."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex-1">
+                      <label className="block text-sm font-bold text-slate-700 mb-2">
+                        {lang === "ar" ? "معرف بيكسل (Pixel ID)" : "Pixel ID"}
+                      </label>
+                      <input
+                        type="text"
+                        value={fbPixelId}
+                        onChange={(e) => setFbPixelId(e.target.value)}
+                        placeholder="e.g. 123456789012345"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-slate-900"
+                        dir="ltr"
+                      />
+                    </div>
+                    <button
+                      onClick={handleSaveIntegrations}
+                      disabled={isSavingApi}
+                      className="mt-6 w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-md hover:bg-blue-700 disabled:opacity-70 flex items-center justify-center gap-2 transition-all"
+                    >
+                      {isSavingApi ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                      {lang === "ar" ? "حفظ وتفعيل" : "Save & Activate"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* WhatsApp Chat */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+                  <div className="p-6 border-b border-slate-100 flex items-start gap-4">
+                    <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
+                      <MessageCircle className="w-6 h-6 text-emerald-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-lg">WhatsApp Chat</h3>
+                      <p className="text-sm font-medium text-slate-500 mt-1">
+                        {lang === "ar" ? "إضافة أيقونة واتساب عائمة للتواصل مع العملاء مباشرة." : "Add a floating WhatsApp icon for direct customer support."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex-1">
+                      <label className="block text-sm font-bold text-slate-700 mb-2">
+                        {lang === "ar" ? "رقم الواتساب (مع رمز الدولة)" : "WhatsApp Number (with country code)"}
+                      </label>
+                      <input
+                        type="text"
+                        value={whatsappNumber}
+                        onChange={(e) => setWhatsappNumber(e.target.value)}
+                        placeholder="e.g. 212600000000"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all font-medium text-slate-900"
+                        dir="ltr"
+                      />
+                    </div>
+                    <button
+                      onClick={handleSaveIntegrations}
+                      disabled={isSavingApi}
+                      className="mt-6 w-full py-3 bg-emerald-500 text-white rounded-xl font-bold shadow-md hover:bg-emerald-600 disabled:opacity-70 flex items-center justify-center gap-2 transition-all"
+                    >
+                      {isSavingApi ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                      {lang === "ar" ? "حفظ وتفعيل" : "Save & Activate"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Google Analytics 4 */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+                  <div className="p-6 border-b border-slate-100 flex items-start gap-4">
+                    <div className="w-12 h-12 bg-[#F9AB00]/10 rounded-xl flex items-center justify-center shrink-0">
+                      <BarChart3 className="w-6 h-6 text-[#F9AB00]" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-lg">Google Analytics 4</h3>
+                      <p className="text-sm font-medium text-slate-500 mt-1">
+                        {lang === "ar" ? "تتبع زوار متجرك ومبيعاتك بدقة عالية." : "Track your store visitors and sales with high accuracy."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex-1">
+                      <label className="block text-sm font-bold text-slate-700 mb-2">
+                        {lang === "ar" ? "معرف التتبع (Measurement ID)" : "Measurement ID"}
+                      </label>
+                      <input
+                        type="text"
+                        value={gaTrackingId}
+                        onChange={(e) => setGaTrackingId(e.target.value)}
+                        placeholder="e.g. G-XXXXXXX"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[#F9AB00] focus:ring-2 focus:ring-[#F9AB00]/20 transition-all font-medium text-slate-900"
+                        dir="ltr"
+                      />
+                    </div>
+                    <button
+                      onClick={handleSaveIntegrations}
+                      disabled={isSavingApi}
+                      className="mt-6 w-full py-3 bg-[#F9AB00] text-white rounded-xl font-bold shadow-md hover:bg-[#F9AB00]/90 disabled:opacity-70 flex items-center justify-center gap-2 transition-all"
+                    >
+                      {isSavingApi ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                      {lang === "ar" ? "حفظ وتفعيل" : "Save & Activate"}
+                    </button>
+                  </div>
+                </div>
+
+              </div>
             </div>
           )}
 
@@ -2466,13 +2956,32 @@ export default function GZeedDashboard() {
                 <div className="lg:col-span-2 space-y-6">
                   {/* Basic Info */}
                   <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                    <h3 className="text-lg font-bold text-slate-900 mb-6">
-                      {lang === "ar"
-                        ? "المعلومات الأساسية"
-                        : lang === "en"
-                          ? "Basic Information"
-                          : "Informations de base"}
-                    </h3>
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-bold text-slate-900">
+                        {lang === "ar"
+                          ? "المعلومات الأساسية"
+                          : lang === "en"
+                            ? "Basic Information"
+                            : "Informations de base"}
+                      </h3>
+                      <button
+                        onClick={handleGenerateFromImage}
+                        disabled={isGeneratingAI}
+                        className="text-xs font-black px-4 py-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-xl shadow-md shadow-violet-500/20 flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-70 disabled:hover:scale-100"
+                      >
+                        {isGeneratingAI ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            {lang === "ar" ? "جاري تحليل الصورة..." : "Analyzing image..."}
+                          </>
+                        ) : (
+                          <>
+                            <Palette className="w-4 h-4" />
+                            {lang === "ar" ? "توليد من الصورة بالذكاء الاصطناعي" : "Generate from Image (AI)"}
+                          </>
+                        )}
+                      </button>
+                    </div>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">
@@ -2528,6 +3037,50 @@ export default function GZeedDashboard() {
                           }
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* SEO Settings */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                      <Globe className="w-5 h-5 text-indigo-500" />
+                      {lang === "ar" ? "محركات البحث (SEO & Meta Tags)" : "Search Engines (SEO)"}
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          {lang === "ar" ? "عنوان SEO" : "SEO Title"}
+                        </label>
+                        <input
+                          type="text"
+                          value={newProduct.seoTitle}
+                          onChange={(e) => setNewProduct({ ...newProduct, seoTitle: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          {lang === "ar" ? "وصف SEO" : "SEO Description"}
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={newProduct.seoDescription}
+                          onChange={(e) => setNewProduct({ ...newProduct, seoDescription: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-900 resize-none"
+                        />
+                      </div>
+                      {newProduct.tags.length > 0 && (
+                        <div>
+                           <label className="block text-sm font-bold text-slate-700 mb-2">
+                            {lang === "ar" ? "الكلمات الدلالية المولدة (Tags)" : "Generated Tags"}
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {newProduct.tags.map((tag) => (
+                              <span key={tag} className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold border border-indigo-100">{tag}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -2609,128 +3162,160 @@ export default function GZeedDashboard() {
 
                   {/* Variants: Size / Color - WooCommerce style tag inputs */}
                   <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                    <h3 className="text-lg font-bold text-slate-900 mb-6">
-                      {lang === "ar"
-                        ? "المقاسات والألوان"
-                        : lang === "en"
-                          ? "Sizes & Colors"
-                          : "Tailles & Couleurs"}
-                    </h3>
-                    <div className="space-y-5">
-                      <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">
-                          {lang === "ar"
-                            ? "المقاسات (Tailles)"
-                            : lang === "en"
-                              ? "Sizes"
-                              : "Tailles"}
-                        </label>
-                        <div className="flex gap-2 mb-3">
-                          <input
-                            type="text"
-                            value={sizeInput}
-                            onChange={(e) => setSizeInput(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === ",") {
-                                e.preventDefault();
-                                addTag("size");
-                              }
-                            }}
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900"
-                            placeholder={
-                              lang === "ar"
-                                ? "مثال: S, M, L..."
-                                : lang === "en"
-                                  ? "e.g. S, M, L..."
-                                  : "ex: S, M, L..."
-                            }
-                          />
-                          <button
-                            type="button"
-                            onClick={() => addTag("size")}
-                            className="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors shrink-0"
-                          >
-                            <Plus className="w-5 h-5" />
-                          </button>
-                        </div>
-                        {productSizes.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {productSizes.map((size) => (
-                              <span
-                                key={size}
-                                className="inline-flex items-center gap-1.5 bg-cyan-50 text-cyan-700 border border-cyan-200 rounded-full px-3 py-1 text-sm font-bold"
-                              >
-                                {size}
-                                <button
-                                  type="button"
-                                  onClick={() => removeTag("size", size)}
-                                  className="hover:text-cyan-900"
-                                >
-                                  <X className="w-3.5 h-3.5" />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">
-                          {lang === "ar"
-                            ? "الألوان (Couleurs)"
-                            : lang === "en"
-                              ? "Colors"
-                              : "Couleurs"}
-                        </label>
-                        <div className="flex gap-2 mb-3">
-                          <input
-                            type="text"
-                            value={colorInput}
-                            onChange={(e) => setColorInput(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === ",") {
-                                e.preventDefault();
-                                addTag("color");
-                              }
-                            }}
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900"
-                            placeholder={
-                              lang === "ar"
-                                ? "مثال: أحمر، أزرق، أسود..."
-                                : lang === "en"
-                                  ? "e.g. Red, Blue, Black..."
-                                  : "ex: Rouge, Bleu, Noir..."
-                            }
-                          />
-                          <button
-                            type="button"
-                            onClick={() => addTag("color")}
-                            className="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors shrink-0"
-                          >
-                            <Plus className="w-5 h-5" />
-                          </button>
-                        </div>
-                        {productColors.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {productColors.map((color) => (
-                              <span
-                                key={color}
-                                className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full px-3 py-1 text-sm font-bold"
-                              >
-                                {color}
-                                <button
-                                  type="button"
-                                  onClick={() => removeTag("color", color)}
-                                  className="hover:text-indigo-900"
-                                >
-                                  <X className="w-3.5 h-3.5" />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-bold text-slate-900">
+                        {lang === "ar"
+                          ? "المقاسات والألوان (خيارات)"
+                          : lang === "en"
+                            ? "Sizes & Colors (Options)"
+                            : "Tailles & Couleurs (Options)"}
+                      </h3>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only peer" 
+                          checked={hasOptions} 
+                          onChange={(e) => setHasOptions(e.target.checked)} 
+                        />
+                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+                        <span className="ms-3 text-sm font-medium text-slate-700">
+                          {lang === "ar" ? "تفعيل" : lang === "en" ? "Enable" : "Activer"}
+                        </span>
+                      </label>
                     </div>
+                    {hasOptions && (
+                      <div className="space-y-6">
+                        <div className="flex gap-2 mb-4">
+                          <input
+                            type="text"
+                            value={variantTypeInput}
+                            onChange={(e) => setVariantTypeInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && variantTypeInput.trim()) {
+                                e.preventDefault();
+                                setProductVariants((prev) => [...prev, { name: variantTypeInput.trim(), options: [] }]);
+                                setVariantTypeInput("");
+                              }
+                            }}
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900"
+                            placeholder={lang === "ar" ? "أضف نوع جديد (مثال: نكهة، مقاس...)" : "Nouveau type (ex: Saveur, Taille...)"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (variantTypeInput.trim()) {
+                                setProductVariants((prev) => [...prev, { name: variantTypeInput.trim(), options: [] }]);
+                                setVariantTypeInput("");
+                              }
+                            }}
+                            className="px-5 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl transition-colors shrink-0"
+                          >
+                            <Plus className="w-5 h-5" />
+                          </button>
+                        </div>
+                        
+                        {productVariants.map((variant, vIdx) => (
+                          <div key={vIdx} className="border border-slate-200 rounded-xl p-4 bg-slate-50 relative">
+                            <button
+                              type="button"
+                              onClick={() => setProductVariants(prev => prev.filter((_, i) => i !== vIdx))}
+                              className="absolute top-3 right-3 text-slate-400 hover:text-rose-500 transition-colors"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                            <h4 className="font-bold text-slate-900 mb-4">{variant.name}</h4>
+                            
+                            <div className="flex gap-2 mb-4">
+                              <input
+                                type="text"
+                                value={activeVariantIndex === vIdx ? variantOptionInput : ""}
+                                onChange={(e) => {
+                                  setActiveVariantIndex(vIdx);
+                                  setVariantOptionInput(e.target.value);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && activeVariantIndex === vIdx && variantOptionInput.trim()) {
+                                    e.preventDefault();
+                                    setProductVariants(prev => {
+                                      const next = [...prev];
+                                      next[vIdx].options.push({ name: variantOptionInput.trim() });
+                                      return next;
+                                    });
+                                    setVariantOptionInput("");
+                                  }
+                                }}
+                                className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-cyan-500 text-sm font-medium"
+                                placeholder={lang === "ar" ? "أضف خيار (مثال: فراولة، أحمر...)" : "Ajouter une option (ex: Fraise, Rouge...)"}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (activeVariantIndex === vIdx && variantOptionInput.trim()) {
+                                    setProductVariants(prev => {
+                                      const next = [...prev];
+                                      next[vIdx].options.push({ name: variantOptionInput.trim() });
+                                      return next;
+                                    });
+                                    setVariantOptionInput("");
+                                  }
+                                }}
+                                className="px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors shrink-0"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            {variant.options.length > 0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {variant.options.map((opt, oIdx) => (
+                                  <div key={oIdx} className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg pl-3 pr-1 py-1 shadow-sm">
+                                    <span className="text-sm font-bold text-slate-700">{opt.name}</span>
+                                    {opt.image && (
+                                      <img src={opt.image} alt={opt.name} className="w-5 h-5 rounded-full object-cover border border-slate-200" />
+                                    )}
+                                    <label className="cursor-pointer text-slate-400 hover:text-cyan-600 transition-colors ml-1" title={lang === "ar" ? "إضافة صورة" : "Ajouter une image"}>
+                                      <Upload className="w-4 h-4" />
+                                      <input 
+                                        type="file" 
+                                        className="hidden" 
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                              setProductVariants(prev => {
+                                                const next = [...prev];
+                                                next[vIdx].options[oIdx].image = reader.result as string;
+                                                return next;
+                                              });
+                                            };
+                                            reader.readAsDataURL(file);
+                                          }
+                                        }}
+                                      />
+                                    </label>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setProductVariants(prev => {
+                                          const next = [...prev];
+                                          next[vIdx].options = next[vIdx].options.filter((_, i) => i !== oIdx);
+                                          return next;
+                                        });
+                                      }}
+                                      className="text-slate-400 hover:text-rose-500 transition-colors p-1"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -2918,6 +3503,65 @@ export default function GZeedDashboard() {
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full font-bold shadow-xl flex items-center gap-3 animate-fade-in z-50">
           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
           {toastMessage}
+        </div>
+      )}
+
+      {/* AI Modal */}
+      {showAIModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 p-6 text-white relative">
+              <button 
+                onClick={() => !isGeneratingAI && setShowAIModal(false)}
+                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+                dir="ltr"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md mb-4 shadow-inner">
+                <Smartphone className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-black mb-1">
+                {lang === "ar" ? "المساعد الذكي (AI)" : "AI Assistant"}
+              </h3>
+              <p className="text-white/80 text-sm font-medium">
+                {lang === "ar" 
+                  ? "صف المنتج ديالك باختصار، والذكاء الاصطناعي غيتكلف بالباقي (العنوان، الوصف المقنع، والـ SEO)." 
+                  : "Describe your product briefly, and AI will handle the rest."}
+              </p>
+            </div>
+            
+            <div className="p-6">
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                {lang === "ar" ? "شنو هو المنتج ديالك؟" : "What is your product?"}
+              </label>
+              <textarea
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                placeholder={lang === "ar" ? "مثال: اشتراك نتفليكس لمدة سنة، أو حذاء رياضي للجري..." : "e.g. 1 year Netflix subscription..."}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 focus:ring-2 focus:ring-violet-500 outline-none h-28 resize-none text-slate-900 font-medium"
+                disabled={isGeneratingAI}
+              />
+              
+              <button
+                onClick={handleGenerateAI}
+                disabled={isGeneratingAI || !aiPrompt.trim()}
+                className="w-full mt-6 py-3.5 bg-slate-900 text-white rounded-xl font-black shadow-lg hover:bg-slate-800 disabled:opacity-70 flex items-center justify-center gap-2 transition-all"
+              >
+                {isGeneratingAI ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {lang === "ar" ? "جاري التوليد..." : "Generating..."}
+                  </>
+                ) : (
+                  <>
+                    <Palette className="w-5 h-5" />
+                    {lang === "ar" ? "توليد المحتوى" : "Generate Content"}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -755,9 +755,25 @@ function AppContent() {
         {recoveryModal}
         <Routes>
         <Route path="/" element={
-          <Suspense fallback={<PageLoader />}>
-            <MerchantDashboard currentUser={currentUser} onLogout={handleLogout} />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <GZeedDashboard />
+            </Suspense>
+          </ErrorBoundary>
+        } />
+        <Route path="/dashboard" element={
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <GZeedDashboard />
+            </Suspense>
+          </ErrorBoundary>
+        } />
+        <Route path="/project-selection" element={
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <ProjectSelection />
+            </Suspense>
+          </ErrorBoundary>
         } />
         <Route path="/welcome" element={
           <Suspense fallback={<PageLoader />}>
@@ -765,6 +781,13 @@ function AppContent() {
           </Suspense>
         } />
         {/* They can also access the builder */}
+        <Route path="/gzeed-builder" element={
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <GZeedBuilder />
+            </Suspense>
+          </ErrorBoundary>
+        } />
         <Route path="/store-builder" element={
           <Suspense fallback={<PageLoader />}>
             <div className="min-h-screen bg-white">
