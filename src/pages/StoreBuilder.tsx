@@ -877,6 +877,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   // Theme Inline Texts
   const [heroTitle, setHeroTitle] = useState(config.heroTitle || '');
   const [hiddenSections, setHiddenSections] = useState<string[]>(config.hiddenSections || []);
+  const [customSections, setCustomSections] = useState<any[]>(config.customSections || []);
   const [heroSubtitle, setHeroSubtitle] = useState(config.heroSubtitle || '');
   const [heroButtonText, setHeroButtonText] = useState(config.heroButtonText || '');
   const [homeCollectionsTitle, setHomeCollectionsTitle] = useState(config.homeCollectionsTitle || '');
@@ -1378,6 +1379,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.homeCollectionsTitle !== undefined) setHomeCollectionsTitle(payload.homeCollectionsTitle);
         if (payload.heroButtonText !== undefined) setHeroButtonText(payload.heroButtonText);
         if (payload.heroSlides !== undefined) setHeroSlides(payload.heroSlides);
+        if (payload.customSections !== undefined) setCustomSections(payload.customSections);
+        if (payload.hiddenSections !== undefined) setHiddenSections(payload.hiddenSections);
         if (payload.heroSliderStyle !== undefined) setHeroSliderStyle(payload.heroSliderStyle);
         if (payload.storeName !== undefined) setStoreName(payload.storeName);
         if (payload.storeLang !== undefined) setStoreLang(payload.storeLang);
