@@ -218,6 +218,15 @@ export default function GZeedDashboard() {
     seoTitle: "",
     seoDescription: "",
     tags: [] as string[],
+    category: "",
+  });
+  const [availableCategories, setAvailableCategories] = useState<{id: string, name: string}[]>(() => {
+    try {
+      const saved = localStorage.getItem('gzeed_categories');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
   const [productImages, setProductImages] = useState<string[]>([]);
   const [productSizes, setProductSizes] = useState<string[]>([]);
@@ -753,6 +762,7 @@ export default function GZeedDashboard() {
       seoTitle: "",
       seoDescription: "",
       tags: [],
+      category: "",
     });
     setProductImages([]);
     setProductSizes([]);
@@ -774,6 +784,7 @@ export default function GZeedDashboard() {
       seoTitle: p.seoTitle || "",
       seoDescription: p.seoDescription || "",
       tags: p.tags || [],
+      category: p.category || "",
     });
     setProductImages(p.images || (p.image ? [p.image] : []));
     setProductSizes(p.sizes || []);
@@ -822,7 +833,7 @@ export default function GZeedDashboard() {
         customVariants: productVariants,
         image: productImages[0] || "",
         images: productImages,
-        category: "General",
+        category: newProduct.category || "General",
       };
 
       const currentProducts = existingConfig.storeProducts || [];
@@ -3390,6 +3401,31 @@ export default function GZeedDashboard() {
                         </div>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Categories */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 mb-4">
+                      {lang === "ar"
+                        ? "التصنيف"
+                        : lang === "en"
+                          ? "Category"
+                          : "Catégorie"}
+                    </h3>
+                    <select
+                      value={newProduct.category}
+                      onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-900 appearance-none"
+                    >
+                      <option value="">
+                        {lang === "ar" ? "-- اختر تصنيفاً --" : lang === "en" ? "-- Select Category --" : "-- Sélectionner une catégorie --"}
+                      </option>
+                      {availableCategories.map((cat) => (
+                        <option key={cat.id} value={cat.name}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Images */}
