@@ -39,6 +39,7 @@ import {
   Activity,
   Pencil,
   Upload,
+  FileText,
 } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useLang } from "../contexts/LangContext";
@@ -48,6 +49,7 @@ import { saveRecord } from "../types";
 import StoreAnalytics from "./StoreAnalytics";
 import CustomersManager from "../components/dashboard/CustomersManager";
 import CategoriesManager from "../components/dashboard/CategoriesManager";
+import PagesManager from "../components/dashboard/PagesManager";
 import TeamManager from "../components/dashboard/TeamManager";
 
 export default function GZeedDashboard() {
@@ -958,6 +960,13 @@ export default function GZeedDashboard() {
       labelAr: "التصنيفات",
       labelFr: "Catégories",
       labelEn: "Categories",
+    },
+    {
+      id: "pages",
+      icon: FileText,
+      labelAr: "الصفحات",
+      labelFr: "Pages",
+      labelEn: "Pages",
     },
     {
       id: "customers",
@@ -3534,6 +3543,7 @@ export default function GZeedDashboard() {
           )}
           {activeTab === "customers" && <CustomersManager />}
           {activeTab === "categories" && <CategoriesManager />}
+          {activeTab === "pages" && <PagesManager />}
           {activeTab === "team" && <TeamManager />}
         </div>
       </main>
