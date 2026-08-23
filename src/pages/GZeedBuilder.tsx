@@ -808,15 +808,25 @@ export default function GZeedBuilder() {
 
                         {/* Button Settings */}
                         <div>
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'الزر' : 'Button Size'}</label>
-                           <select 
-                              onChange={(e) => updateConfigInIframe({ pdpButtonSize: e.target.value })} 
-                              className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-50"
-                           >
-                              <option value="py-3 text-sm">{lang === 'ar' ? 'صغير' : 'Small'}</option>
-                              <option value="py-4 text-base">{lang === 'ar' ? 'متوسط' : 'Medium'}</option>
-                              <option value="py-5 text-lg">{lang === 'ar' ? 'ضخم' : 'Large'}</option>
-                           </select>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'الزر' : 'Button Style'}</label>
+                           <div className="space-y-3">
+                              <select 
+                                 onChange={(e) => updateConfigInIframe({ pdpButtonSize: e.target.value })} 
+                                 className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-50"
+                              >
+                                 <option value="py-3 text-sm">{lang === 'ar' ? 'حجم صغير' : 'Small Size'}</option>
+                                 <option value="py-4 text-base">{lang === 'ar' ? 'حجم متوسط' : 'Medium Size'}</option>
+                                 <option value="py-5 text-lg">{lang === 'ar' ? 'حجم ضخم' : 'Large Size'}</option>
+                              </select>
+                              <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg bg-slate-50">
+                                 <input 
+                                    type="color" 
+                                    onChange={(e) => updateConfigInIframe({ pdpButtonColor: e.target.value })} 
+                                    className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                                 />
+                                 <span className="text-xs font-bold text-slate-500">{lang === 'ar' ? 'لون زر الطلب (اختياري)' : 'Order Button Color (Optional)'}</span>
+                              </div>
+                           </div>
                         </div>
 
                         {/* Related Products */}

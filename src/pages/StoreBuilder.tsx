@@ -713,6 +713,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   const [pdpTitleSize, setPdpTitleSize] = useState<string>(config.pdpTitleSize || 'text-4xl md:text-5xl');
   const [pdpDescSize, setPdpDescSize] = useState<string>(config.pdpDescSize || 'text-base');
   const [pdpButtonSize, setPdpButtonSize] = useState<string>(config.pdpButtonSize || 'py-4 text-base');
+  const [pdpButtonColor, setPdpButtonColor] = useState<string>(config.pdpButtonColor || '');
   const [showRelatedProducts, setShowRelatedProducts] = useState<boolean>(config.showRelatedProducts !== false);
   const [showDeliveryInfo, setShowDeliveryInfo] = useState<boolean>(config.showDeliveryInfo !== false);
   const [showProductReviews, setShowProductReviews] = useState<boolean>(config.showProductReviews !== false);
@@ -1391,6 +1392,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.pdpTitleSize !== undefined) setPdpTitleSize(payload.pdpTitleSize);
         if (payload.pdpDescSize !== undefined) setPdpDescSize(payload.pdpDescSize);
         if (payload.pdpButtonSize !== undefined) setPdpButtonSize(payload.pdpButtonSize);
+        if (payload.pdpButtonColor !== undefined) setPdpButtonColor(payload.pdpButtonColor);
         if (payload.showRelatedProducts !== undefined) setShowRelatedProducts(payload.showRelatedProducts);
         if (payload.showDeliveryInfo !== undefined) setShowDeliveryInfo(payload.showDeliveryInfo);
         if (payload.showProductReviews !== undefined) setShowProductReviews(payload.showProductReviews);
@@ -4799,8 +4801,6 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                     </div>
 
                  <div className="flex items-center justify-between mb-4">
-                    <div className="bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm"><Sparkles className="w-3 h-3" /> Best Seller</div>
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500"><Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> 4.8 (65 Ratings)</div>
                  </div>
 
                  <h1 className="text-xl md:text-5xl font-bold text-slate-900 leading-tight mb-6">{product.name}</h1>
@@ -4867,7 +4867,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                            if (hasSizes && !selectedSize) { alert(storeIsAr ? 'الرجاء اختيار المقاس أولاً' : 'Veuillez choisir une taille d\'abord'); return; }
                            if (hasCustom && !product.customVariants.every((v: any) => selectedVariants[v.name])) { alert(storeIsAr ? 'الرجاء اختيار الخيارات المطلوبة' : 'Veuillez sélectionner toutes les options requises'); return; }
                            setPage('checkout');
-                       }} className={`w-full py-5 md:py-6 bg-[#ff5a1f] text-white rounded-[1.5rem] font-bold text-sm md:text-base shadow-xl shadow-[#ff5a1f]/30 transition-all ${allSelected ? 'hover:scale-[1.02]' : 'opacity-60 cursor-not-allowed grayscale-[30%]'}`}>
+                       }} style={{ backgroundColor: pdpButtonColor || primaryColor }} className={`w-full py-5 md:py-6 text-white rounded-[1.5rem] font-bold text-sm md:text-base shadow-xl transition-all ${allSelected ? 'hover:scale-[1.02] shadow-black/10' : 'opacity-60 cursor-not-allowed grayscale-[30%]'}`}>
                           {storeIsAr ? 'اطلب الآن' : 'Order Now'}
                        </button>
                     );
