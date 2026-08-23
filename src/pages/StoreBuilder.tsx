@@ -1760,7 +1760,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            // fighting the user's cursor), so editing the same field from the sidebar input instead
            // of typing directly on the canvas would silently fail to update the preview. Keying on
            // the current value forces a remount whenever the text changes from that external source.
-           key={displayText}
+           key={`${displayText}-${override.fontSize || '}-${override.color || '}-${override.fontFamily || '}`}
            className={`${className} cursor-text hover:outline hover:outline-2 hover:outline-indigo-500 hover:outline-dashed hover:bg-black/10 transition-all px-1 rounded min-w-[20px] inline-block empty:before:content-['${storeIsAr ? "فارغ" : "Vide"}'] empty:before:text-slate-400`}
            style={mergedStyle}
            contentEditable
@@ -1946,10 +1946,36 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                if (hiddenSections.includes(section.id)) return null;
                return (
                   <div id={section.id} key={section.id} className="max-w-7xl mx-auto px-4 md:px-8 py-10 my-10 relative w-full">
-                     {section.title && <h3 className="text-3xl font-serif text-slate-900 mb-8 text-center">{section.title}</h3>}
+                     {section.title && (
+                        <EditableText 
+                           as="h3" 
+                           text={section.title} 
+                           onTextChange={(val: string) => {
+                              // We don't have a direct setter for just one section title, but we can trigger a global config update
+                              const newSections = customSections.map((s: any) => s.id === section.id ? { ...s, title: val } : s);
+                              if (typeof window !== 'undefined' && window.parent) {
+                                 window.parent.postMessage({ type: 'UPDATE_CONFIG', payload: { customSections: newSections } }, '*');
+                              }
+                           }}
+                           isLiveStore={isLiveStore} 
+                           className="text-3xl font-serif text-slate-900 mb-8 text-center" 
+                           styleKey={`custom_${section.id}_title`} 
+                        />
+                     )}
                      {section.type === 'text' && (
                         <div className="text-center text-slate-600 max-w-4xl mx-auto" style={{ fontSize: `${section.settings?.fontSize || 16}px` }}>
-                           {section.content}
+                           <EditableText 
+                              as="p" 
+                              text={section.content} 
+                              onTextChange={(val: string) => {
+                                 const newSections = customSections.map((s: any) => s.id === section.id ? { ...s, content: val } : s);
+                                 if (typeof window !== 'undefined' && window.parent) {
+                                    window.parent.postMessage({ type: 'UPDATE_CONFIG', payload: { customSections: newSections } }, '*');
+                                 }
+                              }}
+                              isLiveStore={isLiveStore} 
+                              styleKey={`custom_${section.id}_content`} 
+                           />
                         </div>
                      )}
                      {section.type === 'html' && (
