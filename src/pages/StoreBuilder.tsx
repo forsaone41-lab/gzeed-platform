@@ -732,6 +732,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   const [activeStyleKey, setActiveStyleKey] = useState<string | null>(null);
   const [toolbarPos, setToolbarPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const [toolbarBaseline, setToolbarBaseline] = useState<{ fontSize: number; color: string }>({ fontSize: 16, color: '#000000' });
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const updateTextStyle = (key: string, patch: any) => {
      setTextStyles(prev => ({ ...prev, [key]: { ...prev[key], ...patch } }));
   };
@@ -1336,22 +1337,19 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
       }
       if (event.data?.type === 'SCROLL_TO_SECTION') {
         const sectionId = event.data.payload;
+        setActiveSection(sectionId);
         let elementId = '';
         if (sectionId === 'header') elementId = 'store-header';
         if (sectionId === 'hero') elementId = 'store-hero';
         if (sectionId === 'products') elementId = 'store-products';
+        if (sectionId === 'categories') elementId = 'store-categories';
         if (sectionId === 'footer') elementId = 'store-footer';
+        if (sectionId.startsWith('custom_')) elementId = sectionId;
 
         if (elementId) {
           const el = document.getElementById(elementId);
           if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            el.style.transition = 'all 0.4s ease';
-            const originalShadow = el.style.boxShadow;
-            el.style.boxShadow = '0 0 0 4px #0ea5e9, 0 0 30px rgba(14, 165, 233, 0.4)';
-            setTimeout(() => {
-              el.style.boxShadow = originalShadow;
-            }, 1200);
           }
         }
       }
@@ -4663,7 +4661,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
              </HeroBackgroundEditor>
 
              {/* Categories Header (Text-based instead of emoji boxes) */}
-             <div className="text-center py-4 mb-4">
+             <div id="store-categories" className="text-center py-4 mb-4">
                 <EditableText 
                    as="h2" 
                    text={homeCollectionsTitle || (storeLang === 'ar' ? 'تشكيلتنا الفاخرة' : 'Discover Our Collection')} 
@@ -5771,7 +5769,74 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
     };
 
     return (
-       <div className={`store-preview-wrapper min-h-screen w-full relative flex flex-col ${headerPosition === 'bottom' ? 'header-at-bottom' : ''} ${headerStyle === 'fixed' ? 'header-is-fixed' : ''}`} onClick={() => setActiveStyleKey(null)}>
+       <div className={`store-preview-wrapper min-h-screen w-full relative flex flex-col ${headerPosition === 'bottom' ? 'header-at-bottom' : ''} ${headerStyle === 'fixed' ? 'header-is-fixed' : ''}`} onClick={(e: any) => {
+          setActiveStyleKey(null);
+          if (isLiveStore) return;
+          
+          let target = e.target as HTMLElement;
+          while (target && target !== e.currentTarget) {
+             if (target.id && target.id.startsWith('custom_')) {
+                window.parent.postMessage({ type: 'SECTION_CLICKED', payload: target.id }, '*');
+                setActiveSection(target.id);
+                return;
+             }
+             if (target.id === 'store-header') {
+                window.parent.postMessage({ type: 'SECTION_CLICKED', payload: 'header' }, '*');
+                setActiveSection('header');
+                return;
+             }
+             if (target.id === 'store-hero') {
+                window.parent.postMessage({ type: 'SECTION_CLICKED', payload: 'hero' }, '*');
+                setActiveSection('hero');
+                return;
+             }
+             if (target.id === 'store-categories') {
+                window.parent.postMessage({ type: 'SECTION_CLICKED', payload: 'categories' }, '*');
+                setActiveSection('categories');
+                return;
+             }
+             if (target.id === 'store-products') {
+                window.parent.postMessage({ type: 'SECTION_CLICKED', payload: 'products' }, '*');
+                setActiveSection('products');
+                return;
+             }
+             if (target.id === 'store-footer') {
+                window.parent.postMessage({ type: 'SECTION_CLICKED', payload: 'footer' }, '*');
+                setActiveSection('footer');
+                return;
+             }
+             target = target.parentElement as HTMLElement;
+          }
+          
+          window.parent.postMessage({ type: 'SECTION_CLICKED', payload: null }, '*');
+          setActiveSection(null);
+       }}>
+          {!isLiveStore && activeSection && (
+             <style>{`
+                #store-${activeSection}, #${activeSection} {
+                   outline: 4px solid #0ea5e9 !important;
+                   outline-offset: -4px;
+                   border-radius: 12px;
+                   transition: all 0.3s ease;
+                   position: relative;
+                   z-index: 40;
+                }
+                #store-${activeSection}::after, #${activeSection}::after {
+                   content: 'Editing';
+                   position: absolute;
+                   top: 0;
+                   right: 0;
+                   background: #0ea5e9;
+                   color: white;
+                   font-size: 10px;
+                   font-weight: bold;
+                   padding: 4px 8px;
+                   border-bottom-left-radius: 8px;
+                   z-index: 41;
+                   pointer-events: none;
+                }
+             `}</style>
+          )}
           <style>{`
              .header-at-bottom > div:not(.shrink-0) {
                 display: flex; flex-direction: column;

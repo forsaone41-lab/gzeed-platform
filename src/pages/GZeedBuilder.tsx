@@ -84,6 +84,22 @@ export default function GZeedBuilder() {
     } catch (e) {}
   }, []);
 
+  React.useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'SECTION_CLICKED') {
+        const payload = e.data.payload;
+        if (payload) {
+          setActiveSidebarTab('sections');
+          setActiveConfigSection(payload);
+        } else {
+          setActiveConfigSection(null);
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   const [slideUnsplashPickerIdx, setSlideUnsplashPickerIdx] = useState<number | null>(null);
   const [unsplashSearchQuery, setUnsplashSearchQuery] = useState('');
   const [unsplashSearchResults, setUnsplashSearchResults] = useState<string[]>([]);
