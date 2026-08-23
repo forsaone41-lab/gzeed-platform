@@ -4575,6 +4575,9 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
   const LayoutProLamode = ({ isModal = false, page, setPage, activeProductId, navigateToProduct, buyMode, categories, activeCategory, setActiveCategory, filteredProducts, sortBy, setSortBy, setIsCartOpen, submitGlobalOrder, storeProducts }: any) => {
     const primaryColor = config?.primaryColor || activeTheme?.defaultColor;
     const fontFamily = config?.fontFamily || activeTheme?.defaultFont;
+    const [quantity, setQuantity] = useState(1);
+    const [selectedColor, setSelectedColor] = useState<string>('');
+    const [selectedSize, setSelectedSize] = useState<string>('');
     
     // Derived values
     const featuredCollection = storeProducts.slice(0, 3);
