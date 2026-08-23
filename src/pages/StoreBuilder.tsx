@@ -4069,97 +4069,135 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
             <div className="bg-[#f0f0f0] border-b border-gray-200">
               <div className="mx-auto flex flex-col md:flex-row min-h-[500px]" style={{ maxWidth: `${siteMaxWidth}px` }}>
-                <div className="w-full md:w-1/2 flex flex-col justify-center p-12 md:p-20">
-                  <EditableText as="h2" text={heroTitle} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className="text-4xl md:text-5xl font-serif text-[#111] mb-6 leading-tight uppercase" styleKey="heroTitle" />
-                  <p className="text-sm text-gray-600 mb-10 tracking-wide font-serif italic">
-                    {storeIsAr ? 'اكتشف مجموعتنا المميزة.' : 'Découvrez la Collection Signature.'}
-                  </p>
-                  <button onClick={() => { setActiveCategory('All'); }} className="self-start bg-transparent border border-[#222] text-[#222] hover:bg-[#222] hover:text-white px-8 py-3.5 text-xs font-bold tracking-widest uppercase transition-colors">
-                    {storeIsAr ? 'تسوق الآن' : 'Shop Now'}
-                  </button>
+                <div className="w-full md:w-1/2 flex flex-col justify-center p-12 md:p-20 relative z-10">
+                  {(() => {
+                    const slides = heroSlides && heroSlides.length > 0
+                      ? heroSlides
+                      : [{ image: heroImage, title: heroTitle || '', subtitle: heroSubtitle || (storeIsAr ? 'اكتشف مجموعتنا المميزة.' : 'Découvrez la Collection Signature.'), buttonText: heroButtonText || (storeIsAr ? 'تسوق الآن' : 'Shop Now') }];
+                    const curIdx = activeHeroSlide % slides.length;
+                    const curSlide = slides[curIdx];
+
+                    return (
+                      <>
+                        <EditableText as="h2" text={curSlide.title} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className="text-4xl md:text-5xl font-serif text-[#111] mb-6 leading-tight uppercase animate-in fade-in slide-in-from-bottom-4 duration-500" styleKey="heroTitle" key={`t-${curIdx}`} />
+                        <EditableText as="p" text={curSlide.subtitle} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-sm text-gray-600 mb-10 tracking-wide font-serif italic animate-in fade-in slide-in-from-bottom-4 duration-700" styleKey="heroSubtitle" key={`s-${curIdx}`} />
+                        <button onClick={() => { setActiveCategory('All'); }} className="self-start bg-transparent border border-[#222] text-[#222] hover:bg-[#222] hover:text-white px-8 py-3.5 text-xs font-bold tracking-widest uppercase transition-colors animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                          <EditableText text={curSlide.buttonText || heroButtonText} onTextChange={setHeroButtonText} isLiveStore={isLiveStore} styleKey="heroButtonText" />
+                        </button>
+                      </>
+                    );
+                  })()}
                 </div>
-                <div className="w-full md:w-1/2 relative bg-gray-200 min-h-[300px]">
-                  <img src={heroImage} alt="Hero" className="w-full h-full object-cover object-center absolute inset-0" style={{ objectPosition: `${heroImagePosX}% ${heroImagePosY}%` }} />
+                <div className="w-full md:w-1/2 relative bg-gray-200 min-h-[300px] overflow-hidden">
+                  {(() => {
+                    const slides = heroSlides && heroSlides.length > 0 ? heroSlides : [{ image: heroImage }];
+                    const curIdx = activeHeroSlide % slides.length;
+                    return slides.map((s: any, i: number) => (
+                      <div key={i} className="absolute inset-0 transition-opacity duration-1000" style={{ opacity: curIdx === i ? 1 : 0 }}>
+                         <img src={s.image || heroImage} alt="Hero" className="w-full h-full object-cover object-center" style={{ objectPosition: `${heroImagePosX}% ${heroImagePosY}%` }} />
+                      </div>
+                    ));
+                  })()}
                 </div>
               </div>
             </div>
 
-            <div className="mx-auto px-6 py-20 text-center" style={{ maxWidth: `${siteMaxWidth}px` }}>
-              <EditableText as="h3" text={homeCollectionsTitle} onTextChange={setHomeCollectionsTitle} isLiveStore={isLiveStore} className="text-xl font-serif uppercase tracking-widest mb-16 text-[#111]" styleKey="homeCollectionsTitle" />
-              <div className={`grid ${previewDevice === 'mobile' && !isModal ? 'grid-cols-2' : gridColsClass('md4')} gap-8`}>
-                {essentials.map((p: any) => (
-                  <div key={p.id} className="group flex flex-col text-center cursor-pointer" onClick={() => navigateToProduct(p.id)}>
-                    <div className="bg-[#f2f2f2] aspect-[4/5] mb-6 overflow-hidden relative">
-                      <img src={getCoverImage(p)} alt={p.name} className="w-full h-full object-cover object-center mix-blend-darken p-8 group-hover:scale-105 transition-transform duration-700" />
+            {!hiddenSections.includes('products') && (
+              <div className="mx-auto px-6 py-20 text-center" style={{ maxWidth: `${siteMaxWidth}px` }}>
+                <EditableText as="h3" text={homeCollectionsTitle} onTextChange={setHomeCollectionsTitle} isLiveStore={isLiveStore} className="text-xl font-serif uppercase tracking-widest mb-16 text-[#111]" styleKey="homeCollectionsTitle" />
+                <div className={`grid ${previewDevice === 'mobile' && !isModal ? 'grid-cols-2' : gridColsClass('md4')} gap-8`}>
+                  {essentials.map((p: any) => (
+                    <div key={p.id} className="group flex flex-col text-center cursor-pointer" onClick={() => navigateToProduct(p.id)}>
+                      <div className="bg-[#f2f2f2] aspect-[4/5] mb-6 overflow-hidden relative">
+                        <img src={getCoverImage(p)} alt={p.name} className="w-full h-full object-cover object-center mix-blend-darken p-8 group-hover:scale-105 transition-transform duration-700" />
+                      </div>
+                      <h4 className="font-bold text-[13px] text-[#222] mb-1 font-serif uppercase tracking-wide">{p.name}</h4>
+                      <p className="text-[13px] text-gray-500 mb-6 font-sans">{p.price} MAD</p>
+                      <button onClick={(e) => handleAddToCart(e, p, 1)} className="w-full border border-gray-300 hover:border-black text-[#222] py-3 text-[10px] font-bold tracking-widest uppercase transition-colors">
+                        {storeIsAr ? 'أضف للسلة' : 'Add To Cart'}
+                      </button>
                     </div>
-                    <h4 className="font-bold text-[13px] text-[#222] mb-1 font-serif uppercase tracking-wide">{p.name}</h4>
-                    <p className="text-[13px] text-gray-500 mb-6 font-sans">{p.price} MAD</p>
-                    <button onClick={(e) => handleAddToCart(e, p, 1)} className="w-full border border-gray-300 hover:border-black text-[#222] py-3 text-[10px] font-bold tracking-widest uppercase transition-colors">
-                      {storeIsAr ? 'أضف للسلة' : 'Add To Cart'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {realCategories.length > 0 && (
-              <div className="mx-auto px-6 py-10" style={{ maxWidth: `${siteMaxWidth}px` }}>
-                <h3 className="text-xl font-serif text-center uppercase tracking-widest mb-16 text-[#111]">{allCollectionsTitle}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto md:h-[600px]">
-                  <div className="md:col-span-1 h-[400px] md:h-full relative group cursor-pointer overflow-hidden bg-gray-100" onClick={() => setActiveCategory(realCategories[0])}>
-                    <img src={getCoverImage(storeProducts.find((p: any) => p.category === realCategories[0]) || storeProducts[0])} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90" alt={tr(realCategories[0])} />
-                    <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-                      <span className="bg-white/90 px-6 py-3 text-[11px] font-bold tracking-widest uppercase text-black">{tr(realCategories[0])}</span>
-                    </div>
-                  </div>
-                  {realCategories.length > 1 && (
-                    <div className="md:col-span-2 grid grid-cols-2 grid-rows-2 gap-6 h-[400px] md:h-full">
-                      {realCategories.slice(1, 4).map((c: string, idx: number) => (
-                        <div key={tr(c)} className={`${idx === 0 ? 'col-span-2' : 'col-span-1'} relative group cursor-pointer overflow-hidden bg-gray-100`} onClick={() => setActiveCategory(c)}>
-                          <img src={getCoverImage(storeProducts.find((p: any) => p.category === c) || storeProducts[0])} className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 opacity-90" alt={tr(c)} />
-                          <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                            <span className="bg-white/90 px-4 py-2 text-[10px] font-bold tracking-widest uppercase text-black border border-black/10">{tr(c)}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  ))}
                 </div>
               </div>
             )}
 
-            <div className="my-20 relative h-[500px] overflow-hidden">
-              <img src={heroImage} className="absolute inset-0 w-full h-full object-cover" alt="" />
-              <div className="absolute inset-0 bg-black/60 flex items-center">
-                <div className="mx-auto px-6 w-full md:w-1/2" style={{ maxWidth: `${siteMaxWidth}px` }}>
-                  <h2 className="text-3xl md:text-4xl font-serif text-white mb-6 uppercase tracking-wider">
-                    {storeIsAr ? 'صُمم للأداء والأناقة' : 'Designed For Performance & Style'}
-                  </h2>
-                  <p className="text-gray-300 text-sm leading-relaxed mb-10 max-w-md">
-                    {storeIsAr
-                      ? 'منتجاتنا مصممة لتتحمل حرارة العمل مع الحفاظ على مظهر احترافي أنيق.'
-                      : 'Nos pièces sont conçues pour résister à la chaleur tout en gardant une allure professionnelle et élégante.'}
-                  </p>
-                  <button onClick={() => { setActiveCategory('All'); }} className="bg-white text-black px-8 py-3.5 text-xs font-bold tracking-widest uppercase hover:bg-gray-200 transition-colors">
-                    {storeIsAr ? 'اكتشف المجموعة' : 'Explore Collection'}
-                  </button>
+            {!hiddenSections.includes('categories') && (
+              <div className="mx-auto px-6 py-10" style={{ maxWidth: `${siteMaxWidth}px` }}>
+                <h3 className="text-xl font-serif text-center uppercase tracking-widest mb-16 text-[#111]">{allCollectionsTitle}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto md:h-[600px]">
+                  {(() => {
+                    const catsToUse = featuredCategories?.length > 0 ? featuredCategories : realCategories.slice(0, 4).map((c: string) => ({
+                       title: tr(c),
+                       image: getCoverImage(storeProducts.find((p: any) => p.category === c) || storeProducts[0])
+                    }));
+
+                    if (!catsToUse || catsToUse.length === 0) return null;
+
+                    return (
+                      <>
+                        <div className="md:col-span-1 h-[400px] md:h-full relative group cursor-pointer overflow-hidden bg-gray-100" onClick={() => setActiveCategory(catsToUse[0].title)}>
+                          <img src={catsToUse[0].image} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90" alt={catsToUse[0].title} />
+                          <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                            <span className="bg-white/90 px-6 py-3 text-[11px] font-bold tracking-widest uppercase text-black">{catsToUse[0].title}</span>
+                          </div>
+                        </div>
+                        {catsToUse.length > 1 && (
+                          <div className="md:col-span-2 grid grid-cols-2 grid-rows-2 gap-6 h-[400px] md:h-full">
+                            {catsToUse.slice(1, 4).map((c: any, idx: number) => (
+                              <div key={idx} className={`${idx === 0 ? 'col-span-2' : 'col-span-1'} relative group cursor-pointer overflow-hidden bg-gray-100`} onClick={() => setActiveCategory(c.title)}>
+                                <img src={c.image} className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 opacity-90" alt={c.title} />
+                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                  <span className="bg-white/90 px-4 py-2 text-[10px] font-bold tracking-widest uppercase text-black border border-black/10">{c.title}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="mx-auto px-6 py-10 text-center" style={{ maxWidth: `${siteMaxWidth}px` }}>
-              <h3 className="text-xl font-serif uppercase tracking-widest mb-16 text-[#111]">{storeIsAr ? 'المفضلة لدى الزبناء' : 'Customer Favorites'}</h3>
-              <div className={`grid ${previewDevice === 'mobile' && !isModal ? 'grid-cols-2' : gridColsClass('md4')} gap-8`}>
-                {favorites.map((p: any) => (
-                  <div key={p.id} className="group flex flex-col text-center cursor-pointer" onClick={() => navigateToProduct(p.id)}>
-                    <div className="bg-[#f2f2f2] aspect-[4/5] mb-6 overflow-hidden relative">
-                      <img src={getCoverImage(p)} alt={p.name} className="w-full h-full object-cover object-center mix-blend-darken p-8 group-hover:scale-105 transition-transform duration-700" />
-                    </div>
-                    <h4 className="font-bold text-[13px] text-[#222] mb-1 font-serif uppercase tracking-wide">{p.name}</h4>
-                    <p className="text-[13px] text-gray-500 font-sans">{p.price} MAD</p>
+            {!hiddenSections.includes('hero') && (
+              <div className="my-20 relative h-[500px] overflow-hidden">
+                <img src={heroImage} className="absolute inset-0 w-full h-full object-cover" alt="" />
+                <div className="absolute inset-0 bg-black/60 flex items-center">
+                  <div className="mx-auto px-6 w-full md:w-1/2" style={{ maxWidth: `${siteMaxWidth}px` }}>
+                    <h2 className="text-3xl md:text-4xl font-serif text-white mb-6 uppercase tracking-wider">
+                      {storeIsAr ? 'صُمم للأداء والأناقة' : 'Designed For Performance & Style'}
+                    </h2>
+                    <p className="text-gray-300 text-sm leading-relaxed mb-10 max-w-md">
+                      {storeIsAr
+                        ? 'منتجاتنا مصممة لتتحمل حرارة العمل مع الحفاظ على مظهر احترافي أنيق.'
+                        : 'Nos pièces sont conçues pour résister à la chaleur tout en gardant une allure professionnelle et élégante.'}
+                    </p>
+                    <button onClick={() => { setActiveCategory('All'); }} className="bg-white text-black px-8 py-3.5 text-xs font-bold tracking-widest uppercase hover:bg-gray-200 transition-colors">
+                      {storeIsAr ? 'اكتشف المجموعة' : 'Explore Collection'}
+                    </button>
                   </div>
-                ))}
+                </div>
               </div>
+            )}
+
+            {!hiddenSections.includes('products') && (
+              <div className="mx-auto px-6 py-10 text-center" style={{ maxWidth: `${siteMaxWidth}px` }}>
+                <h3 className="text-xl font-serif uppercase tracking-widest mb-16 text-[#111]">{storeIsAr ? 'المفضلة لدى الزبناء' : 'Customer Favorites'}</h3>
+                <div className={`grid ${previewDevice === 'mobile' && !isModal ? 'grid-cols-2' : gridColsClass('md4')} gap-8`}>
+                  {favorites.map((p: any) => (
+                    <div key={p.id} className="group flex flex-col text-center cursor-pointer" onClick={() => navigateToProduct(p.id)}>
+                      <div className="bg-[#f2f2f2] aspect-[4/5] mb-6 overflow-hidden relative">
+                        <img src={getCoverImage(p)} alt={p.name} className="w-full h-full object-cover object-center mix-blend-darken p-8 group-hover:scale-105 transition-transform duration-700" />
+                      </div>
+                      <h4 className="font-bold text-[13px] text-[#222] mb-1 font-serif uppercase tracking-wide">{p.name}</h4>
+                      <p className="text-[13px] text-gray-500 font-sans">{p.price} MAD</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             </div>
           </>
         )}
