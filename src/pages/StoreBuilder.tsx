@@ -4745,16 +4745,47 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
                  <h1 className="text-xl md:text-5xl font-bold text-slate-900 leading-tight mb-6">{product.name}</h1>
                  
+                 <div className="space-y-6 mb-8">
+                    {product.colors?.filter((c:string)=>c.trim()!=='').length > 0 && (
+                       <div>
+                          <span className="text-sm font-bold uppercase tracking-widest text-slate-800 mb-3 block">{storeIsAr ? 'لون' : 'Couleur'}</span>
+                          <div className="flex gap-2">
+                             {product.colors.filter((c:string)=>c.trim()!=='').map((c: string) => (
+                                <button key={c} onClick={() => setSelectedColor(c)} className={`w-8 h-8 rounded-full border-2 transition-transform ${selectedColor === c ? 'border-slate-900 scale-110' : 'border-transparent hover:scale-105 shadow-sm'}`} style={{ backgroundColor: c }} />
+                             ))}
+                          </div>
+                       </div>
+                    )}
+                    {product.sizes?.filter((s:string)=>s.trim()!=='').length > 0 && (
+                       <div>
+                          <div className="flex items-center justify-between mb-3">
+                             <span className="text-sm font-bold uppercase tracking-widest text-slate-800 block">{storeIsAr ? 'المقاس' : 'Taille'}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                             {product.sizes.filter((s:string)=>s.trim()!=='').map((s: string) => (
+                                <button key={s} onClick={() => setSelectedSize(s)} className={`px-4 py-2 border rounded-xl font-bold transition-colors ${selectedSize === s ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400'}`}>
+                                   {s}
+                                </button>
+                             ))}
+                          </div>
+                       </div>
+                    )}
+                 </div>
+
                  <div className="flex items-center justify-between mb-8 md:mb-12">
-                    <span className="text-2xl md:text-4xl font-black text-emerald-600">${parseFloat(product.price).toFixed(2)}</span>
+                    <span className="text-2xl md:text-4xl font-black text-emerald-600">{product.price} MAD</span>
                     <div className="flex items-center border border-slate-200 rounded-full px-2 py-1 md:px-4 md:py-2">
-                       <button className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 md:text-lg">-</button>
-                       <span className="text-sm md:text-lg font-bold w-6 md:w-10 text-center">1</span>
-                       <button className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 md:text-lg">+</button>
+                       <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 md:text-lg">-</button>
+                       <span className="text-sm md:text-lg font-bold w-6 md:w-10 text-center">{quantity}</span>
+                       <button onClick={() => setQuantity(quantity + 1)} className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 md:text-lg">+</button>
                     </div>
                  </div>
 
-                 <button onClick={() => setPage('checkout')} className="w-full py-5 md:py-6 bg-[#ff5a1f] text-white rounded-[1.5rem] font-bold text-sm md:text-base shadow-xl shadow-[#ff5a1f]/30 hover:scale-[1.02] transition-transform">
+                 <button onClick={() => {
+                     if (product.colors?.filter((c:string)=>c.trim()!=='').length > 0 && !selectedColor) { alert(storeIsAr ? 'الرجاء اختيار اللون أولاً' : 'Veuillez choisir une couleur d\'abord'); return; }
+                     if (product.sizes?.filter((s:string)=>s.trim()!=='').length > 0 && !selectedSize) { alert(storeIsAr ? 'الرجاء اختيار المقاس أولاً' : 'Veuillez choisir une taille d\'abord'); return; }
+                     setPage('checkout');
+                 }} className="w-full py-5 md:py-6 bg-[#ff5a1f] text-white rounded-[1.5rem] font-bold text-sm md:text-base shadow-xl shadow-[#ff5a1f]/30 hover:scale-[1.02] transition-transform">
                     Order Now
                  </button>
               </div>
