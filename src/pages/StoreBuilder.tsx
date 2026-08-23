@@ -4797,6 +4797,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                              ))}
                           </div>
                        </div>
+                    )}
                     {product.customVariants?.length > 0 && product.customVariants.map((variant: any, vIdx: number) => (
                        <div key={vIdx}>
                           <div className="flex items-center justify-between mb-3">
