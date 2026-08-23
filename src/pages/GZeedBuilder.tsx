@@ -93,6 +93,14 @@ export default function GZeedBuilder() {
   };
 
   const updateConfigInIframe = (payload: any) => {
+    try {
+      const existingStr = localStorage.getItem('beya_store_config');
+      const existing = existingStr ? JSON.parse(existingStr) : {};
+      const updated = { ...existing, ...payload };
+      localStorage.setItem('beya_store_config', JSON.stringify(updated));
+    } catch (e) {
+      console.error("Error saving config to localStorage", e);
+    }
     if (iframeRef.current && iframeRef.current.contentWindow) {
       iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_CONFIG', payload }, '*');
     }
@@ -155,6 +163,14 @@ export default function GZeedBuilder() {
     }
   };
   const updateThemeInIframe = (payload: any) => {
+    try {
+      const existingStr = localStorage.getItem('beya_store_config');
+      const existing = existingStr ? JSON.parse(existingStr) : {};
+      const updated = { ...existing, ...payload };
+      localStorage.setItem('beya_store_config', JSON.stringify(updated));
+    } catch (e) {
+      console.error("Error saving theme to localStorage", e);
+    }
     if (iframeRef.current && iframeRef.current.contentWindow) {
       iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_THEME', payload }, '*');
     }
@@ -183,6 +199,9 @@ export default function GZeedBuilder() {
 
   const handleSave = () => {
     setIsSaving(true);
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ type: 'REQUEST_SAVE' }, '*');
+    }
     setTimeout(() => {
       setIsSaving(false);
       setIsSaved(true);

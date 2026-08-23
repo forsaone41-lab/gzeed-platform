@@ -1651,6 +1651,17 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
     }, 1000);
   };
 
+  useEffect(() => {
+    const handleSaveRequest = (event: MessageEvent) => {
+      if (event.data?.type === 'REQUEST_SAVE') {
+        handleSave();
+      }
+    };
+    window.addEventListener('message', handleSaveRequest);
+    return () => window.removeEventListener('message', handleSaveRequest);
+  }, [handleSave]);
+
+
   const applyTheme = (theme: typeof THEMES[0]) => {
      const previousPreviewImg = activeTheme.previewImg;
      setActiveTheme(theme);
