@@ -781,7 +781,6 @@ export default function GZeedBuilder() {
                            <input type="text" onChange={(e) => updateConfigInIframe({ footerSettings: { copyright: e.target.value } })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="(c) 2026 My Store" />
                         </div>
                      </div>
-                     </div>
                   )}
 
                   {activeConfigSection?.startsWith('custom_') && (() => {
