@@ -1935,8 +1935,47 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
          )}
          </>
       );
-
-
+   const CustomSectionsRenderer = () => {
+      if (!customSections || customSections.length === 0) return null;
+      return (
+         <>
+            {customSections.map((section: any) => {
+               if (hiddenSections.includes(section.id)) return null;
+               return (
+                  <div id={section.id} key={section.id} className="max-w-7xl mx-auto px-4 md:px-8 py-10 my-10 relative w-full">
+                     {section.title && <h3 className="text-3xl font-serif text-slate-900 mb-8 text-center">{section.title}</h3>}
+                     {section.type === 'text' && (
+                        <div className="text-center text-slate-600 max-w-4xl mx-auto" style={{ fontSize: `${section.settings?.fontSize || 16}px` }}>
+                           {section.content}
+                        </div>
+                     )}
+                     {section.type === 'html' && (
+                        <div dangerouslySetInnerHTML={{ __html: section.content }} className="w-full" />
+                     )}
+                     {section.type === 'video' && (
+                        <div className={`mx-auto ${section.settings?.width === 'boxed' ? 'max-w-4xl' : section.settings?.width === 'half' ? 'w-1/2' : 'w-full'} aspect-video bg-slate-100 rounded-2xl overflow-hidden shadow-md`}>
+                           {section.content?.includes('youtube') ? (
+                              <iframe src={section.content.replace('watch?v=', 'embed/')} className="w-full h-full" allowFullScreen></iframe>
+                           ) : (
+                              <video src={section.content} className="w-full h-full object-cover" controls></video>
+                           )}
+                        </div>
+                     )}
+                     {section.type === 'slider' && (
+                        <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
+                           {section.content?.split(',').map((url: string, i: number) => (
+                              <div key={i} className="shrink-0 snap-center rounded-2xl overflow-hidden bg-slate-100 shadow-sm" style={{ height: `${section.settings?.height || 400}px`, aspectRatio: '4/3' }}>
+                                 <img src={url.trim()} className="w-full h-full object-cover" />
+                              </div>
+                           ))}
+                        </div>
+                     )}
+                  </div>
+               );
+            })}
+         </>
+      );
+   };
 
   const ThemeFooter = ({ bgColor, textColor, setPage }: any) => {
      if (hiddenSections.includes('footer')) return null;
@@ -2803,7 +2842,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               </div>
            </div>
         )}
-        <ThemeFooter setPage={setPage} />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} />
       </div>
       <BottomNavBar page={page} setPage={setPage} />
     </div>
@@ -3188,7 +3228,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            </div>
         )}
       </div>
-      <ThemeFooter setPage={setPage} />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} />
       <BottomNavBar page={page} setPage={setPage} />
     </div>
   );
@@ -3420,7 +3461,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            </div>
         )}
       </div>
-      <ThemeFooter setPage={setPage} bgColor="#111" textColor="#f5f5f5" />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} bgColor="#111" textColor="#f5f5f5" />
       <BottomNavBar page={page} setPage={setPage} />
     </div>
   );
@@ -3685,7 +3727,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            </div>
         )}
       </div>
-      <ThemeFooter setPage={setPage} />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} />
       <BottomNavBar page={page} setPage={setPage} />
     </div>
   );
@@ -3933,7 +3976,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         )}
 
       </div>
-      <ThemeFooter setPage={setPage} />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} />
       <BottomNavBar page={page} setPage={setPage} />
     </div>
   );
@@ -4187,7 +4231,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            </div>
         )}
       </div>
-      <ThemeFooter setPage={setPage} />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} />
       <BottomNavBar page={page} setPage={setPage} />
     </div>
   );
@@ -4742,8 +4787,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               </button>
            </div>
         )}
-
-        <ThemeFooter setPage={setPage} />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} />
 
         {/* Bottom Navigation */}
         <div className="md:hidden fixed bottom-6 left-6 right-6 h-16 bg-[#1e1e1e] rounded-[2rem] flex items-center justify-between px-8 shadow-2xl z-50">
@@ -4950,8 +4995,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               </button>
            </div>
         )}
-
-        <ThemeFooter setPage={setPage} />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} />
 
         {/* Floating Bottom Nav */}
         <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-white rounded-full h-16 flex items-center justify-between px-8 shadow-[0_10px_40px_rgba(0,0,0,0.1)] w-[calc(100%-3rem)] max-w-sm z-50">
@@ -5164,8 +5209,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               </button>
            </div>
         )}
-
-        <ThemeFooter setPage={setPage} />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} />
       </div>
     );
   };
@@ -5318,8 +5363,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               </button>
            </div>
         )}
-
-        <ThemeFooter setPage={setPage} />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} />
       </div>
     );
   };
@@ -5640,8 +5685,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               </button>
            </div>
         )}
-
-        <ThemeFooter setPage={setPage} />
+{page === 'home' && <CustomSectionsRenderer />}
+<ThemeFooter setPage={setPage} />
       </div>
     );
   };

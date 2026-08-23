@@ -24,7 +24,10 @@ import {
   Globe,
   Search,
   Code,
-  ShoppingBag
+  ShoppingBag,
+  ImageIcon,
+  Video,
+  Type
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
@@ -65,7 +68,21 @@ export default function GZeedBuilder() {
   const [storeLang, setStoreLang] = useState('fr');
   const [storeCurrency, setStoreCurrency] = useState('MAD');
   const [heroSlides, setHeroSlides] = useState<Array<{image: string; title: string; subtitle: string; buttonText?: string; buttonLink?: string}>>([]);
+  const [customSections, setCustomSections] = useState<any[]>([]);
+  const [showAddSectionModal, setShowAddSectionModal] = useState(false);
   const [newPageName, setNewPageName] = useState('');
+
+  React.useEffect(() => {
+    try {
+      const existingStr = localStorage.getItem('beya_store_config');
+      if (existingStr) {
+        const existing = JSON.parse(existingStr);
+        if (existing.heroSlides) setHeroSlides(existing.heroSlides);
+        if (existing.customSections) setCustomSections(existing.customSections);
+        if (existing.hiddenSections) setHiddenSections(existing.hiddenSections);
+      }
+    } catch (e) {}
+  }, []);
 
   const [slideUnsplashPickerIdx, setSlideUnsplashPickerIdx] = useState<number | null>(null);
   const [unsplashSearchQuery, setUnsplashSearchQuery] = useState('');
@@ -152,6 +169,34 @@ export default function GZeedBuilder() {
     const newPages = storePages.filter(p => p.id !== id);
     setStorePages(newPages);
     updateConfigInIframe({ storePages: newPages });
+  };
+
+  const handleAddCustomSection = (type: string) => {
+    const newSection = {
+       id: `custom_${Date.now()}`,
+       type,
+       title: type === 'text' ? 'Texte' : type === 'html' ? 'Code HTML' : type === 'video' ? 'Vidéo' : type === 'slider' ? 'Slider' : 'Section',
+       content: '',
+       settings: {}
+    };
+    const newSections = [...customSections, newSection];
+    setCustomSections(newSections);
+    updateConfigInIframe({ customSections: newSections });
+    setShowAddSectionModal(false);
+  };
+
+  const handleUpdateCustomSection = (id: string, key: string, value: any) => {
+    const newSections = customSections.map(s => s.id === id ? { ...s, [key]: value } : s);
+    setCustomSections(newSections);
+    updateConfigInIframe({ customSections: newSections });
+  };
+
+  const handleRemoveCustomSection = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newSections = customSections.filter(s => s.id !== id);
+    setCustomSections(newSections);
+    updateConfigInIframe({ customSections: newSections });
+    if (activeConfigSection === id) setActiveConfigSection(null);
   };
 
   const handleToggleSection = (sectionId: string, e: React.MouseEvent) => {
@@ -452,10 +497,54 @@ export default function GZeedBuilder() {
                     </div>
                   </div>
                 ))}
-                <button className="w-full py-4 mt-6 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-cyan-400 hover:text-cyan-600 hover:bg-cyan-50 transition-all flex items-center justify-center gap-2">
+                {customSections.map((section, idx) => (
+                  <div key={section.id} onClick={() => { handleSectionClick(section.id); setActiveConfigSection(section.id); }} className={`p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-400 hover:shadow-md transition-all group ${hiddenSections.includes(section.id) ? 'opacity-50 grayscale' : ''}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-cyan-600 transition-colors">
+                        {section.type === 'slider' ? <ImageIcon className="w-4 h-4" /> : section.type === 'video' ? <Video className="w-4 h-4" /> : section.type === 'html' ? <Code className="w-4 h-4" /> : <Type className="w-4 h-4" />}
+                      </div>
+                      <span className="font-bold text-slate-700">{section.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={(e) => handleToggleSection(section.id, e)} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+                        {hiddenSections.includes(section.id) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                      <Settings className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+                ))}
+                <button onClick={() => setShowAddSectionModal(true)} className="w-full py-4 mt-6 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-cyan-400 hover:text-cyan-600 hover:bg-cyan-50 transition-all flex items-center justify-center gap-2">
                   <Plus className="w-5 h-5" />
                   {lang === 'ar' ? 'إضافة قسم جديد' : lang === 'en' ? 'Add Section' : 'Ajouter une section'}
                 </button>
+                {showAddSectionModal && (
+                  <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                      <div className="flex justify-between items-center p-6 border-b border-slate-100">
+                        <h3 className="font-bold text-lg text-slate-800">{lang === 'ar' ? 'اختر نوع القسم' : 'Choose Section Type'}</h3>
+                        <button onClick={() => setShowAddSectionModal(false)} className="text-slate-400 hover:text-slate-700 p-2"><X className="w-5 h-5" /></button>
+                      </div>
+                      <div className="p-6 grid grid-cols-2 gap-4">
+                        <button onClick={() => handleAddCustomSection('text')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-cyan-500 hover:bg-cyan-50 transition-all">
+                           <Type className="w-8 h-8 text-cyan-600" />
+                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'نص' : 'Text'}</span>
+                        </button>
+                        <button onClick={() => handleAddCustomSection('slider')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-all">
+                           <ImageIcon className="w-8 h-8 text-amber-600" />
+                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'معرض صور' : 'Slider'}</span>
+                        </button>
+                        <button onClick={() => handleAddCustomSection('video')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-rose-500 hover:bg-rose-50 transition-all">
+                           <Video className="w-8 h-8 text-rose-600" />
+                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'فيديو' : 'Video'}</span>
+                        </button>
+                        <button onClick={() => handleAddCustomSection('html')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                           <Code className="w-8 h-8 text-indigo-600" />
+                           <span className="font-bold text-slate-700">HTML</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -692,7 +781,65 @@ export default function GZeedBuilder() {
                            <input type="text" onChange={(e) => updateConfigInIframe({ footerSettings: { copyright: e.target.value } })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="(c) 2026 My Store" />
                         </div>
                      </div>
+                     </div>
                   )}
+
+                  {activeConfigSection?.startsWith('custom_') && (() => {
+                     const section = customSections.find(s => s.id === activeConfigSection);
+                     if (!section) return null;
+                     return (
+                        <div className="space-y-4">
+                           <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                              <span className="font-bold text-slate-700 text-sm">{lang === 'ar' ? 'عنوان القسم' : 'Section Title'}</span>
+                              <input type="text" value={section.title || ''} onChange={(e) => handleUpdateCustomSection(section.id, 'title', e.target.value)} className="w-1/2 p-2 border border-slate-200 rounded-lg text-sm bg-white" />
+                           </div>
+
+                           {section.type === 'text' && (
+                              <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
+                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'النص' : 'Text Content'}</label>
+                                 <textarea rows={4} value={section.content} onChange={(e) => handleUpdateCustomSection(section.id, 'content', e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white" placeholder="Text..." />
+                                 <label className="block text-xs font-black uppercase text-slate-500 mt-4">{lang === 'ar' ? 'حجم الخط' : 'Font Size'}</label>
+                                 <input type="range" min="12" max="64" value={section.settings?.fontSize || 16} onChange={(e) => handleUpdateCustomSection(section.id, 'settings', {...section.settings, fontSize: parseInt(e.target.value)})} className="w-full" />
+                                 <div className="text-right text-xs text-slate-500">{section.settings?.fontSize || 16}px</div>
+                              </div>
+                           )}
+
+                           {section.type === 'video' && (
+                              <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
+                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'رابط يوتيوب أو فيديو' : 'YouTube or Video URL'}</label>
+                                 <input type="text" value={section.content} onChange={(e) => handleUpdateCustomSection(section.id, 'content', e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white" placeholder="https://..." />
+                                 <label className="block text-xs font-black uppercase text-slate-500 mt-4">{lang === 'ar' ? 'حجم الفيديو' : 'Video Width'}</label>
+                                 <select value={section.settings?.width || 'full'} onChange={(e) => handleUpdateCustomSection(section.id, 'settings', {...section.settings, width: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg text-sm">
+                                    <option value="full">100%</option>
+                                    <option value="boxed">Boxed</option>
+                                    <option value="half">50%</option>
+                                 </select>
+                              </div>
+                           )}
+
+                           {section.type === 'slider' && (
+                              <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
+                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'روابط الصور (مفصولة بفاصلة)' : 'Image URLs (comma separated)'}</label>
+                                 <textarea rows={3} value={section.content} onChange={(e) => handleUpdateCustomSection(section.id, 'content', e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white" placeholder="https://..., https://..." />
+                                 <label className="block text-xs font-black uppercase text-slate-500 mt-4">{lang === 'ar' ? 'ارتفاع السلايدر' : 'Slider Height'}</label>
+                                 <input type="range" min="200" max="800" step="50" value={section.settings?.height || 400} onChange={(e) => handleUpdateCustomSection(section.id, 'settings', {...section.settings, height: parseInt(e.target.value)})} className="w-full" />
+                                 <div className="text-right text-xs text-slate-500">{section.settings?.height || 400}px</div>
+                              </div>
+                           )}
+
+                           {section.type === 'html' && (
+                              <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
+                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'كود HTML' : 'HTML Code'}</label>
+                                 <textarea rows={8} value={section.content} onChange={(e) => handleUpdateCustomSection(section.id, 'content', e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-900 text-green-400 font-mono" placeholder="<div>...</div>" />
+                              </div>
+                           )}
+                           
+                           <button onClick={(e) => handleRemoveCustomSection(section.id, e)} className="w-full p-3 mt-4 bg-red-50 text-red-500 font-bold rounded-xl hover:bg-red-100 transition-colors">
+                              {lang === 'ar' ? 'حذف القسم' : 'Delete Section'}
+                           </button>
+                        </div>
+                     );
+                  })()}
                </div>
             )}
 
