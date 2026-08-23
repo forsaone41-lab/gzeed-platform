@@ -4198,7 +4198,6 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                 </div>
               </div>
             )}
-            </div>
           </>
         )}
 
