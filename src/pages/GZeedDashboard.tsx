@@ -689,8 +689,8 @@ export default function GZeedDashboard() {
       ];
 
       const prompt = lang === 'ar' 
-        ? "أنت خبير في التجارة الإلكترونية. قم بتحليل هذه الصورة واستخرج معلومات المنتج. إذا كانت الصورة تحتوي على عدة منتجات بألوان أو أحجام مختلفة، قم باستخراجها في مصفوفتي 'colors' و 'sizes'. قم بإرجاع النتيجة بصيغة JSON فقط بالتنسيق التالي بدون أي نص إضافي: {\"name\": \"اسم منتج مميز\", \"description\": \"وصف تسويقي\", \"seoTitle\": \"عنوان SEO\", \"seoDescription\": \"وصف SEO\", \"tags\": [\"كلمة1\"], \"price\": 299, \"comparePrice\": 399, \"colors\": [\"أحمر\", \"أزرق\"], \"sizes\": [\"S\", \"M\"]}"
-        : "You are an e-commerce expert. Analyze this image and extract product information. If the image contains multiple variants (different colors or sizes), extract them into 'colors' and 'sizes' arrays. Return the result in STRICT JSON format ONLY like this: {\"name\": \"Premium Name\", \"description\": \"Description\", \"seoTitle\": \"SEO Title\", \"seoDescription\": \"SEO Description\", \"tags\": [\"tag1\"], \"price\": 299, \"comparePrice\": 399, \"colors\": [\"Red\", \"Blue\"], \"sizes\": [\"S\", \"M\"]}";
+        ? "أنت خبير في التجارة الإلكترونية. قم بتحليل هذه الصورة واستخرج معلومات المنتج. إذا كانت الصورة تحتوي على عدة منتجات بألوان أو أحجام مختلفة أو خيارات أخرى (مثل النكهات أو الأنواع)، قم باستخراجها في مصفوفات 'colors' و 'sizes' و 'customVariants' (على شكل كائنات تحتوي 'name' و 'options' كمصفوفة من الكائنات بداخلها 'name'). قم بإرجاع النتيجة بصيغة JSON فقط بالتنسيق التالي بدون أي نص إضافي: {\"name\": \"اسم منتج مميز\", \"description\": \"وصف تسويقي\", \"seoTitle\": \"عنوان SEO\", \"seoDescription\": \"وصف SEO\", \"tags\": [\"كلمة1\"], \"price\": 299, \"comparePrice\": 399, \"colors\": [\"أحمر\", \"أزرق\"], \"sizes\": [\"S\", \"M\"], \"customVariants\": [{\"name\": \"النكهة\", \"options\": [{\"name\": \"شوكولاتة\"}]}]}"
+        : "You are an e-commerce expert. Analyze this image and extract product information. If the image contains multiple variants (colors, sizes, or others like flavors), extract them into 'colors', 'sizes', and 'customVariants' array (objects with 'name' and 'options' array of objects with 'name'). Return the result in STRICT JSON format ONLY like this: {\"name\": \"Premium Name\", \"description\": \"Description\", \"seoTitle\": \"SEO Title\", \"seoDescription\": \"SEO Description\", \"tags\": [\"tag1\"], \"price\": 299, \"comparePrice\": 399, \"colors\": [\"Red\", \"Blue\"], \"sizes\": [\"S\", \"M\"], \"customVariants\": [{\"name\": \"Flavor\", \"options\": [{\"name\": \"Chocolate\"}]}]}";
 
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = await result.response;
@@ -724,6 +724,10 @@ export default function GZeedDashboard() {
       if (generatedData.sizes && Array.isArray(generatedData.sizes)) {
         setProductSizes(generatedData.sizes);
         if (generatedData.sizes.length > 0) setHasOptions(true);
+      }
+      if (generatedData.customVariants && Array.isArray(generatedData.customVariants)) {
+        setProductVariants(generatedData.customVariants);
+        if (generatedData.customVariants.length > 0) setHasOptions(true);
       }
       
       setToastMessage(lang === 'ar' ? "✅ تم تحليل الصورة وتوليد المعلومات بنجاح! 🪄" : "✅ Image analyzed and info generated successfully! 🪄");

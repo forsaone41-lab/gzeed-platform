@@ -23,7 +23,8 @@ import {
   Upload,
   Globe,
   Search,
-  Code
+  Code,
+  ShoppingBag
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
@@ -433,6 +434,7 @@ export default function GZeedBuilder() {
                   { id: 'hero', icon: Palette, label: lang === 'ar' ? 'الواجهة الرئيسية' : lang === 'en' ? 'Hero Banner' : 'Bannière Héro' },
                   { id: 'categories', icon: Layers, label: lang === 'ar' ? 'تصنيفات المنتجات' : lang === 'en' ? 'Category Grid' : 'Grille de Catégories' },
                   { id: 'products', icon: Box, label: lang === 'ar' ? 'شبكة المنتجات' : lang === 'en' ? 'Product Grid' : 'Grille de Produits' },
+                  { id: 'pdp', icon: ShoppingBag, label: lang === 'ar' ? 'صفحة المنتج' : lang === 'en' ? 'Product Page' : 'Page Produit' },
                   { id: 'footer', icon: Layout, label: lang === 'ar' ? 'تذييل الصفحة' : lang === 'en' ? 'Footer' : 'Pied de page' }
                 ].map((section, idx) => (
                   <div key={idx} onClick={() => { handleSectionClick(section.id); setActiveConfigSection(section.id); }} className={`p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-400 hover:shadow-md transition-all group ${hiddenSections.includes(section.id) ? 'opacity-50 grayscale' : ''}`}>
@@ -596,6 +598,77 @@ export default function GZeedBuilder() {
                            <Box className="w-8 h-8 mx-auto mb-2 opacity-50" />
                            <p className="text-sm">{lang === 'ar' ? 'إعدادات شبكة المنتجات' : 'Product Grid Settings'}</p>
                            <p className="text-xs mt-2">{lang === 'ar' ? 'يمكنك اختيار المنتجات المعروضة من لوحة التحكم' : 'You can choose displayed products from the dashboard'}</p>
+                        </div>
+                     </div>
+                  )}
+
+                  {activeConfigSection === 'pdp' && (
+                     <div className="space-y-6">
+                        {/* Image Settings */}
+                        <div>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'حجم وشكل الصور' : 'Image Settings'}</label>
+                           <div className="space-y-3">
+                              <select 
+                                 onChange={(e) => updateConfigInIframe({ pdpImageAspect: e.target.value })} 
+                                 className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-50"
+                              >
+                                 <option value="4/5">{lang === 'ar' ? 'طولية (أزياء)' : 'Portrait (Fashion)'}</option>
+                                 <option value="1/1">{lang === 'ar' ? 'مربعة (كلاسيك)' : 'Square (Classic)'}</option>
+                                 <option value="3/4">{lang === 'ar' ? 'شبه طولية' : 'Slightly Tall'}</option>
+                              </select>
+                              <div className="p-3 border border-slate-200 rounded-lg bg-slate-50">
+                                 <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
+                                    <span>{lang === 'ar' ? 'عرض الصورة' : 'Image Width'}</span>
+                                 </div>
+                                 <input 
+                                    type="range" min="30" max="70" step="5" defaultValue="50"
+                                    onChange={(e) => updateConfigInIframe({ pdpImageWidth: Number(e.target.value) })}
+                                    className="w-full"
+                                 />
+                              </div>
+                           </div>
+                        </div>
+
+                        {/* Text Settings */}
+                        <div>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'حجم النصوص' : 'Typography Size'}</label>
+                           <div className="space-y-3">
+                              <select 
+                                 onChange={(e) => updateConfigInIframe({ pdpTitleSize: e.target.value })} 
+                                 className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-50"
+                              >
+                                 <option value="text-3xl md:text-4xl">{lang === 'ar' ? 'عنوان صغير' : 'Small Title'}</option>
+                                 <option value="text-4xl md:text-5xl">{lang === 'ar' ? 'عنوان متوسط' : 'Medium Title'}</option>
+                                 <option value="text-5xl md:text-7xl">{lang === 'ar' ? 'عنوان ضخم' : 'Large Title'}</option>
+                              </select>
+                              <select 
+                                 onChange={(e) => updateConfigInIframe({ pdpDescSize: e.target.value })} 
+                                 className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-50"
+                              >
+                                 <option value="text-sm">{lang === 'ar' ? 'وصف صغير' : 'Small Description'}</option>
+                                 <option value="text-base">{lang === 'ar' ? 'وصف متوسط' : 'Medium Description'}</option>
+                                 <option value="text-lg">{lang === 'ar' ? 'وصف كبير' : 'Large Description'}</option>
+                              </select>
+                           </div>
+                        </div>
+
+                        {/* Button Settings */}
+                        <div>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'الزر' : 'Button Size'}</label>
+                           <select 
+                              onChange={(e) => updateConfigInIframe({ pdpButtonSize: e.target.value })} 
+                              className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-50"
+                           >
+                              <option value="py-3 text-sm">{lang === 'ar' ? 'صغير' : 'Small'}</option>
+                              <option value="py-4 text-base">{lang === 'ar' ? 'متوسط' : 'Medium'}</option>
+                              <option value="py-5 text-lg">{lang === 'ar' ? 'ضخم' : 'Large'}</option>
+                           </select>
+                        </div>
+
+                        {/* Related Products */}
+                        <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'منتجات مشابهة' : 'Show Related Products'}</span>
+                           <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showRelatedProducts: e.target.checked })} />
                         </div>
                      </div>
                   )}

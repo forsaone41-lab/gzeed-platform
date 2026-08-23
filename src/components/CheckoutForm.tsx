@@ -35,7 +35,7 @@ function formatExpiry(value: string): string {
   return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }
 
-export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, quantity, disabled, requireAccount, isAuthenticated, onRequestLogin, selectedColor, selectedSize, paymentSettings }: any) {
+export default function CheckoutForm({ storeIsAr, storeLang, onSubmit, product, quantity, disabled, requireAccount, isAuthenticated, onRequestLogin, selectedColor, selectedSize, customVariants, paymentSettings }: any) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(paymentSettings?.onlineEnabled && !paymentSettings?.codEnabled ? 'stripe' : paymentSettings?.paypalEnabled && !paymentSettings?.codEnabled && !paymentSettings?.onlineEnabled ? 'payzone' /* just a fallback */ : 'cod');
 
   const [formData, setFormData] = useState<DeliveryData>({ name: '', phone: '', city: '', address: '' });

@@ -710,6 +710,10 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   const [pdpImageWidth, setPdpImageWidth] = useState<number>(config.pdpImageWidth ?? 50);
   const [pdpMaxWidth, setPdpMaxWidth] = useState<number>(config.pdpMaxWidth ?? 1200);
   const [pdpImageAspect, setPdpImageAspect] = useState<string>(config.pdpImageAspect || '4/5');
+  const [pdpTitleSize, setPdpTitleSize] = useState<string>(config.pdpTitleSize || 'text-4xl md:text-5xl');
+  const [pdpDescSize, setPdpDescSize] = useState<string>(config.pdpDescSize || 'text-base');
+  const [pdpButtonSize, setPdpButtonSize] = useState<string>(config.pdpButtonSize || 'py-4 text-base');
+  const [showRelatedProducts, setShowRelatedProducts] = useState<boolean>(config.showRelatedProducts !== false);
   const [productCardSize, setProductCardSize] = useState<'small' | 'medium' | 'large'>(config.productCardSize || 'medium');
   const [siteMaxWidth, setSiteMaxWidth] = useState<number>(config.siteMaxWidth ?? 1400);
   const gridColsClass = (variant: 'lg4' | 'lg3' | 'sm2' | 'md4' | 'plain4') => {
@@ -1377,6 +1381,12 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.heroSliderStyle !== undefined) setHeroSliderStyle(payload.heroSliderStyle);
         if (payload.storeName !== undefined) setStoreName(payload.storeName);
         if (payload.storeLang !== undefined) setStoreLang(payload.storeLang);
+        if (payload.pdpImageWidth !== undefined) setPdpImageWidth(payload.pdpImageWidth);
+        if (payload.pdpImageAspect !== undefined) setPdpImageAspect(payload.pdpImageAspect);
+        if (payload.pdpTitleSize !== undefined) setPdpTitleSize(payload.pdpTitleSize);
+        if (payload.pdpDescSize !== undefined) setPdpDescSize(payload.pdpDescSize);
+        if (payload.pdpButtonSize !== undefined) setPdpButtonSize(payload.pdpButtonSize);
+        if (payload.showRelatedProducts !== undefined) setShowRelatedProducts(payload.showRelatedProducts);
         // storeDomain and storeCurrency can be added to config state if needed later
       }
     };
@@ -1403,6 +1413,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
       const customerAddress = formData?.address || "";
       const orderColor = formData?.color || product?.selectedColor || "Standard";
       const orderSize = formData?.size || product?.selectedSize || "Standard";
+      const customVariants = formData?.customVariants || {};
 
     const newOrder = {
         id: "ORD-" + Math.floor(10000 + Math.random() * 90000),
@@ -1547,6 +1558,10 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
        pdpImageWidth,
        pdpMaxWidth,
        pdpImageAspect,
+       pdpTitleSize,
+       pdpDescSize,
+       pdpButtonSize,
+       showRelatedProducts,
        productCardSize,
        siteMaxWidth,
        showPdpTrustBadges,
@@ -1673,17 +1688,24 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
      setHeroImage((prev: string) => (!prev || prev === previousPreviewImg) ? theme.previewImg : prev);
   };
 
-  const handleAddToCart = (e: React.MouseEvent, p?: any, qty?: number, color?: string, size?: string) => {
+  const handleAddToCart = (e: React.MouseEvent, p?: any, qty?: number, color?: string, size?: string, customVariants?: Record<string, string>) => {
      e.stopPropagation();
      const prod = p || (typeof storeProducts !== 'undefined' ? storeProducts.find((prod) => prod.id === activeProductId) : null);
      if (prod) {
-        if (prod.colors?.length > 0 && !color && typeof selectedColor !== 'undefined' && !selectedColor) {
+        if (prod.colors?.filter((c:string)=>c.trim()!=='').length > 0 && !color && typeof selectedColor !== 'undefined' && !selectedColor) {
            alert(storeIsAr ? 'الرجاء اختيار اللون أولاً' : 'Veuillez choisir une couleur d\'abord');
            return;
         }
-        if (prod.sizes?.length > 0 && !size && typeof selectedSize !== 'undefined' && !selectedSize) {
+        if (prod.sizes?.filter((s:string)=>s.trim()!=='').length > 0 && !size && typeof selectedSize !== 'undefined' && !selectedSize) {
            alert(storeIsAr ? 'الرجاء اختيار المقاس أولاً' : 'Veuillez choisir une taille d\'abord');
            return;
+        }
+        if (prod.customVariants?.length > 0 && customVariants) {
+           const missing = prod.customVariants.find((v:any) => !customVariants[v.name]);
+           if (missing) {
+              alert(storeIsAr ? `الرجاء اختيار ${missing.name} أولاً` : `Veuillez choisir ${missing.name} d'abord`);
+              return;
+           }
         }
         
         // Add to cart logic
@@ -1692,11 +1714,11 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                const c = color || (typeof selectedColor !== 'undefined' ? selectedColor : null);
                const s = size || (typeof selectedSize !== 'undefined' ? selectedSize : null);
                const q = qty || (typeof quantity !== 'undefined' ? quantity : 1);
-               const existingItem = prev.find(item => item.product.id === prod.id && item.color === c && item.size === s);
+               const existingItem = prev.find(item => item.product.id === prod.id && item.color === c && item.size === s && JSON.stringify(item.customVariants) === JSON.stringify(customVariants));
                if (existingItem) {
                   return prev.map(item => item === existingItem ? { ...item, quantity: item.quantity + q } : item);
                }
-               return [...prev, { product: prod, quantity: q, color: c, size: s }];
+               return [...prev, { product: prod, quantity: q, color: c, size: s, customVariants }];
             });
             // Open cart
             if (typeof setIsCartOpen === 'function') setIsCartOpen(true);
@@ -3715,6 +3737,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
   const LayoutClement = ({ isModal = false, page, setPage, activeProductId, navigateToProduct, buyMode, categories, activeCategory, setActiveCategory, filteredProducts, sortBy, setSortBy, setIsCartOpen, submitGlobalOrder, storeProducts }: any) => {
     const [selectedSize, setSelectedSize] = useState<string>('');
     const [selectedColor, setSelectedColor] = useState<string>('');
+    const [selectedCustomVariants, setSelectedCustomVariants] = useState<Record<string, string>>({});
     const [quantity, setQuantity] = useState(1);
 
     return (
@@ -3788,17 +3811,17 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                  <p className="text-xl font-bold text-[#444] mb-8">{product.price} MAD</p>
                  
                  <div className="space-y-6 mb-8">
-                    {product.colors?.length > 0 && (
+                    {product.colors?.filter((c:string)=>c.trim()!=='').length > 0 && (
                        <div>
                           <span className="text-[11px] font-bold uppercase tracking-widest text-[#666] mb-3 block">{storeIsAr ? 'لون' : 'Couleur'}</span>
                           <div className="flex gap-2">
-                             {product.colors.map((c: string) => (
+                             {product.colors.filter((c:string)=>c.trim()!=='').map((c: string) => (
                                 <button key={tr(c)} onClick={() => setSelectedColor(c)} className={`w-8 h-8 rounded-full border-2 transition-transform ${selectedColor === c ? 'border-[#1a1a1a] scale-110' : 'border-transparent hover:scale-105 shadow-sm'}`} style={{ backgroundColor: c }} />
                              ))}
                           </div>
                        </div>
                     )}
-                    {product.sizes?.length > 0 && (
+                    {product.sizes?.filter((s:string)=>s.trim()!=='').length > 0 && (
                        <div>
                           <div className="flex items-center justify-between mb-3">
                              <span className="text-[11px] font-bold uppercase tracking-widest text-[#666] block">{storeIsAr ? 'المقاس' : 'Taille'}</span>
@@ -3818,7 +3841,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                            <span className="text-[11px] font-bold uppercase tracking-widest text-[#666] mb-2 block">{v.name}</span>
                            <div className="flex flex-wrap gap-2">
                               {v.options?.map((opt: any, oi: number) => (
-                                 <button key={oi} className="flex items-center gap-1.5 min-w-[40px] h-10 px-3 text-[11px] font-bold uppercase border border-[#ddd] hover:border-[#1a1a1a] transition-colors bg-white text-[#444]">
+                                 <button key={oi} onClick={() => setSelectedCustomVariants(prev => ({...prev, [v.name]: opt.name}))} className={`flex items-center gap-1.5 min-w-[40px] h-10 px-3 text-[11px] font-bold uppercase border transition-colors ${selectedCustomVariants[v.name] === opt.name ? 'border-[#1a1a1a] bg-[#1a1a1a] text-white' : 'border-[#ddd] hover:border-[#1a1a1a] bg-white text-[#444]'}`}>
                                     {opt.image && <img src={opt.image} alt={opt.name} className="w-5 h-5 rounded-full object-cover" />}
                                     {opt.name}
                                  </button>
@@ -3838,14 +3861,21 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                  </div>
 
                  {(buyMode === 'both' || buyMode === 'cart') && (
-                    <button onClick={(e) => handleAddToCart(e, typeof p !== 'undefined' ? p : (typeof product !== 'undefined' ? product : null), typeof quantity !== 'undefined' ? quantity : 1, typeof selectedColor !== 'undefined' ? selectedColor : undefined, typeof selectedSize !== 'undefined' ? selectedSize : undefined)}  className={`w-full h-14 bg-[#1a1a1a] text-white font-bold uppercase tracking-widest text-xs hover:bg-black transition-colors mb-4 `}>{storeIsAr ? 'أضف للسلة' : 'Ajouter au panier'}</button>
+                    <button onClick={(e) => handleAddToCart(e, typeof p !== 'undefined' ? p : (typeof product !== 'undefined' ? product : null), typeof quantity !== 'undefined' ? quantity : 1, typeof selectedColor !== 'undefined' ? selectedColor : undefined, typeof selectedSize !== 'undefined' ? selectedSize : undefined, selectedCustomVariants)}  className={`w-full h-14 bg-[#1a1a1a] text-white font-bold uppercase tracking-widest text-xs hover:bg-black transition-colors mb-4 `}>{storeIsAr ? 'أضف للسلة' : 'Ajouter au panier'}</button>
                  )}
                  {(buyMode === 'both' || buyMode === 'direct') && (
                     <button onClick={() => {
                                  const prod = typeof p !== 'undefined' ? p : storeProducts.find((prod) => prod.id === activeProductId);
-                                 if (prod && prod.colors?.length > 0 && !selectedColor) { alert(storeIsAr ? 'الرجاء اختيار اللون أولاً' : 'Veuillez choisir une couleur d\'abord'); return; }
-                                 if (prod && prod.sizes?.length > 0 && !selectedSize) { alert(storeIsAr ? 'الرجاء اختيار المقاس أولاً' : 'Veuillez choisir une taille d\'abord'); return; }
-                                 buyNowAsPopup ? setQuickBuyContext({ product: prod, quantity: typeof quantity !== 'undefined' ? quantity : 1, selectedColor, selectedSize, setPage }) : setPage('checkout')
+                                 if (prod && prod.colors?.filter((c:string)=>c.trim()!=='').length > 0 && !selectedColor) { alert(storeIsAr ? 'الرجاء اختيار اللون أولاً' : 'Veuillez choisir une couleur d\'abord'); return; }
+                                 if (prod && prod.sizes?.filter((s:string)=>s.trim()!=='').length > 0 && !selectedSize) { alert(storeIsAr ? 'الرجاء اختيار المقاس أولاً' : 'Veuillez choisir une taille d\'abord'); return; }
+                                 if (prod && prod.customVariants?.length > 0) {
+                                    const missing = prod.customVariants.find((v:any) => !selectedCustomVariants[v.name]);
+                                    if (missing) {
+                                       alert(storeIsAr ? `الرجاء اختيار ${missing.name} أولاً` : `Veuillez choisir ${missing.name} d'abord`);
+                                       return;
+                                    }
+                                 }
+                                 buyNowAsPopup ? setQuickBuyContext({ product: prod, quantity: typeof quantity !== 'undefined' ? quantity : 1, selectedColor, selectedSize, customVariants: selectedCustomVariants, setPage }) : setPage('checkout')
                               }}  className={`w-full h-14 bg-[#f5f1e9] text-[#1a1a1a] font-bold uppercase tracking-widest text-xs hover:bg-[#e8e2d7] transition-colors `}>{storeIsAr ? 'اشتري الآن' : 'Acheter Maintenant'}</button>
                  )}
                  <PdpTrustBadges />
@@ -3912,6 +3942,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
   const LayoutAtelier = ({ isModal = false, page, setPage, activeProductId, navigateToProduct, buyMode, categories, activeCategory, setActiveCategory, filteredProducts, setIsCartOpen, submitGlobalOrder, storeProducts }: any) => {
     const [selectedSize, setSelectedSize] = useState<string>('');
     const [selectedColor, setSelectedColor] = useState<string>('');
+    const [selectedCustomVariants, setSelectedCustomVariants] = useState<Record<string, string>>({});
     const [quantity, setQuantity] = useState(1);
     const realCategories = (categories || []).filter((c: string) => c !== 'All');
     const essentials = filteredProducts.slice(0, 4);
@@ -4041,17 +4072,17 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                  <p className="text-xl font-bold text-[#444] mb-8">{p.price} MAD</p>
 
                  <div className="space-y-6 mb-8">
-                    {p.colors?.length > 0 && (
+                    {p.colors?.filter((c:string)=>c.trim()!=='').length > 0 && (
                        <div>
                           <span className="text-[11px] font-bold uppercase tracking-widest text-[#666] mb-3 block">{storeIsAr ? 'لون' : 'Couleur'}</span>
                           <div className="flex gap-2">
-                             {p.colors.map((c: string) => (
+                             {p.colors.filter((c:string)=>c.trim()!=='').map((c: string) => (
                                 <button key={tr(c)} onClick={() => setSelectedColor(c)} className={`w-8 h-8 rounded-full border-2 transition-transform ${selectedColor === c ? 'border-[#111] scale-110' : 'border-transparent hover:scale-105 shadow-sm'}`} style={{ backgroundColor: c }} />
                              ))}
                           </div>
                        </div>
                     )}
-                    {p.sizes?.length > 0 && (
+                    {p.sizes?.filter((s:string)=>s.trim()!=='').length > 0 && (
                        <div>
                           <div className="flex items-center justify-between mb-3">
                              <span className="text-[11px] font-bold uppercase tracking-widest text-[#666] block">{storeIsAr ? 'المقاس' : 'Taille'}</span>
@@ -4071,7 +4102,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                  <span className="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 block">{v.name}</span>
                                  <div className="flex flex-wrap gap-2">
                                     {v.options?.map((opt: any, oi: number) => (
-                                       <button key={oi} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold border rounded-lg transition-colors bg-white/10 border-current hover:opacity-80">
+                                       <button key={oi} onClick={() => setSelectedCustomVariants(prev => ({...prev, [v.name]: opt.name}))} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold border rounded-lg transition-colors ${selectedCustomVariants[v.name] === opt.name ? 'border-[#111] bg-[#111] text-white' : 'bg-white/10 border-current hover:opacity-80'}`}>
                                           {opt.image && <img src={opt.image} alt={opt.name} className="w-4 h-4 rounded-full object-cover" />}
                                           {opt.name}
                                        </button>
@@ -4091,13 +4122,20 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                  </div>
 
                  {(buyMode === 'both' || buyMode === 'cart') && (
-                    <button onClick={(e) => handleAddToCart(e, p, quantity, selectedColor, selectedSize)} className="w-full h-14 bg-[#111] text-white font-bold uppercase tracking-widest text-xs hover:bg-black transition-colors mb-4">{storeIsAr ? 'أضف للسلة' : 'Ajouter au panier'}</button>
+                    <button onClick={(e) => handleAddToCart(e, p, quantity, selectedColor, selectedSize, selectedCustomVariants)} className="w-full h-14 bg-[#111] text-white font-bold uppercase tracking-widest text-xs hover:bg-black transition-colors mb-4">{storeIsAr ? 'أضف للسلة' : 'Ajouter au panier'}</button>
                  )}
                  {(buyMode === 'both' || buyMode === 'direct') && (
                     <button onClick={() => {
-                                 if (p.colors?.length > 0 && !selectedColor) { alert(storeIsAr ? 'الرجاء اختيار اللون أولاً' : 'Veuillez choisir une couleur d\'abord'); return; }
-                                 if (p.sizes?.length > 0 && !selectedSize) { alert(storeIsAr ? 'الرجاء اختيار المقاس أولاً' : 'Veuillez choisir une taille d\'abord'); return; }
-                                 buyNowAsPopup ? setQuickBuyContext({ product: p, quantity, selectedColor, selectedSize, setPage }) : setPage('checkout')
+                                 if (p.colors?.filter((c:string)=>c.trim()!=='').length > 0 && !selectedColor) { alert(storeIsAr ? 'الرجاء اختيار اللون أولاً' : 'Veuillez choisir une couleur d\'abord'); return; }
+                                 if (p.sizes?.filter((s:string)=>s.trim()!=='').length > 0 && !selectedSize) { alert(storeIsAr ? 'الرجاء اختيار المقاس أولاً' : 'Veuillez choisir une taille d\'abord'); return; }
+                                 if (p.customVariants?.length > 0) {
+                                    const missing = p.customVariants.find((v:any) => !selectedCustomVariants[v.name]);
+                                    if (missing) {
+                                       alert(storeIsAr ? `الرجاء اختيار ${missing.name} أولاً` : `Veuillez choisir ${missing.name} d'abord`);
+                                       return;
+                                    }
+                                 }
+                                 buyNowAsPopup ? setQuickBuyContext({ product: p, quantity, selectedColor, selectedSize, customVariants: selectedCustomVariants, setPage }) : setPage('checkout')
                               }} className="w-full h-14 bg-[#f2f2f2] text-[#111] font-bold uppercase tracking-widest text-xs hover:bg-[#e5e5e5] transition-colors">{storeIsAr ? 'اشتري الآن' : 'Acheter Maintenant'}</button>
                  )}
                  <PdpTrustBadges />
@@ -4496,40 +4534,69 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
     return (
       <div className={`flex-1 w-full bg-[#fcfcfc] text-[#1a1a1a] ${fontFamily} relative pb-20`}>
-        {/* Top Bar */}
-        <div className="flex items-center justify-between p-6 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-           <button className="w-10 h-10 flex items-center justify-center"><div className="w-5 h-0.5 bg-slate-800 relative before:absolute before:w-3 before:h-0.5 before:bg-slate-800 before:-top-1.5 before:left-0 after:absolute after:w-4 after:h-0.5 after:bg-slate-800 after:top-1.5 after:left-0"></div></button>
-           <h1 className="text-xl font-serif font-black tracking-tighter">{storeName}</h1>
-           <div className="flex gap-4">
-              <button onClick={() => setIsCartOpen(true)} className="relative"><ShoppingBag className="w-5 h-5 text-slate-800" /></button>
-              <button onClick={() => setPage('collections')}><Search className="w-5 h-5 text-slate-800" /></button>
-           </div>
-        </div>
+        <StoreHeaderNavbar variant="light" page={page} setPage={setPage} isModal={isModal} />
+        <MobileNavPanel page={page} setPage={setPage} />
 
         {page === 'home' && (
           <div className="px-6 space-y-8 animate-in fade-in duration-500 md:max-w-6xl md:mx-auto md:py-12">
-             {/* Categories */}
-             <div className="flex justify-between md:justify-center items-center overflow-x-auto scrollbar-hide gap-4 md:gap-16 pb-2">
-                {['Tops', 'Bottoms', 'Shoes', 'Jewelry'].map(cat => (
-                   <div key={cat} className="flex flex-col items-center gap-2 cursor-pointer group shrink-0">
-                      <div className="w-14 h-14 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-sm group-hover:border-slate-800 transition-colors">
-                         <span className="text-xl opacity-50 group-hover:opacity-100">👔</span>
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-900">{cat}</span>
-                   </div>
-                ))}
+             {/* Categories Header (Text-based instead of emoji boxes) */}
+             <div className="text-center py-4 mb-4">
+                <EditableText 
+                   as="h2" 
+                   text={homeCollectionsTitle || (storeLang === 'ar' ? 'تشكيلتنا الفاخرة' : 'Discover Our Collection')} 
+                   onTextChange={setHomeCollectionsTitle} 
+                   isLiveStore={isLiveStore} 
+                   className="text-2xl md:text-4xl font-serif italic tracking-wide text-slate-800" 
+                   styleKey="homeCollectionsTitle" 
+                />
+                <div className="w-16 h-0.5 mx-auto mt-4" style={{ backgroundColor: primaryColor }}></div>
              </div>
 
              {/* Hero Collection Card */}
-             <div onClick={() => setPage('collections')} className="relative w-full h-48 md:h-[500px] rounded-[2rem] overflow-hidden shadow-lg cursor-pointer group">
-                <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-900/40 to-transparent" />
-                <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-center">
-                   <p className="text-white/80 text-[10px] md:text-sm uppercase tracking-widest mb-2 md:mb-4 font-bold flex items-center gap-1">The Best <ArrowRight className="w-3 h-3 md:w-4 md:h-4" /></p>
-                   <h2 className="text-3xl md:text-6xl font-serif text-white leading-tight">{storeName}<br/>Collection</h2>
-                   <div className="absolute bottom-6 md:bottom-12 right-6 md:right-12 bg-black/80 text-white text-[10px] md:text-sm font-bold px-3 md:px-6 py-1.5 md:py-3 flex items-center gap-1 md:gap-2 rounded-full">2023 <Sparkles className="w-3 h-3 md:w-4 md:h-4" /></div>
-                </div>
-             </div>
+             <HeroBackgroundEditor styleKey="heroBg" id="store-hero">
+                {(() => {
+                   const slides = heroSlides && heroSlides.length > 0
+                     ? heroSlides
+                     : [{ image: heroImage, title: heroTitle || `${storeName} Collection`, subtitle: heroSubtitle || 'The Best' }];
+                   const curIdx = activeHeroSlide % slides.length;
+                   const curSlide = slides[curIdx];
+
+                   return (
+                      <div className="relative w-full h-64 md:h-[500px] rounded-[2rem] overflow-hidden shadow-lg group bg-slate-900">
+                         {slides.map((s: any, i: number) => (
+                            <div key={i} className="absolute inset-0 transition-opacity duration-1000" style={{ opacity: curIdx === i ? 1 : 0 }}>
+                               <img src={s.image || heroImage || "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80"} className="w-full h-full object-cover" />
+                               <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 to-slate-900/20 group-hover:from-slate-900/70 transition-colors duration-500" />
+                            </div>
+                         ))}
+                         
+                         <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-center z-10 pointer-events-none">
+                            <div key={`txt-${curIdx}`} style={{ animation: 'heroFadeSlide 0.5s ease forwards' }}>
+                               <p className="text-white/90 text-[10px] md:text-sm uppercase tracking-widest mb-2 md:mb-4 font-bold flex items-center gap-2">
+                                  {curSlide?.subtitle} <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
+                               </p>
+                               <h2 className="text-3xl md:text-6xl font-serif text-white leading-tight">
+                                  {curSlide?.title}
+                               </h2>
+                            </div>
+                            
+                            <button onClick={() => { const link = curSlide?.buttonLink || 'collections'; if (link.startsWith('http')) window.open(link, '_blank'); else setPage(link); }} className="absolute bottom-6 md:bottom-12 right-6 md:right-12 bg-white/10 backdrop-blur-md text-white text-[10px] md:text-sm font-bold px-4 md:px-6 py-2 md:py-3 flex items-center gap-2 rounded-full border border-white/20 shadow-sm pointer-events-auto hover:bg-white/20 transition-colors">
+                               {curSlide?.buttonText || heroButtonText || 'Discover Now'}
+                               <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-amber-300" />
+                            </button>
+                         </div>
+
+                         {slides.length > 1 && (
+                            <div className="absolute bottom-6 md:bottom-12 left-6 md:left-12 flex gap-2 z-20">
+                               {slides.map((_: any, i: number) => (
+                                 <button key={i} onClick={() => setActiveHeroSlide(i)} className="rounded-full transition-all" style={{ width: curIdx === i ? '24px' : '8px', height: '8px', backgroundColor: curIdx === i ? 'white' : 'rgba(255,255,255,0.4)' }} />
+                               ))}
+                            </div>
+                         )}
+                      </div>
+                   );
+                })()}
+             </HeroBackgroundEditor>
 
              {/* New Release */}
              <div>
@@ -5410,22 +5477,43 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            const product = storeProducts.find((p: any) => p.id === activeProductId);
            if (!product) return null;
            return (
-              <div className="flex-1 max-w-6xl mx-auto px-4 md:px-8 py-12 animate-in fade-in">
+              <div className="flex-1 w-full mx-auto px-4 md:px-8 py-12 animate-in fade-in" style={{ maxWidth: `${pdpMaxWidth}px` }}>
                  <button onClick={() => setPage('home')} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 mb-8"><ArrowLeft className="w-4 h-4"/> {storeIsAr ? 'العودة' : 'Retour'}</button>
-                 <div className="bg-white rounded-[2rem] shadow-sm p-6 md:p-12 flex flex-col md:flex-row gap-12">
-                    <div className="w-full md:w-1/2">
-                       <img src={getCoverImage(product) as string} className="w-full aspect-square object-cover rounded-2xl bg-slate-50" />
+                 
+                 <div className="bg-white rounded-[2rem] shadow-sm p-6 md:p-12 flex flex-col md:flex-row gap-12 mb-16">
+                    <div className="w-full pdp-img-col" style={{ ['--pdp-img-pct' as string]: `${pdpImageWidth}%` }}>
+                       <img src={getCoverImage(product) as string} className="w-full object-cover rounded-2xl bg-slate-50" style={{ aspectRatio: pdpImageAspect }} />
                     </div>
-                    <div className="w-full md:w-1/2 flex flex-col justify-center">
+                    <div className="w-full pdp-details-col flex flex-col justify-center">
                        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: primaryColor }}>{product.category || (storeIsAr ? 'مستحضرات تجميل' : 'Cosmétiques')}</p>
-                       <h1 className="text-3xl md:text-4xl font-serif text-slate-900 mb-4">{product.name}</h1>
+                       <h1 className={`${pdpTitleSize} font-serif text-slate-900 mb-4`}>{product.name}</h1>
                        <div className="text-3xl font-light text-slate-900 mb-8">{product.price} MAD</div>
-                       <p className="text-slate-600 mb-10 leading-relaxed text-sm md:text-base">{product.description || (storeIsAr ? 'منتج رائع يعتني بجمالك.' : 'Un produit parfait pour votre routine beauté.')}</p>
-                       <button onClick={() => setPage('checkout')} className="w-full py-4 rounded-full text-white font-bold shadow-lg transition-transform hover:scale-[1.02] flex items-center justify-center gap-3" style={{ backgroundColor: primaryColor }}>
+                       <p className={`text-slate-600 mb-10 leading-relaxed ${pdpDescSize}`}>{product.description || (storeIsAr ? 'منتج رائع يعتني بجمالك.' : 'Un produit parfait pour votre routine beauté.')}</p>
+                       <button onClick={() => setPage('checkout')} className={`w-full rounded-full text-white font-bold shadow-lg transition-transform hover:scale-[1.02] flex items-center justify-center gap-3 ${pdpButtonSize}`} style={{ backgroundColor: primaryColor }}>
                           <ShoppingBag className="w-5 h-5" /> {storeIsAr ? 'اشتري الآن' : 'Acheter maintenant'}
                        </button>
                     </div>
                  </div>
+
+                 {/* Related Products */}
+                 {showRelatedProducts && (
+                    <div className="mt-16 pt-12 border-t border-slate-100">
+                       <h3 className="text-2xl font-serif text-slate-900 mb-8">{storeIsAr ? 'منتجات قد تعجبك' : 'Vous aimerez aussi'}</h3>
+                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                          {storeProducts.filter((p: any) => p.id !== activeProductId).slice(0, 4).map((p: any) => (
+                             <div key={p.id} onClick={() => navigateToProduct(p.id)} className="group cursor-pointer bg-white rounded-2xl p-3 shadow-sm hover:shadow-md transition-all">
+                                <div className="relative aspect-square rounded-xl overflow-hidden mb-4 bg-slate-50">
+                                   <img src={getCoverImage(p) as string} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                </div>
+                                <div className="px-2">
+                                   <h4 className="font-bold text-slate-900 mb-1 line-clamp-1">{p.name}</h4>
+                                   <p className="text-sm font-medium" style={{ color: primaryColor }}>{p.price} MAD</p>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+                 )}
               </div>
            );
         })()}
@@ -5735,6 +5823,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                          quantity={quickBuyContext.quantity}
                          selectedColor={quickBuyContext.selectedColor}
                          selectedSize={quickBuyContext.selectedSize}
+                         customVariants={quickBuyContext.customVariants}
                          disabled={false}
                          requireAccount={requireAccountToOrder}
                          isAuthenticated={!!customerUser}
