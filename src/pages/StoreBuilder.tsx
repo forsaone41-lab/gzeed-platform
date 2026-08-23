@@ -4602,6 +4602,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
     const [quantity, setQuantity] = useState(1);
     const [selectedColor, setSelectedColor] = useState<string>('');
     const [selectedSize, setSelectedSize] = useState<string>('');
+    const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
     
     // Derived values
     const featuredCollection = storeProducts.slice(0, 3);
@@ -4796,7 +4797,21 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                              ))}
                           </div>
                        </div>
-                    )}
+                    {product.customVariants?.length > 0 && product.customVariants.map((variant: any, vIdx: number) => (
+                       <div key={vIdx}>
+                          <div className="flex items-center justify-between mb-3">
+                             <span className="text-sm font-bold uppercase tracking-widest text-slate-800 block">{variant.name}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                             {variant.options.map((opt: any, oIdx: number) => (
+                                <button key={oIdx} onClick={() => setSelectedVariants(prev => ({ ...prev, [variant.name]: opt.name }))} className={`px-4 py-2 border rounded-xl font-bold transition-colors flex items-center gap-2 ${selectedVariants[variant.name] === opt.name ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400'}`}>
+                                   {opt.image && <img src={opt.image} className="w-5 h-5 rounded-full object-cover" />}
+                                   {opt.name}
+                                </button>
+                             ))}
+                          </div>
+                       </div>
+                    ))}
                  </div>
 
                  <div className="flex items-center justify-between mb-8 md:mb-12">
@@ -4808,13 +4823,22 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                     </div>
                  </div>
 
-                 <button onClick={() => {
-                     if (product.colors?.filter((c:string)=>c.trim()!=='').length > 0 && !selectedColor) { alert(storeIsAr ? 'الرجاء اختيار اللون أولاً' : 'Veuillez choisir une couleur d\'abord'); return; }
-                     if (product.sizes?.filter((s:string)=>s.trim()!=='').length > 0 && !selectedSize) { alert(storeIsAr ? 'الرجاء اختيار المقاس أولاً' : 'Veuillez choisir une taille d\'abord'); return; }
-                     setPage('checkout');
-                 }} className="w-full py-5 md:py-6 bg-[#ff5a1f] text-white rounded-[1.5rem] font-bold text-sm md:text-base shadow-xl shadow-[#ff5a1f]/30 hover:scale-[1.02] transition-transform">
-                    Order Now
-                 </button>
+                 {(() => {
+                    const hasColors = product.colors?.filter((c:string)=>c.trim()!=='').length > 0;
+                    const hasSizes = product.sizes?.filter((s:string)=>s.trim()!=='').length > 0;
+                    const hasCustom = product.customVariants?.length > 0;
+                    const allSelected = (!hasColors || selectedColor) && (!hasSizes || selectedSize) && (!hasCustom || product.customVariants.every((v: any) => selectedVariants[v.name]));
+                    return (
+                       <button onClick={() => {
+                           if (hasColors && !selectedColor) { alert(storeIsAr ? 'الرجاء اختيار اللون أولاً' : 'Veuillez choisir une couleur d\'abord'); return; }
+                           if (hasSizes && !selectedSize) { alert(storeIsAr ? 'الرجاء اختيار المقاس أولاً' : 'Veuillez choisir une taille d\'abord'); return; }
+                           if (hasCustom && !product.customVariants.every((v: any) => selectedVariants[v.name])) { alert(storeIsAr ? 'الرجاء اختيار الخيارات المطلوبة' : 'Veuillez sélectionner toutes les options requises'); return; }
+                           setPage('checkout');
+                       }} className={`w-full py-5 md:py-6 bg-[#ff5a1f] text-white rounded-[1.5rem] font-bold text-sm md:text-base shadow-xl shadow-[#ff5a1f]/30 transition-all ${allSelected ? 'hover:scale-[1.02]' : 'opacity-60 cursor-not-allowed grayscale-[30%]'}`}>
+                          {storeIsAr ? 'اطلب الآن' : 'Order Now'}
+                       </button>
+                    );
+                 })()}
               </div>
            </div>
         );
@@ -4830,7 +4854,10 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                   storeIsAr={storeIsAr}
                   onSubmit={submitGlobalOrder}
                   product={storeProducts.find((p: any) => p.id === activeProductId) || storeProducts[0]}
-                  quantity={1}
+                  quantity={quantity}
+                  selectedColor={selectedColor}
+                  selectedSize={selectedSize}
+                  customVariants={selectedVariants}
                   paymentSettings={paymentSettings}
                />
            </div>
