@@ -824,6 +824,14 @@ export default function GZeedBuilder() {
                            <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'منتجات مشابهة' : 'Show Related Products'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showRelatedProducts: e.target.checked })} />
                         </div>
+                        <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'معلومات التوصيل (COD, مجاني)' : 'Delivery Info (COD, Free)'}</span>
+                           <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showDeliveryInfo: e.target.checked })} />
+                        </div>
+                        <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'تقييمات العملاء' : 'Customer Reviews'}</span>
+                           <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showProductReviews: e.target.checked })} />
+                        </div>
                      </div>
                   )}
 

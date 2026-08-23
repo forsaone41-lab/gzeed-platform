@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Globe, Palette, Settings, Plus, Monitor, Smartphone, CheckCircle, ExternalLink, Box, X, Search, LayoutTemplate, Paintbrush, Image as ImageIcon, Check, ListOrdered, CreditCard, AlertCircle, ShieldCheck, Loader2, Copy, Save, Maximize2, Minimize2, Users, Truck, LayoutGrid, List as ListIcon, Trash2, Type, MousePointerClick, Mail, Star, Video, Sparkles, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, TrendingUp, Package, RefreshCw, Undo2, Menu, Home, Heart, SlidersHorizontal, ArrowRight, ArrowLeft, Grid, User, Ruler, Crown, RotateCcw, BarChart3, LogOut, Clock, PhoneCall } from 'lucide-react';
+import { ShoppingBag, Globe, Palette, Settings, Plus, Monitor, Smartphone, CheckCircle, ExternalLink, Box, X, Search, LayoutTemplate, Paintbrush, Image as ImageIcon, Check, ListOrdered, CreditCard, AlertCircle, ShieldCheck, Loader2, Copy, Save, Maximize2, Minimize2, Users, Truck, LayoutGrid, List as ListIcon, Trash2, Type, MousePointerClick, Mail, Star, Video, Sparkles, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, TrendingUp, Package, RefreshCw, Undo2, Menu, Home, Heart, SlidersHorizontal, ArrowRight, ArrowLeft, Grid, User, Ruler, Crown, RotateCcw, BarChart3, LogOut, Clock, PhoneCall, Banknote } from 'lucide-react';
 
 
 const ReadMoreDescription = ({ text, className, isAr }: any) => {
@@ -714,6 +714,8 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   const [pdpDescSize, setPdpDescSize] = useState<string>(config.pdpDescSize || 'text-base');
   const [pdpButtonSize, setPdpButtonSize] = useState<string>(config.pdpButtonSize || 'py-4 text-base');
   const [showRelatedProducts, setShowRelatedProducts] = useState<boolean>(config.showRelatedProducts !== false);
+  const [showDeliveryInfo, setShowDeliveryInfo] = useState<boolean>(config.showDeliveryInfo !== false);
+  const [showProductReviews, setShowProductReviews] = useState<boolean>(config.showProductReviews !== false);
   const [productCardSize, setProductCardSize] = useState<'small' | 'medium' | 'large'>(config.productCardSize || 'medium');
   const [siteMaxWidth, setSiteMaxWidth] = useState<number>(config.siteMaxWidth ?? 1400);
   const gridColsClass = (variant: 'lg4' | 'lg3' | 'sm2' | 'md4' | 'plain4') => {
@@ -1390,6 +1392,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.pdpDescSize !== undefined) setPdpDescSize(payload.pdpDescSize);
         if (payload.pdpButtonSize !== undefined) setPdpButtonSize(payload.pdpButtonSize);
         if (payload.showRelatedProducts !== undefined) setShowRelatedProducts(payload.showRelatedProducts);
+        if (payload.showDeliveryInfo !== undefined) setShowDeliveryInfo(payload.showDeliveryInfo);
+        if (payload.showProductReviews !== undefined) setShowProductReviews(payload.showProductReviews);
         // storeDomain and storeCurrency can be added to config state if needed later
       }
     };
@@ -2436,18 +2440,46 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
           <>
             <div className="flex flex-col gap-0 w-full">
              {homeBlocks.map((block: string) => {
-                if (block === 'hero') return (
-                    <HeroBackgroundEditor key="hero" className="flex flex-col items-center justify-center text-center p-8 bg-cover relative" style={{ backgroundImage: `url(${heroImage})`, height: `${isModal ? heroHeight + 150 : heroHeight}px`, backgroundPosition: `${heroImagePosX}% ${heroImagePosY}%` }}>
-                       <div className="absolute inset-0 bg-black/60"></div>
-                       <div className="relative z-10 flex flex-col items-center">
-                          <EditableText as="h1" text={heroTitle} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className={`${isModal ? 'text-7xl' : 'text-5xl'} font-black text-white uppercase tracking-tighter mb-4`} styleKey="heroTitle" />
-                          <EditableText as="p" text={heroSubtitle} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-white/90 text-lg mb-8 max-w-md" styleKey="heroSubtitle" />
-                          <button onClick={() => setPage('collections')} className="px-8 py-3 text-white font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform rounded" style={{ backgroundColor: primaryColor }}>
-                             <EditableText text={heroButtonText} onTextChange={setHeroButtonText} isLiveStore={isLiveStore} styleKey="heroButtonText" />
-                          </button>
-                       </div>
-                    </HeroBackgroundEditor>
-                );
+                if (block === 'hero') {
+                   const slides = heroSlides && heroSlides.length > 0
+                     ? heroSlides
+                     : [{ image: heroImage, title: heroTitle || 'New Collection', subtitle: heroSubtitle || 'Discover our latest arrivals', buttonText: heroButtonText || 'Shop Now' }];
+                   const curIdx = activeHeroSlide % slides.length;
+                   const curSlide = slides[curIdx];
+
+                   if (heroSliderStyle === 'classic') {
+                     return (
+                       <HeroBackgroundEditor key="hero" className="flex flex-col items-center justify-center text-center p-8 bg-cover relative overflow-hidden" style={{ minHeight: `${isModal ? heroHeight + 150 : heroHeight}px` }}>
+                          {slides.map((s: any, i: number) => (
+                            <div key={i} className="absolute inset-0 transition-opacity duration-1000" style={{ opacity: curIdx === i ? 1 : 0 }}>
+                              <img src={s.image || heroImage} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/60"></div>
+                            </div>
+                          ))}
+                          <div className="relative z-10 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500" key={`classic-text-${curIdx}`}>
+                             <h1 className={`${isModal ? 'text-7xl' : 'text-5xl'} font-black text-white uppercase tracking-tighter mb-4`}>{curSlide.title}</h1>
+                             <p className="text-white/90 text-lg mb-8 max-w-md">{curSlide.subtitle}</p>
+                             <button onClick={() => setPage('collections')} className="px-8 py-3 text-white font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform rounded" style={{ backgroundColor: primaryColor }}>
+                                {curSlide.buttonText || heroButtonText}
+                             </button>
+                          </div>
+                       </HeroBackgroundEditor>
+                     );
+                   }
+
+                   return (
+                     <HeroBackgroundEditor key="hero" className="flex flex-col items-center justify-center text-center p-8 bg-cover relative" style={{ backgroundImage: `url(${curSlide.image || heroImage})`, height: `${isModal ? heroHeight + 150 : heroHeight}px`, backgroundPosition: `${heroImagePosX}% ${heroImagePosY}%` }}>
+                        <div className="absolute inset-0 bg-black/60"></div>
+                        <div className="relative z-10 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500" key={`full-text-${curIdx}`}>
+                           <EditableText as="h1" text={curSlide.title} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className={`${isModal ? 'text-7xl' : 'text-5xl'} font-black text-white uppercase tracking-tighter mb-4`} styleKey="heroTitle" />
+                           <EditableText as="p" text={curSlide.subtitle} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-white/90 text-lg mb-8 max-w-md" styleKey="heroSubtitle" />
+                           <button onClick={() => setPage('collections')} className="px-8 py-3 text-white font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform rounded" style={{ backgroundColor: primaryColor }}>
+                              <EditableText text={curSlide.buttonText || heroButtonText} onTextChange={setHeroButtonText} isLiveStore={isLiveStore} styleKey="heroButtonText" />
+                           </button>
+                        </div>
+                     </HeroBackgroundEditor>
+                   );
+                }
                 
                 if (block === 'slider' && sliderImages.length > 0) return (
                     <div key="slider" className="w-full relative overflow-hidden flex bg-slate-900" style={{ height: isModal ? '500px' : '300px' }}>
@@ -4840,6 +4872,48 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                        </button>
                     );
                  })()}
+
+                 {showDeliveryInfo && (
+                     <div className="mt-8 pt-8 border-t border-slate-100 space-y-4">
+                        <div className="flex items-center gap-4 text-sm text-slate-600">
+                           <Truck className="w-5 h-5 text-emerald-500" />
+                           <span className="font-bold">{storeIsAr ? 'توصيل سريع لجميع الطلبات' : 'Livraison rapide pour toutes les commandes'}</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-slate-600">
+                           <Banknote className="w-5 h-5 text-emerald-500" />
+                           <span className="font-bold">{storeIsAr ? 'الدفع عند الاستلام (COD)' : 'Paiement à la livraison (COD)'}</span>
+                        </div>
+                     </div>
+                 )}
+
+                 {showProductReviews && (
+                    <div className="mt-8 pt-8 border-t border-slate-100">
+                       <h3 className="font-bold text-slate-900 mb-6">{storeIsAr ? 'تقييمات العملاء' : 'Avis des clients'}</h3>
+                       <div className="space-y-6">
+                          <div className="flex gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                             <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold shrink-0">SA</div>
+                             <div>
+                                <div className="flex items-center gap-1 mb-1 text-amber-400">
+                                   <Star className="w-3.5 h-3.5 fill-current" /><Star className="w-3.5 h-3.5 fill-current" /><Star className="w-3.5 h-3.5 fill-current" /><Star className="w-3.5 h-3.5 fill-current" /><Star className="w-3.5 h-3.5 fill-current" />
+                                </div>
+                                <h4 className="font-bold text-sm text-slate-800">Sarah A.</h4>
+                                <p className="text-sm text-slate-600 mt-1">{storeIsAr ? 'منتج رائع جداً أنصح به وبشدة!' : 'Excellent produit, je le recommande vivement !'}</p>
+                             </div>
+                          </div>
+                          <div className="flex gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                             <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 font-bold shrink-0">M</div>
+                             <div>
+                                <div className="flex items-center gap-1 mb-1 text-amber-400">
+                                   <Star className="w-3.5 h-3.5 fill-current" /><Star className="w-3.5 h-3.5 fill-current" /><Star className="w-3.5 h-3.5 fill-current" /><Star className="w-3.5 h-3.5 fill-current" /><Star className="w-3.5 h-3.5 fill-current text-slate-300" />
+                                </div>
+                                <h4 className="font-bold text-sm text-slate-800">Meryem</h4>
+                                <p className="text-sm text-slate-600 mt-1">{storeIsAr ? 'جودة ممتازة والتوصيل كان سريع.' : 'Excellente qualité et livraison rapide.'}</p>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                 )}
+
               </div>
            </div>
         );
