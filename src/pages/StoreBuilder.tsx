@@ -1760,7 +1760,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
            // fighting the user's cursor), so editing the same field from the sidebar input instead
            // of typing directly on the canvas would silently fail to update the preview. Keying on
            // the current value forces a remount whenever the text changes from that external source.
-           key={`${displayText}-${override.fontSize || '}-${override.color || '}-${override.fontFamily || '}`}
+           key={`${displayText}-${override.fontSize || ''}-${override.color || ''}-${override.fontFamily || ''}`}
            className={`${className} cursor-text hover:outline hover:outline-2 hover:outline-indigo-500 hover:outline-dashed hover:bg-black/10 transition-all px-1 rounded min-w-[20px] inline-block empty:before:content-['${storeIsAr ? "فارغ" : "Vide"}'] empty:before:text-slate-400`}
            style={mergedStyle}
            contentEditable
