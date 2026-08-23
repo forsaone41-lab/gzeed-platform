@@ -4587,19 +4587,6 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
         {page === 'home' && (
           <div className="px-6 space-y-8 animate-in fade-in duration-500 md:max-w-6xl md:mx-auto md:py-12">
-             {/* Categories Header (Text-based instead of emoji boxes) */}
-             <div className="text-center py-4 mb-4">
-                <EditableText 
-                   as="h2" 
-                   text={homeCollectionsTitle || (storeLang === 'ar' ? 'تشكيلتنا الفاخرة' : 'Discover Our Collection')} 
-                   onTextChange={setHomeCollectionsTitle} 
-                   isLiveStore={isLiveStore} 
-                   className="text-2xl md:text-4xl font-serif italic tracking-wide text-slate-800" 
-                   styleKey="homeCollectionsTitle" 
-                />
-                <div className="w-16 h-0.5 mx-auto mt-4" style={{ backgroundColor: primaryColor }}></div>
-             </div>
-
              {/* Hero Collection Card */}
              <HeroBackgroundEditor styleKey="heroBg" id="store-hero">
                 {(() => {
@@ -4645,6 +4632,19 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                    );
                 })()}
              </HeroBackgroundEditor>
+
+             {/* Categories Header (Text-based instead of emoji boxes) */}
+             <div className="text-center py-4 mb-4">
+                <EditableText 
+                   as="h2" 
+                   text={homeCollectionsTitle || (storeLang === 'ar' ? 'تشكيلتنا الفاخرة' : 'Discover Our Collection')} 
+                   onTextChange={setHomeCollectionsTitle} 
+                   isLiveStore={isLiveStore} 
+                   className="text-2xl md:text-4xl font-serif italic tracking-wide text-slate-800" 
+                   styleKey="homeCollectionsTitle" 
+                />
+                <div className="w-16 h-0.5 mx-auto mt-4" style={{ backgroundColor: primaryColor }}></div>
+             </div>
 
              {/* New Release */}
              <div>
