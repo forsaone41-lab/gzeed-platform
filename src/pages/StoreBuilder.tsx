@@ -882,6 +882,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   const [heroSubtitle, setHeroSubtitle] = useState(config.heroSubtitle || '');
   const [heroButtonText, setHeroButtonText] = useState(config.heroButtonText || '');
   const [homeCollectionsTitle, setHomeCollectionsTitle] = useState(config.homeCollectionsTitle || '');
+  const [featuredCategories, setFeaturedCategories] = useState<{title: string, image: string, link?: string}[]>(config.featuredCategories || []);
   const [allCollectionsTitle, setAllCollectionsTitle] = useState(config.allCollectionsTitle || '');
   const [homeBlocks, setHomeBlocks] = useState<string[]>(config.homeBlocks || ['hero', 'collections', 'products']);
   const [sliderImages, setSliderImages] = useState<string[]>(config.sliderImages || []);
@@ -1375,6 +1376,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.storePages !== undefined) setStorePages(payload.storePages);
         if (payload.footerSettings !== undefined) setFooterSettings((prev: any) => ({ ...prev, ...payload.footerSettings }));
         if (payload.homeCollectionsTitle !== undefined) setHomeCollectionsTitle(payload.homeCollectionsTitle);
+        if (payload.featuredCategories !== undefined) setFeaturedCategories(payload.featuredCategories);
         if (payload.heroButtonText !== undefined) setHeroButtonText(payload.heroButtonText);
         if (payload.heroSlides !== undefined) setHeroSlides(payload.heroSlides);
         if (payload.customSections !== undefined) setCustomSections(payload.customSections);
@@ -4297,24 +4299,22 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                   <p className="text-[#666] text-sm max-w-xl mx-auto mb-16 font-serif italic">{storeLang === 'ar' ? 'التشكيلة' : storeLang === 'en' ? 'Collection' : 'Collection'}</p>
 
                   <div className={`grid gap-8 ${previewDevice === 'mobile' && !isModal ? 'grid-cols-1' : 'grid-cols-3'}`}>
-                     <div className="p-4 flex flex-col items-center text-center group cursor-pointer" onClick={() => setPage('collections')}>
-                        <div className="w-full aspect-[4/5] bg-[#efebe7] mb-6 overflow-hidden">
-                           <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                     {(featuredCategories?.length > 0 ? featuredCategories : [
+                        { title: storeLang === 'ar' ? 'العناية بالبشرة' : storeLang === 'en' ? "Skincare" : 'Soins de la peau', image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=800&auto=format&fit=crop" },
+                        { title: storeLang === 'ar' ? 'مكياج' : storeLang === 'en' ? "Makeup" : 'Maquillage', image: "https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=800&auto=format&fit=crop" },
+                        { title: storeLang === 'ar' ? 'عطور' : storeLang === 'en' ? "Fragrance" : 'Parfums', image: "https://images.unsplash.com/photo-1615397323145-219159040854?q=80&w=800&auto=format&fit=crop" }
+                     ]).map((cat, idx) => (
+                        <div key={idx} className="p-4 flex flex-col items-center text-center group cursor-pointer" onClick={() => setPage('collections')}>
+                           <div className="w-full aspect-[4/5] bg-[#efebe7] mb-6 overflow-hidden flex items-center justify-center">
+                              {cat.image ? (
+                                 <img src={cat.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                              ) : (
+                                 <ImageIcon className="w-12 h-12 text-[#d4a373]/50" />
+                              )}
+                           </div>
+                           <h4 className="text-lg font-serif text-[#333] mb-2">{cat.title}</h4>
                         </div>
-                        <h4 className="text-lg font-serif text-[#333] mb-2">{storeLang === 'ar' ? 'العناية بالبشرة' : storeLang === 'en' ? "Skincare" : 'Soins de la peau'}</h4>
-                     </div>
-                     <div className="p-4 flex flex-col items-center text-center group cursor-pointer" onClick={() => setPage('collections')}>
-                        <div className="w-full aspect-[4/5] bg-[#efebe7] mb-6 overflow-hidden">
-                           <img src="https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                        </div>
-                        <h4 className="text-lg font-serif text-[#333] mb-2">{storeLang === 'ar' ? 'مكياج' : storeLang === 'en' ? "Makeup" : 'Maquillage'}</h4>
-                     </div>
-                     <div className="p-4 flex flex-col items-center text-center group cursor-pointer" onClick={() => setPage('collections')}>
-                        <div className="w-full aspect-[4/5] bg-[#efebe7] mb-6 overflow-hidden">
-                           <img src="https://images.unsplash.com/photo-1615397323145-219159040854?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                        </div>
-                        <h4 className="text-lg font-serif text-[#333] mb-2">{storeLang === 'ar' ? 'عطور' : storeLang === 'en' ? "Fragrance" : 'Parfums'}</h4>
-                     </div>
+                     ))}
                   </div>
                </div>
             )}

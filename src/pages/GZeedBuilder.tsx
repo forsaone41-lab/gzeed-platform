@@ -68,6 +68,7 @@ export default function GZeedBuilder() {
   const [storeLang, setStoreLang] = useState('fr');
   const [storeCurrency, setStoreCurrency] = useState('MAD');
   const [heroSlides, setHeroSlides] = useState<Array<{image: string; title: string; subtitle: string; buttonText?: string; buttonLink?: string}>>([]);
+  const [featuredCategories, setFeaturedCategories] = useState<Array<{title: string; image: string; link?: string}>>([]);
   const [customSections, setCustomSections] = useState<any[]>([]);
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
   const [newPageName, setNewPageName] = useState('');
@@ -78,6 +79,7 @@ export default function GZeedBuilder() {
       if (existingStr) {
         const existing = JSON.parse(existingStr);
         if (existing.heroSlides) setHeroSlides(existing.heroSlides);
+        if (existing.featuredCategories) setFeaturedCategories(existing.featuredCategories);
         if (existing.customSections) setCustomSections(existing.customSections);
         if (existing.hiddenSections) setHiddenSections(existing.hiddenSections);
       }
@@ -692,7 +694,54 @@ export default function GZeedBuilder() {
                      <div className="space-y-4">
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                            <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'عنوان التصنيفات' : 'Categories Title'}</label>
-                           <input type="text" onChange={(e) => updateConfigInIframe({ homeCollectionsTitle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="Trending Now" />
+                           <input type="text" onChange={(e) => updateConfigInIframe({ homeCollectionsTitle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm mb-6" placeholder="Trending Now" />
+                           
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-4">{lang === 'ar' ? 'التصنيفات المميزة (الصور)' : 'Featured Categories (Images)'}</label>
+                           <div className="space-y-3">
+                              {featuredCategories.map((cat, idx) => (
+                                 <div key={idx} className="p-3 bg-white border border-slate-200 rounded-xl relative flex flex-col gap-3 group">
+                                    <button onClick={() => {
+                                       const next = featuredCategories.filter((_, i) => i !== idx);
+                                       setFeaturedCategories(next);
+                                       updateConfigInIframe({ featuredCategories: next });
+                                    }} className="absolute top-2 right-2 w-6 h-6 bg-slate-100 text-slate-400 hover:bg-rose-100 hover:text-rose-500 rounded-full flex items-center justify-center transition-colors">
+                                       <X className="w-3 h-3" />
+                                    </button>
+                                    
+                                    <div className="flex gap-3 items-start pr-8">
+                                       <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden shrink-0 border border-slate-200 flex items-center justify-center">
+                                          {cat.image ? (
+                                             <img src={cat.image} className="w-full h-full object-cover" />
+                                          ) : (
+                                             <ImageIcon className="w-6 h-6 text-slate-300" />
+                                          )}
+                                       </div>
+                                       <div className="flex-1 space-y-2">
+                                          <input type="text" value={cat.title} onChange={(e) => {
+                                             const next = [...featuredCategories];
+                                             next[idx].title = e.target.value;
+                                             setFeaturedCategories(next);
+                                             updateConfigInIframe({ featuredCategories: next });
+                                          }} placeholder={lang === 'ar' ? 'اسم التصنيف' : 'Category Name'} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md text-xs" />
+                                          <input type="text" value={cat.image} onChange={(e) => {
+                                             const next = [...featuredCategories];
+                                             next[idx].image = e.target.value;
+                                             setFeaturedCategories(next);
+                                             updateConfigInIframe({ featuredCategories: next });
+                                          }} placeholder="Image URL (Unsplash...)" className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md text-xs" />
+                                       </div>
+                                    </div>
+                                 </div>
+                              ))}
+                              
+                              <button onClick={() => {
+                                 const next = [...featuredCategories, { title: 'New Category', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80' }];
+                                 setFeaturedCategories(next);
+                                 updateConfigInIframe({ featuredCategories: next });
+                              }} className="w-full py-3 border-2 border-dashed border-cyan-200 text-cyan-600 rounded-xl text-sm font-bold hover:bg-cyan-50 transition-colors flex items-center justify-center gap-2">
+                                 <Plus className="w-4 h-4" /> {lang === 'ar' ? 'إضافة تصنيف' : 'Add Category'}
+                              </button>
+                           </div>
                         </div>
                      </div>
                   )}
