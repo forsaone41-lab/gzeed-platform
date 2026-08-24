@@ -1334,10 +1334,11 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'UPDATE_THEME') {
-        const { primaryColor, fontFamily, cardStyle } = event.data.payload;
+        const { primaryColor, fontFamily, cardStyle, buttonStyle } = event.data.payload;
         if (primaryColor) setPrimaryColor(primaryColor);
         if (fontFamily) setFontFamily(fontFamily);
         if (cardStyle) setCardStyle(cardStyle);
+        if (buttonStyle) setButtonStyle(buttonStyle);
       }
       if (event.data?.type === 'SCROLL_TO_SECTION') {
         const sectionId = event.data.payload;

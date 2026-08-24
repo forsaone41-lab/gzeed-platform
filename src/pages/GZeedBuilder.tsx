@@ -58,6 +58,7 @@ export default function GZeedBuilder() {
   const [activeColor, setActiveColor] = useState('#0f172a');
   const [activeFont, setActiveFont] = useState('font-sans');
   const [activeCardStyle, setActiveCardStyle] = useState('rounded');
+  const [activeButtonStyle, setActiveButtonStyle] = useState('rounded');
   const [hiddenSections, setHiddenSections] = useState<string[]>([]);
   const [activeConfigSection, setActiveConfigSection] = useState<string | null>(null);
   const [storePages, setStorePages] = useState<{id: string, title: string, isDefault?: boolean}[]>([
@@ -259,6 +260,11 @@ export default function GZeedBuilder() {
   const handleCardStyleChange = (style: string) => {
     setActiveCardStyle(style);
     updateThemeInIframe({ cardStyle: style });
+  };
+
+  const handleButtonStyleChange = (style: string) => {
+    setActiveButtonStyle(style);
+    updateThemeInIframe({ buttonStyle: style });
   };
 
   const handleSave = () => {
@@ -474,6 +480,23 @@ export default function GZeedBuilder() {
                   <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'شكل الأزرار' : lang === 'en' ? 'Button Style' : 'Style de bouton'}</h3>
                   <div className="grid grid-cols-3 gap-3">
                     <button 
+                      onClick={() => handleButtonStyleChange('square')}
+                      className={`py-3 border rounded-xl transition-colors ${activeButtonStyle === 'square' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Square</button>
+                    <button 
+                      onClick={() => handleButtonStyleChange('rounded')}
+                      className={`py-3 border rounded-xl transition-colors ${activeButtonStyle === 'rounded' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Rounded</button>
+                    <button 
+                      onClick={() => handleButtonStyleChange('pill')}
+                      className={`py-3 border rounded-full transition-colors ${activeButtonStyle === 'pill' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Pill</button>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'شكل البطاقات' : lang === 'en' ? 'Card Style' : 'Style de carte'}</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    <button 
                       onClick={() => handleCardStyleChange('square')}
                       className={`py-3 border rounded-xl transition-colors ${activeCardStyle === 'square' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
                     >Square</button>
@@ -482,9 +505,9 @@ export default function GZeedBuilder() {
                       className={`py-3 border rounded-xl transition-colors ${activeCardStyle === 'rounded' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
                     >Rounded</button>
                     <button 
-                      onClick={() => handleCardStyleChange('pill')}
-                      className={`py-3 border rounded-full transition-colors ${activeCardStyle === 'pill' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
-                    >Pill</button>
+                      onClick={() => handleCardStyleChange('arch')}
+                      className={`py-3 border rounded-xl transition-colors ${activeCardStyle === 'arch' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Arch</button>
                   </div>
                 </div>
               </div>
