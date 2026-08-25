@@ -8,7 +8,7 @@ interface Category {
   itemCount: number;
 }
 
-export default function CategoriesManager() {
+export default function CategoriesManager({ products = [] }: { products?: any[] }) {
   const { lang, isAr } = useLang();
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
@@ -165,7 +165,9 @@ export default function CategoriesManager() {
                       </div>
                       <div>
                         <h3 className="font-bold text-slate-900 text-lg">{c.name}</h3>
-                        <p className="text-sm text-slate-500">{c.itemCount} {lang === 'ar' ? 'منتجات' : 'Products'}</p>
+                        <p className="text-sm text-slate-500">
+                           {products.filter(p => p.category === c.name || p.category?.name === c.name).length} {lang === 'ar' ? 'منتجات' : 'Products'}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

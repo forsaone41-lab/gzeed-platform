@@ -1651,6 +1651,15 @@ export default function GZeedDashboard() {
                 </div>
               )}
 
+              {storeProducts.length > 0 && !isLoadingProducts && (
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
+                  <span className="text-sm font-bold text-slate-500">
+                    {lang === "ar" ? "إجمالي المنتجات:" : lang === "en" ? "Total Products:" : "Total des produits :"} <span className="text-slate-900">{storeProducts.length}</span>
+                  </span>
+                </div>
+              )}
+
               {isLoadingProducts ? (
                 <div className="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
                   <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
@@ -3542,7 +3551,7 @@ export default function GZeedDashboard() {
             </div>
           )}
           {activeTab === "customers" && <CustomersManager />}
-          {activeTab === "categories" && <CategoriesManager />}
+          {activeTab === "categories" && <CategoriesManager products={storeProducts} />}
           {activeTab === "pages" && <PagesManager />}
           {activeTab === "team" && <TeamManager />}
         </div>

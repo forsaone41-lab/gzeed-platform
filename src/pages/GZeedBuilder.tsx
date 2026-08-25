@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -59,12 +59,14 @@ export default function GZeedBuilder() {
   const [activeFont, setActiveFont] = useState('font-sans');
   const [activeCardStyle, setActiveCardStyle] = useState('rounded');
   const [activeButtonStyle, setActiveButtonStyle] = useState('rounded');
+  const [activeHeaderStyle, setActiveHeaderStyle] = useState('standard');
+  const [activeHeaderWidth, setActiveHeaderWidth] = useState('full');
   const [hiddenSections, setHiddenSections] = useState<string[]>([]);
   const [activeConfigSection, setActiveConfigSection] = useState<string | null>(null);
   const [storePages, setStorePages] = useState<{id: string, title: string, isDefault?: boolean}[]>([
-    { id: 'home', title: 'الرئيسية', isDefault: true },
-    { id: 'collections', title: 'التشكيلات', isDefault: true },
-    { id: 'about', title: 'من نحن', isDefault: false }
+    { id: 'home', title: 'Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©', isDefault: true },
+    { id: 'collections', title: 'Ø§Ù„ØªØ´ÙƒÙŠÙ„Ø§Øª', isDefault: true },
+    { id: 'about', title: 'Ù…Ù† Ù†Ø­Ù†', isDefault: false }
   ]);
   const [storeLang, setStoreLang] = useState('fr');
   const [storeCurrency, setStoreCurrency] = useState('MAD');
@@ -122,7 +124,7 @@ export default function GZeedBuilder() {
         const data = await res.json();
         setUnsplashSearchResults((data.results || []).map((p: any) => p.urls?.regular).filter(Boolean));
      } catch (e) {
-        setUnsplashSearchError(lang === 'ar' ? 'تعذر البحث، حاول مرة أخرى' : 'Search failed, please try again');
+        setUnsplashSearchError(lang === 'ar' ? 'ØªØ¹Ø°Ø± Ø§Ù„Ø¨Ø­Ø«ØŒ Ø­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰' : 'Search failed, please try again');
         setUnsplashSearchResults([]);
      } finally {
         setIsSearchingUnsplash(false);
@@ -194,7 +196,7 @@ export default function GZeedBuilder() {
     const newSection = {
        id: `custom_${Date.now()}`,
        type,
-       title: type === 'text' ? 'Texte' : type === 'html' ? 'Code HTML' : type === 'video' ? 'Vidéo' : type === 'slider' ? 'Slider' : 'Section',
+       title: type === 'text' ? 'Texte' : type === 'html' ? 'Code HTML' : type === 'video' ? 'VidÃ©o' : type === 'slider' ? 'Slider' : 'Section',
        content: '',
        settings: {}
     };
@@ -267,6 +269,16 @@ export default function GZeedBuilder() {
     updateThemeInIframe({ buttonStyle: style });
   };
 
+  const handleHeaderStyleChange = (style: string) => {
+    setActiveHeaderStyle(style);
+    updateThemeInIframe({ headerStyle: style });
+  };
+
+  const handleHeaderWidthChange = (width: string) => {
+    setActiveHeaderWidth(width);
+    updateThemeInIframe({ headerWidth: width });
+  };
+
   const handleSave = () => {
     setIsSaving(true);
     if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -311,7 +323,7 @@ export default function GZeedBuilder() {
               GZ
             </div>
             <span className="font-bold text-slate-900 hidden sm:block">
-              {lang === 'ar' ? 'محرر الواجهة' : lang === 'en' ? 'Visual Editor' : 'Éditeur Visuel'}
+              {lang === 'ar' ? 'Ù…Ø­Ø±Ø± Ø§Ù„ÙˆØ§Ø¬Ù‡Ø©' : lang === 'en' ? 'Visual Editor' : 'Ã‰diteur Visuel'}
             </span>
           </div>
         </div>
@@ -323,14 +335,14 @@ export default function GZeedBuilder() {
             className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold transition-all ${deviceScale === 'desktop' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             <Monitor className="w-4 h-4" />
-            <span className="hidden sm:block">{lang === 'ar' ? 'حاسوب' : lang === 'en' ? 'Desktop' : 'Bureau'}</span>
+            <span className="hidden sm:block">{lang === 'ar' ? 'Ø­Ø§Ø³ÙˆØ¨' : lang === 'en' ? 'Desktop' : 'Bureau'}</span>
           </button>
           <button 
             onClick={() => setDeviceScale('mobile')}
             className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold transition-all ${deviceScale === 'mobile' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             <Smartphone className="w-4 h-4" />
-            <span className="hidden sm:block">{lang === 'ar' ? 'هاتف' : lang === 'en' ? 'Mobile' : 'Mobile'}</span>
+            <span className="hidden sm:block">{lang === 'ar' ? 'Ù‡Ø§ØªÙ' : lang === 'en' ? 'Mobile' : 'Mobile'}</span>
           </button>
         </div>
 
@@ -341,7 +353,7 @@ export default function GZeedBuilder() {
               onClick={() => window.open(getThemePreviewUrl(activeThemeId), '_blank')}
               className="px-4 py-2 mr-2 bg-slate-50 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-100 hover:text-slate-900 transition-all flex items-center gap-2 border border-slate-200"
             >
-              <span className="hidden sm:block">{lang === 'ar' ? 'زيارة المتجر' : lang === 'en' ? 'Visit Store' : 'Visiter la boutique'}</span>
+              <span className="hidden sm:block">{lang === 'ar' ? 'Ø²ÙŠØ§Ø±Ø© Ø§Ù„Ù…ØªØ¬Ø±' : lang === 'en' ? 'Visit Store' : 'Visiter la boutique'}</span>
               <ExternalLink className="w-4 h-4" />
             </button>
             <button className="p-2 hover:text-slate-900 transition-colors"><Undo className="w-4 h-4" /></button>
@@ -360,9 +372,9 @@ export default function GZeedBuilder() {
               <Save className="w-4 h-4" />
             )}
             <span className="hidden sm:block">
-              {isSaving ? (lang === 'ar' ? 'جاري الحفظ...' : lang === 'en' ? 'Saving...' : 'Enregistrement...') 
-                : isSaved ? (lang === 'ar' ? 'تم الحفظ' : lang === 'en' ? 'Saved' : 'Enregistré') 
-                : (lang === 'ar' ? 'حفظ' : lang === 'en' ? 'Save' : 'Enregistrer')}
+              {isSaving ? (lang === 'ar' ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸...' : lang === 'en' ? 'Saving...' : 'Enregistrement...') 
+                : isSaved ? (lang === 'ar' ? 'ØªÙ… Ø§Ù„Ø­ÙØ¸' : lang === 'en' ? 'Saved' : 'EnregistrÃ©') 
+                : (lang === 'ar' ? 'Ø­ÙØ¸' : lang === 'en' ? 'Save' : 'Enregistrer')}
             </span>
           </button>
           <button 
@@ -378,9 +390,9 @@ export default function GZeedBuilder() {
               <Play className="w-4 h-4" />
             )}
             <span className="hidden sm:block">
-              {isPublishing ? (lang === 'ar' ? 'جاري النشر...' : lang === 'en' ? 'Publishing...' : 'Publication...') 
-                : isPublished ? (lang === 'ar' ? 'تم النشر' : lang === 'en' ? 'Published' : 'Publié') 
-                : (lang === 'ar' ? 'نشر' : lang === 'en' ? 'Publish' : 'Publier')}
+              {isPublishing ? (lang === 'ar' ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„Ù†Ø´Ø±...' : lang === 'en' ? 'Publishing...' : 'Publication...') 
+                : isPublished ? (lang === 'ar' ? 'ØªÙ… Ø§Ù„Ù†Ø´Ø±' : lang === 'en' ? 'Published' : 'PubliÃ©') 
+                : (lang === 'ar' ? 'Ù†Ø´Ø±' : lang === 'en' ? 'Publish' : 'Publier')}
             </span>
           </button>
         </div>
@@ -392,10 +404,10 @@ export default function GZeedBuilder() {
           {/* Tabs */}
           <div className="flex items-center p-2 border-b border-slate-100">
             {[
-              { id: 'theme', icon: Palette, label: lang === 'ar' ? 'المظهر' : lang === 'en' ? 'Theme' : 'Thème' },
-              { id: 'sections', icon: Layers, label: lang === 'ar' ? 'الأقسام' : lang === 'en' ? 'Sections' : 'Sections' },
-              { id: 'settings', icon: Settings, label: lang === 'ar' ? 'إعدادات' : lang === 'en' ? 'Settings' : 'Paramètres' },
-              { id: 'code', icon: Code, label: lang === 'ar' ? 'كود (جديد)' : lang === 'en' ? 'Code' : 'Code' }
+              { id: 'theme', icon: Palette, label: lang === 'ar' ? 'Ø§Ù„Ù…Ø¸Ù‡Ø±' : lang === 'en' ? 'Theme' : 'ThÃ¨me' },
+              { id: 'sections', icon: Layers, label: lang === 'ar' ? 'Ø§Ù„Ø£Ù‚Ø³Ø§Ù…' : lang === 'en' ? 'Sections' : 'Sections' },
+              { id: 'settings', icon: Settings, label: lang === 'ar' ? 'Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª' : lang === 'en' ? 'Settings' : 'ParamÃ¨tres' },
+              { id: 'code', icon: Code, label: lang === 'ar' ? 'ÙƒÙˆØ¯ (Ø¬Ø¯ÙŠØ¯)' : lang === 'en' ? 'Code' : 'Code' }
             ].map(tab => {
               const Icon = tab.icon;
               const isActive = activeSidebarTab === tab.id;
@@ -416,7 +428,7 @@ export default function GZeedBuilder() {
             {activeSidebarTab === 'theme' && (
               <div className="space-y-8 animate-fade-in">
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'قالب المتجر' : lang === 'en' ? 'Store Theme' : 'Thème de la boutique'}</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ù‚Ø§Ù„Ø¨ Ø§Ù„Ù…ØªØ¬Ø±' : lang === 'en' ? 'Store Theme' : 'ThÃ¨me de la boutique'}</h3>
                   <div className="relative">
                     <select 
                       value={activeThemeId}
@@ -445,7 +457,7 @@ export default function GZeedBuilder() {
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'الألوان الأساسية' : lang === 'en' ? 'Brand Colors' : 'Couleurs de la marque'}</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ø§Ù„Ø£Ù„ÙˆØ§Ù† Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©' : lang === 'en' ? 'Brand Colors' : 'Couleurs de la marque'}</h3>
                   <div className="grid grid-cols-5 gap-3">
                     {['#0f172a', '#1e3a8a', '#7c3aed', '#db2777', '#dc2626', '#d97706', '#16a34a', '#0891b2', '#b48a44', '#64748b', '#06b6d4', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#000000'].map((color, idx) => (
                       <button 
@@ -458,7 +470,7 @@ export default function GZeedBuilder() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'الخطوط' : lang === 'en' ? 'Typography' : 'Typographie'}</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ø§Ù„Ø®Ø·ÙˆØ·' : lang === 'en' ? 'Typography' : 'Typographie'}</h3>
                   <div className="space-y-3">
                     <button 
                       onClick={() => handleFontChange('font-sans')}
@@ -477,7 +489,41 @@ export default function GZeedBuilder() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'شكل الأزرار' : lang === 'en' ? 'Button Style' : 'Style de bouton'}</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ø´ÙƒÙ„ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¹Ù„ÙˆÙŠØ©' : lang === 'en' ? 'Header Style' : 'Style de l\'En-tÃªte'}</h3>
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                    <button 
+                      onClick={() => handleHeaderStyleChange('standard')}
+                      className={`py-3 px-2 text-xs border rounded-xl transition-colors ${activeHeaderStyle === 'standard' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Standard</button>
+                    <button 
+                      onClick={() => handleHeaderStyleChange('floating')}
+                      className={`py-3 px-2 text-xs border rounded-xl transition-colors ${activeHeaderStyle === 'floating' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Floating Pill</button>
+                    <button 
+                      onClick={() => handleHeaderStyleChange('banner-left')}
+                      className={`py-3 px-2 text-xs border rounded-xl transition-colors ${activeHeaderStyle === 'banner-left' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Banner (Left)</button>
+                    <button 
+                      onClick={() => handleHeaderStyleChange('banner-center')}
+                      className={`py-3 px-2 text-xs border rounded-xl transition-colors ${activeHeaderStyle === 'banner-center' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Banner (Center)</button>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¹Ù„ÙˆÙŠØ©' : lang === 'en' ? 'Header Width' : 'Largeur de l\'En-tÃªte'}</h3>
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                    <button 
+                      onClick={() => handleHeaderWidthChange('full')}
+                      className={`py-3 px-2 text-xs border rounded-xl transition-colors ${activeHeaderWidth === 'full' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Full Width</button>
+                    <button 
+                      onClick={() => handleHeaderWidthChange('center')}
+                      className={`py-3 px-2 text-xs border rounded-xl transition-colors ${activeHeaderWidth === 'center' ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-md' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >Centered (Ù…ØªÙ…Ø±ÙƒØ²)</button>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ø´ÙƒÙ„ Ø§Ù„Ø£Ø²Ø±Ø§Ø±' : lang === 'en' ? 'Button Style' : 'Style de bouton'}</h3>
                   <div className="grid grid-cols-3 gap-3">
                     <button 
                       onClick={() => handleButtonStyleChange('square')}
@@ -494,7 +540,7 @@ export default function GZeedBuilder() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'شكل البطاقات' : lang === 'en' ? 'Card Style' : 'Style de carte'}</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ø´ÙƒÙ„ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª' : lang === 'en' ? 'Card Style' : 'Style de carte'}</h3>
                   <div className="grid grid-cols-3 gap-3">
                     <button 
                       onClick={() => handleCardStyleChange('square')}
@@ -516,12 +562,12 @@ export default function GZeedBuilder() {
             {activeSidebarTab === 'sections' && !activeConfigSection && (
               <div className="space-y-3 animate-fade-in">
                 {[
-                  { id: 'header', icon: Layout, label: lang === 'ar' ? 'الشريط العلوي' : lang === 'en' ? 'Header Navigation' : 'En-tête' },
-                  { id: 'hero', icon: Palette, label: lang === 'ar' ? 'الواجهة الرئيسية' : lang === 'en' ? 'Hero Banner' : 'Bannière Héro' },
-                  { id: 'categories', icon: Layers, label: lang === 'ar' ? 'تصنيفات المنتجات' : lang === 'en' ? 'Category Grid' : 'Grille de Catégories' },
-                  { id: 'products', icon: Box, label: lang === 'ar' ? 'شبكة المنتجات' : lang === 'en' ? 'Product Grid' : 'Grille de Produits' },
-                  { id: 'pdp', icon: ShoppingBag, label: lang === 'ar' ? 'صفحة المنتج' : lang === 'en' ? 'Product Page' : 'Page Produit' },
-                  { id: 'footer', icon: Layout, label: lang === 'ar' ? 'تذييل الصفحة' : lang === 'en' ? 'Footer' : 'Pied de page' }
+                  { id: 'header', icon: Layout, label: lang === 'ar' ? 'Ø§Ù„Ø´Ø±ÙŠØ· Ø§Ù„Ø¹Ù„ÙˆÙŠ' : lang === 'en' ? 'Header Navigation' : 'En-tÃªte' },
+                  { id: 'hero', icon: Palette, label: lang === 'ar' ? 'Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©' : lang === 'en' ? 'Hero Banner' : 'BanniÃ¨re HÃ©ro' },
+                  { id: 'categories', icon: Layers, label: lang === 'ar' ? 'ØªØµÙ†ÙŠÙØ§Øª Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª' : lang === 'en' ? 'Category Grid' : 'Grille de CatÃ©gories' },
+                  { id: 'products', icon: Box, label: lang === 'ar' ? 'Ø´Ø¨ÙƒØ© Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª' : lang === 'en' ? 'Product Grid' : 'Grille de Produits' },
+                  { id: 'pdp', icon: ShoppingBag, label: lang === 'ar' ? 'ØµÙØ­Ø© Ø§Ù„Ù…Ù†ØªØ¬' : lang === 'en' ? 'Product Page' : 'Page Produit' },
+                  { id: 'footer', icon: Layout, label: lang === 'ar' ? 'ØªØ°ÙŠÙŠÙ„ Ø§Ù„ØµÙØ­Ø©' : lang === 'en' ? 'Footer' : 'Pied de page' }
                 ].map((section, idx) => (
                   <div key={idx} onClick={() => { handleSectionClick(section.id); setActiveConfigSection(section.id); }} className={`p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-400 hover:shadow-md transition-all group ${hiddenSections.includes(section.id) ? 'opacity-50 grayscale' : ''}`}>
                     <div className="flex items-center gap-3">
@@ -556,27 +602,27 @@ export default function GZeedBuilder() {
                 ))}
                 <button onClick={() => setShowAddSectionModal(true)} className="w-full py-4 mt-6 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-cyan-400 hover:text-cyan-600 hover:bg-cyan-50 transition-all flex items-center justify-center gap-2">
                   <Plus className="w-5 h-5" />
-                  {lang === 'ar' ? 'إضافة قسم جديد' : lang === 'en' ? 'Add Section' : 'Ajouter une section'}
+                  {lang === 'ar' ? 'Ø¥Ø¶Ø§ÙØ© Ù‚Ø³Ù… Ø¬Ø¯ÙŠØ¯' : lang === 'en' ? 'Add Section' : 'Ajouter une section'}
                 </button>
                 {showAddSectionModal && (
                   <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in p-4">
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                       <div className="flex justify-between items-center p-6 border-b border-slate-100">
-                        <h3 className="font-bold text-lg text-slate-800">{lang === 'ar' ? 'اختر نوع القسم' : 'Choose Section Type'}</h3>
+                        <h3 className="font-bold text-lg text-slate-800">{lang === 'ar' ? 'Ø§Ø®ØªØ± Ù†ÙˆØ¹ Ø§Ù„Ù‚Ø³Ù…' : 'Choose Section Type'}</h3>
                         <button onClick={() => setShowAddSectionModal(false)} className="text-slate-400 hover:text-slate-700 p-2"><X className="w-5 h-5" /></button>
                       </div>
                       <div className="p-6 grid grid-cols-2 gap-4">
                         <button onClick={() => handleAddCustomSection('text')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-cyan-500 hover:bg-cyan-50 transition-all">
                            <Type className="w-8 h-8 text-cyan-600" />
-                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'نص' : 'Text'}</span>
+                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'Ù†Øµ' : 'Text'}</span>
                         </button>
                         <button onClick={() => handleAddCustomSection('slider')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-all">
                            <ImageIcon className="w-8 h-8 text-amber-600" />
-                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'معرض صور' : 'Slider'}</span>
+                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'Ù…Ø¹Ø±Ø¶ ØµÙˆØ±' : 'Slider'}</span>
                         </button>
                         <button onClick={() => handleAddCustomSection('video')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-rose-500 hover:bg-rose-50 transition-all">
                            <Video className="w-8 h-8 text-rose-600" />
-                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'فيديو' : 'Video'}</span>
+                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'ÙÙŠØ¯ÙŠÙˆ' : 'Video'}</span>
                         </button>
                         <button onClick={() => handleAddCustomSection('html')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all">
                            <Code className="w-8 h-8 text-indigo-600" />
@@ -592,29 +638,29 @@ export default function GZeedBuilder() {
             {activeSidebarTab === 'sections' && activeConfigSection && (
                <div className="space-y-6 animate-fade-in">
                   <button onClick={() => setActiveConfigSection(null)} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900">
-                     <ArrowLeft className="w-4 h-4" /> {lang === 'ar' ? 'رجوع للأقسام' : 'Back to Sections'}
+                     <ArrowLeft className="w-4 h-4" /> {lang === 'ar' ? 'Ø±Ø¬ÙˆØ¹ Ù„Ù„Ø£Ù‚Ø³Ø§Ù…' : 'Back to Sections'}
                   </button>
                   
                   {activeConfigSection === 'header' && (
                      <div className="space-y-4">
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'رابط شعار المتجر' : 'Store Logo URL'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ø±Ø§Ø¨Ø· Ø´Ø¹Ø§Ø± Ø§Ù„Ù…ØªØ¬Ø±' : 'Store Logo URL'}</label>
                            <input type="text" onChange={(e) => updateConfigInIframe({ storeLogo: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="https://..." />
                         </div>
                         <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
-                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار البحث' : 'Show Search'}</span>
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ø¨Ø­Ø«' : 'Show Search'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showHeaderSearch: e.target.checked })} />
                         </div>
                         <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
-                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار اللغة' : 'Show Language'}</span>
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ù„ØºØ©' : 'Show Language'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showHeaderLang: e.target.checked })} />
                         </div>
                         <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
-                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار الحساب' : 'Show Account'}</span>
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ø­Ø³Ø§Ø¨' : 'Show Account'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showHeaderAccount: e.target.checked })} />
                         </div>
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 mt-6">
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-4">{lang === 'ar' ? 'قوائم المتجر' : 'Store Menus'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-4">{lang === 'ar' ? 'Ù‚ÙˆØ§Ø¦Ù… Ø§Ù„Ù…ØªØ¬Ø±' : 'Store Menus'}</label>
                            <div className="space-y-2 mb-4">
                               {storePages.map(page => (
                                 <div key={page.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg">
@@ -628,7 +674,7 @@ export default function GZeedBuilder() {
                               ))}
                            </div>
                            <div className="flex gap-2">
-                              <input type="text" value={newPageName} onChange={e => setNewPageName(e.target.value)} placeholder={lang === 'ar' ? 'اسم القائمة...' : 'Menu Name...'} className="flex-1 p-2 border border-slate-200 rounded-lg text-sm" />
+                              <input type="text" value={newPageName} onChange={e => setNewPageName(e.target.value)} placeholder={lang === 'ar' ? 'Ø§Ø³Ù… Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©...' : 'Menu Name...'} className="flex-1 p-2 border border-slate-200 rounded-lg text-sm" />
                               <button onClick={handleAddPage} className="p-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
                                  <Plus className="w-5 h-5" />
                               </button>
@@ -640,37 +686,37 @@ export default function GZeedBuilder() {
                   {activeConfigSection === 'hero' && (
                      <div className="space-y-4">
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'العنوان الرئيسي' : 'Hero Title'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ' : 'Hero Title'}</label>
                            <input type="text" onChange={(e) => updateConfigInIframe({ heroTitle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="New Collection" />
                         </div>
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'النص الفرعي' : 'Hero Subtitle'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ø§Ù„Ù†Øµ Ø§Ù„ÙØ±Ø¹ÙŠ' : 'Hero Subtitle'}</label>
                            <input type="text" onChange={(e) => updateConfigInIframe({ heroSubtitle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="Discover our latest..." />
                         </div>
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'نص الزر' : 'Button Text'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ù†Øµ Ø§Ù„Ø²Ø±' : 'Button Text'}</label>
                            <input type="text" onChange={(e) => updateConfigInIframe({ heroButtonText: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="Shop Now" />
                         </div>
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'نمط السلايدر (Slideshow)' : 'Slideshow Style'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ù†Ù…Ø· Ø§Ù„Ø³Ù„Ø§ÙŠØ¯Ø± (Slideshow)' : 'Slideshow Style'}</label>
                            <select onChange={(e) => updateConfigInIframe({ heroSliderStyle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
-                             <option value="classic">{lang === 'ar' ? 'كلاسيكي (Classic)' : 'Classic'}</option>
-                             <option value="fullscreen">{lang === 'ar' ? 'شاشة كاملة (Fullscreen)' : 'Fullscreen'}</option>
-                             <option value="split">{lang === 'ar' ? 'منقسم (Split)' : 'Split'}</option>
+                             <option value="classic">{lang === 'ar' ? 'ÙƒÙ„Ø§Ø³ÙŠÙƒÙŠ (Classic)' : 'Classic'}</option>
+                             <option value="fullscreen">{lang === 'ar' ? 'Ø´Ø§Ø´Ø© ÙƒØ§Ù…Ù„Ø© (Fullscreen)' : 'Fullscreen'}</option>
+                             <option value="split">{lang === 'ar' ? 'Ù…Ù†Ù‚Ø³Ù… (Split)' : 'Split'}</option>
                            </select>
                         </div>
                         
                         <div className="pt-4 border-t border-slate-100">
                            <div className="flex items-center justify-between mb-4">
-                             <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'الصور (Slides)' : 'Slides'}</label>
+                             <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'Ø§Ù„ØµÙˆØ± (Slides)' : 'Slides'}</label>
                              <button onClick={handleAddSlide} className="px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1">
-                               <Plus className="w-3 h-3" /> {lang === 'ar' ? 'إضافة' : 'Add'}
+                               <Plus className="w-3 h-3" /> {lang === 'ar' ? 'Ø¥Ø¶Ø§ÙØ©' : 'Add'}
                              </button>
                            </div>
                            
                            {heroSlides.length === 0 && (
                              <div className="text-center p-4 border border-dashed border-slate-200 rounded-xl text-slate-400 text-sm">
-                               {lang === 'ar' ? 'لا توجد صور. سيتم استخدام الواجهة الافتراضية.' : 'No slides. Default hero will be used.'}
+                               {lang === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ ØµÙˆØ±. Ø³ÙŠØªÙ… Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠØ©.' : 'No slides. Default hero will be used.'}
                              </div>
                            )}
 
@@ -701,10 +747,10 @@ export default function GZeedBuilder() {
                                  <div className="grid grid-cols-2 gap-2">
                                    <input type="text" value={slide.buttonText || ''} onChange={(e) => handleUpdateSlide(idx, 'buttonText', e.target.value)} placeholder="Button Text" className="w-full p-2 border border-slate-200 rounded-md text-xs" />
                                    <select value={slide.buttonLink || ''} onChange={(e) => handleUpdateSlide(idx, 'buttonLink', e.target.value)} className="w-full p-2 border border-slate-200 rounded-md text-xs bg-white">
-                                     <option value="">{lang === 'ar' ? 'رابط الزر...' : 'Button Link...'}</option>
-                                     <option value="collections">{lang === 'ar' ? 'التشكيلات' : 'Collections'}</option>
-                                     <option value="products">{lang === 'ar' ? 'المنتجات' : 'Products'}</option>
-                                     <option value="about">{lang === 'ar' ? 'من نحن' : 'About'}</option>
+                                     <option value="">{lang === 'ar' ? 'Ø±Ø§Ø¨Ø· Ø§Ù„Ø²Ø±...' : 'Button Link...'}</option>
+                                     <option value="collections">{lang === 'ar' ? 'Ø§Ù„ØªØ´ÙƒÙŠÙ„Ø§Øª' : 'Collections'}</option>
+                                     <option value="products">{lang === 'ar' ? 'Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª' : 'Products'}</option>
+                                     <option value="about">{lang === 'ar' ? 'Ù…Ù† Ù†Ø­Ù†' : 'About'}</option>
                                    </select>
                                  </div>
                                </div>
@@ -716,10 +762,10 @@ export default function GZeedBuilder() {
                   {activeConfigSection === 'categories' && (
                      <div className="space-y-4">
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'عنوان التصنيفات' : 'Categories Title'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ø¹Ù†ÙˆØ§Ù† Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª' : 'Categories Title'}</label>
                            <input type="text" onChange={(e) => updateConfigInIframe({ homeCollectionsTitle: e.target.value })} className="w-full p-3 border border-slate-200 rounded-lg text-sm mb-6" placeholder="Trending Now" />
                            
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-4">{lang === 'ar' ? 'التصنيفات المميزة (الصور)' : 'Featured Categories (Images)'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-4">{lang === 'ar' ? 'Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª Ø§Ù„Ù…Ù…ÙŠØ²Ø© (Ø§Ù„ØµÙˆØ±)' : 'Featured Categories (Images)'}</label>
                            <div className="space-y-3">
                               {featuredCategories.map((cat, idx) => (
                                  <div key={idx} className="p-3 bg-white border border-slate-200 rounded-xl relative flex flex-col gap-3 group">
@@ -745,7 +791,7 @@ export default function GZeedBuilder() {
                                              next[idx].title = e.target.value;
                                              setFeaturedCategories(next);
                                              updateConfigInIframe({ featuredCategories: next });
-                                          }} placeholder={lang === 'ar' ? 'اسم التصنيف' : 'Category Name'} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md text-xs" />
+                                          }} placeholder={lang === 'ar' ? 'Ø§Ø³Ù… Ø§Ù„ØªØµÙ†ÙŠÙ' : 'Category Name'} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md text-xs" />
                                           <input type="text" value={cat.image} onChange={(e) => {
                                              const next = [...featuredCategories];
                                              next[idx].image = e.target.value;
@@ -762,7 +808,7 @@ export default function GZeedBuilder() {
                                  setFeaturedCategories(next);
                                  updateConfigInIframe({ featuredCategories: next });
                               }} className="w-full py-3 border-2 border-dashed border-cyan-200 text-cyan-600 rounded-xl text-sm font-bold hover:bg-cyan-50 transition-colors flex items-center justify-center gap-2">
-                                 <Plus className="w-4 h-4" /> {lang === 'ar' ? 'إضافة تصنيف' : 'Add Category'}
+                                 <Plus className="w-4 h-4" /> {lang === 'ar' ? 'Ø¥Ø¶Ø§ÙØ© ØªØµÙ†ÙŠÙ' : 'Add Category'}
                               </button>
                            </div>
                         </div>
@@ -773,8 +819,8 @@ export default function GZeedBuilder() {
                      <div className="space-y-4">
                         <div className="p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
                            <Box className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                           <p className="text-sm">{lang === 'ar' ? 'إعدادات شبكة المنتجات' : 'Product Grid Settings'}</p>
-                           <p className="text-xs mt-2">{lang === 'ar' ? 'يمكنك اختيار المنتجات المعروضة من لوحة التحكم' : 'You can choose displayed products from the dashboard'}</p>
+                           <p className="text-sm">{lang === 'ar' ? 'Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø´Ø¨ÙƒØ© Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª' : 'Product Grid Settings'}</p>
+                           <p className="text-xs mt-2">{lang === 'ar' ? 'ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ù…Ø¹Ø±ÙˆØ¶Ø© Ù…Ù† Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…' : 'You can choose displayed products from the dashboard'}</p>
                         </div>
                      </div>
                   )}
@@ -783,19 +829,19 @@ export default function GZeedBuilder() {
                      <div className="space-y-6">
                         {/* Image Settings */}
                         <div>
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'حجم وشكل الصور' : 'Image Settings'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'Ø­Ø¬Ù… ÙˆØ´ÙƒÙ„ Ø§Ù„ØµÙˆØ±' : 'Image Settings'}</label>
                            <div className="space-y-3">
                               <select 
                                  onChange={(e) => updateConfigInIframe({ pdpImageAspect: e.target.value })} 
                                  className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-50"
                               >
-                                 <option value="4/5">{lang === 'ar' ? 'طولية (أزياء)' : 'Portrait (Fashion)'}</option>
-                                 <option value="1/1">{lang === 'ar' ? 'مربعة (كلاسيك)' : 'Square (Classic)'}</option>
-                                 <option value="3/4">{lang === 'ar' ? 'شبه طولية' : 'Slightly Tall'}</option>
+                                 <option value="4/5">{lang === 'ar' ? 'Ø·ÙˆÙ„ÙŠØ© (Ø£Ø²ÙŠØ§Ø¡)' : 'Portrait (Fashion)'}</option>
+                                 <option value="1/1">{lang === 'ar' ? 'Ù…Ø±Ø¨Ø¹Ø© (ÙƒÙ„Ø§Ø³ÙŠÙƒ)' : 'Square (Classic)'}</option>
+                                 <option value="3/4">{lang === 'ar' ? 'Ø´Ø¨Ù‡ Ø·ÙˆÙ„ÙŠØ©' : 'Slightly Tall'}</option>
                               </select>
                               <div className="p-3 border border-slate-200 rounded-lg bg-slate-50">
                                  <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
-                                    <span>{lang === 'ar' ? 'عرض الصورة' : 'Image Width'}</span>
+                                    <span>{lang === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„ØµÙˆØ±Ø©' : 'Image Width'}</span>
                                  </div>
                                  <input 
                                     type="range" min="30" max="70" step="5" defaultValue="50"
@@ -808,38 +854,38 @@ export default function GZeedBuilder() {
 
                         {/* Text Settings */}
                         <div>
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'حجم النصوص' : 'Typography Size'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'Ø­Ø¬Ù… Ø§Ù„Ù†ØµÙˆØµ' : 'Typography Size'}</label>
                            <div className="space-y-3">
                               <select 
                                  onChange={(e) => updateConfigInIframe({ pdpTitleSize: e.target.value })} 
                                  className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-50"
                               >
-                                 <option value="text-3xl md:text-4xl">{lang === 'ar' ? 'عنوان صغير' : 'Small Title'}</option>
-                                 <option value="text-4xl md:text-5xl">{lang === 'ar' ? 'عنوان متوسط' : 'Medium Title'}</option>
-                                 <option value="text-5xl md:text-7xl">{lang === 'ar' ? 'عنوان ضخم' : 'Large Title'}</option>
+                                 <option value="text-3xl md:text-4xl">{lang === 'ar' ? 'Ø¹Ù†ÙˆØ§Ù† ØµØºÙŠØ±' : 'Small Title'}</option>
+                                 <option value="text-4xl md:text-5xl">{lang === 'ar' ? 'Ø¹Ù†ÙˆØ§Ù† Ù…ØªÙˆØ³Ø·' : 'Medium Title'}</option>
+                                 <option value="text-5xl md:text-7xl">{lang === 'ar' ? 'Ø¹Ù†ÙˆØ§Ù† Ø¶Ø®Ù…' : 'Large Title'}</option>
                               </select>
                               <select 
                                  onChange={(e) => updateConfigInIframe({ pdpDescSize: e.target.value })} 
                                  className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-50"
                               >
-                                 <option value="text-sm">{lang === 'ar' ? 'وصف صغير' : 'Small Description'}</option>
-                                 <option value="text-base">{lang === 'ar' ? 'وصف متوسط' : 'Medium Description'}</option>
-                                 <option value="text-lg">{lang === 'ar' ? 'وصف كبير' : 'Large Description'}</option>
+                                 <option value="text-sm">{lang === 'ar' ? 'ÙˆØµÙ ØµØºÙŠØ±' : 'Small Description'}</option>
+                                 <option value="text-base">{lang === 'ar' ? 'ÙˆØµÙ Ù…ØªÙˆØ³Ø·' : 'Medium Description'}</option>
+                                 <option value="text-lg">{lang === 'ar' ? 'ÙˆØµÙ ÙƒØ¨ÙŠØ±' : 'Large Description'}</option>
                               </select>
                            </div>
                         </div>
 
                         {/* Button Settings */}
                         <div>
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'الزر' : 'Button Style'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-3">{lang === 'ar' ? 'Ø§Ù„Ø²Ø±' : 'Button Style'}</label>
                            <div className="space-y-3">
                               <select 
                                  onChange={(e) => updateConfigInIframe({ pdpButtonSize: e.target.value })} 
                                  className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-50"
                               >
-                                 <option value="py-3 text-sm">{lang === 'ar' ? 'حجم صغير' : 'Small Size'}</option>
-                                 <option value="py-4 text-base">{lang === 'ar' ? 'حجم متوسط' : 'Medium Size'}</option>
-                                 <option value="py-5 text-lg">{lang === 'ar' ? 'حجم ضخم' : 'Large Size'}</option>
+                                 <option value="py-3 text-sm">{lang === 'ar' ? 'Ø­Ø¬Ù… ØµØºÙŠØ±' : 'Small Size'}</option>
+                                 <option value="py-4 text-base">{lang === 'ar' ? 'Ø­Ø¬Ù… Ù…ØªÙˆØ³Ø·' : 'Medium Size'}</option>
+                                 <option value="py-5 text-lg">{lang === 'ar' ? 'Ø­Ø¬Ù… Ø¶Ø®Ù…' : 'Large Size'}</option>
                               </select>
                               <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg bg-slate-50">
                                  <input 
@@ -847,22 +893,22 @@ export default function GZeedBuilder() {
                                     onChange={(e) => updateConfigInIframe({ pdpButtonColor: e.target.value })} 
                                     className="w-8 h-8 rounded cursor-pointer border-0 p-0"
                                  />
-                                 <span className="text-xs font-bold text-slate-500">{lang === 'ar' ? 'لون زر الطلب (اختياري)' : 'Order Button Color (Optional)'}</span>
+                                 <span className="text-xs font-bold text-slate-500">{lang === 'ar' ? 'Ù„ÙˆÙ† Ø²Ø± Ø§Ù„Ø·Ù„Ø¨ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)' : 'Order Button Color (Optional)'}</span>
                               </div>
                            </div>
                         </div>
 
                         {/* Related Products */}
                         <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
-                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'منتجات مشابهة' : 'Show Related Products'}</span>
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'Ù…Ù†ØªØ¬Ø§Øª Ù…Ø´Ø§Ø¨Ù‡Ø©' : 'Show Related Products'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showRelatedProducts: e.target.checked })} />
                         </div>
                         <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
-                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'معلومات التوصيل (COD, مجاني)' : 'Delivery Info (COD, Free)'}</span>
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªÙˆØµÙŠÙ„ (COD, Ù…Ø¬Ø§Ù†ÙŠ)' : 'Delivery Info (COD, Free)'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showDeliveryInfo: e.target.checked })} />
                         </div>
                         <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
-                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'تقييمات العملاء' : 'Customer Reviews'}</span>
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'ØªÙ‚ÙŠÙŠÙ…Ø§Øª Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡' : 'Customer Reviews'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ showProductReviews: e.target.checked })} />
                         </div>
                      </div>
@@ -871,19 +917,19 @@ export default function GZeedBuilder() {
                   {activeConfigSection === 'footer' && (
                      <div className="space-y-4">
                         <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
-                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار سياسة الخصوصية' : 'Show Privacy Policy'}</span>
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'Ø¥Ø¸Ù‡Ø§Ø± Ø³ÙŠØ§Ø³Ø© Ø§Ù„Ø®ØµÙˆØµÙŠØ©' : 'Show Privacy Policy'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ footerSettings: { showPrivacy: e.target.checked } })} />
                         </div>
                         <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
-                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار الشروط والأحكام' : 'Show Terms & Conditions'}</span>
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ø´Ø±ÙˆØ· ÙˆØ§Ù„Ø£Ø­ÙƒØ§Ù…' : 'Show Terms & Conditions'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ footerSettings: { showTerms: e.target.checked } })} />
                         </div>
                         <div className="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50">
-                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'إظهار سياسة ملفات تعريف الارتباط' : 'Show Cookies Policy'}</span>
+                           <span className="font-bold text-sm text-slate-700">{lang === 'ar' ? 'Ø¥Ø¸Ù‡Ø§Ø± Ø³ÙŠØ§Ø³Ø© Ù…Ù„ÙØ§Øª ØªØ¹Ø±ÙŠÙ Ø§Ù„Ø§Ø±ØªØ¨Ø§Ø·' : 'Show Cookies Policy'}</span>
                            <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-600" onChange={(e) => updateConfigInIframe({ footerSettings: { showCookies: e.target.checked } })} />
                         </div>
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'نص حقوق النشر' : 'Copyright Text'}</label>
+                           <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ù†Øµ Ø­Ù‚ÙˆÙ‚ Ø§Ù„Ù†Ø´Ø±' : 'Copyright Text'}</label>
                            <input type="text" onChange={(e) => updateConfigInIframe({ footerSettings: { copyright: e.target.value } })} className="w-full p-3 border border-slate-200 rounded-lg text-sm" placeholder="(c) 2026 My Store" />
                         </div>
                      </div>
@@ -895,15 +941,15 @@ export default function GZeedBuilder() {
                      return (
                         <div className="space-y-4">
                            <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                              <span className="font-bold text-slate-700 text-sm">{lang === 'ar' ? 'عنوان القسم' : 'Section Title'}</span>
+                              <span className="font-bold text-slate-700 text-sm">{lang === 'ar' ? 'Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ù‚Ø³Ù…' : 'Section Title'}</span>
                               <input type="text" value={section.title || ''} onChange={(e) => handleUpdateCustomSection(section.id, 'title', e.target.value)} className="w-1/2 p-2 border border-slate-200 rounded-lg text-sm bg-white" />
                            </div>
 
                            {section.type === 'text' && (
                               <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
-                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'النص' : 'Text Content'}</label>
+                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'Ø§Ù„Ù†Øµ' : 'Text Content'}</label>
                                  <textarea rows={4} value={section.content} onChange={(e) => handleUpdateCustomSection(section.id, 'content', e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white" placeholder="Text..." />
-                                 <label className="block text-xs font-black uppercase text-slate-500 mt-4">{lang === 'ar' ? 'حجم الخط' : 'Font Size'}</label>
+                                 <label className="block text-xs font-black uppercase text-slate-500 mt-4">{lang === 'ar' ? 'Ø­Ø¬Ù… Ø§Ù„Ø®Ø·' : 'Font Size'}</label>
                                  <input type="range" min="12" max="64" value={section.settings?.fontSize || 16} onChange={(e) => handleUpdateCustomSection(section.id, 'settings', {...section.settings, fontSize: parseInt(e.target.value)})} className="w-full" />
                                  <div className="text-right text-xs text-slate-500">{section.settings?.fontSize || 16}px</div>
                               </div>
@@ -911,9 +957,9 @@ export default function GZeedBuilder() {
 
                            {section.type === 'video' && (
                               <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
-                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'رابط يوتيوب أو فيديو' : 'YouTube or Video URL'}</label>
+                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'Ø±Ø§Ø¨Ø· ÙŠÙˆØªÙŠÙˆØ¨ Ø£Ùˆ ÙÙŠØ¯ÙŠÙˆ' : 'YouTube or Video URL'}</label>
                                  <input type="text" value={section.content} onChange={(e) => handleUpdateCustomSection(section.id, 'content', e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white" placeholder="https://..." />
-                                 <label className="block text-xs font-black uppercase text-slate-500 mt-4">{lang === 'ar' ? 'حجم الفيديو' : 'Video Width'}</label>
+                                 <label className="block text-xs font-black uppercase text-slate-500 mt-4">{lang === 'ar' ? 'Ø­Ø¬Ù… Ø§Ù„ÙÙŠØ¯ÙŠÙˆ' : 'Video Width'}</label>
                                  <select value={section.settings?.width || 'full'} onChange={(e) => handleUpdateCustomSection(section.id, 'settings', {...section.settings, width: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg text-sm">
                                     <option value="full">100%</option>
                                     <option value="boxed">Boxed</option>
@@ -924,9 +970,9 @@ export default function GZeedBuilder() {
 
                            {section.type === 'slider' && (
                               <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
-                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'روابط الصور (مفصولة بفاصلة)' : 'Image URLs (comma separated)'}</label>
+                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'Ø±ÙˆØ§Ø¨Ø· Ø§Ù„ØµÙˆØ± (Ù…ÙØµÙˆÙ„Ø© Ø¨ÙØ§ØµÙ„Ø©)' : 'Image URLs (comma separated)'}</label>
                                  <textarea rows={3} value={section.content} onChange={(e) => handleUpdateCustomSection(section.id, 'content', e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white" placeholder="https://..., https://..." />
-                                 <label className="block text-xs font-black uppercase text-slate-500 mt-4">{lang === 'ar' ? 'ارتفاع السلايدر' : 'Slider Height'}</label>
+                                 <label className="block text-xs font-black uppercase text-slate-500 mt-4">{lang === 'ar' ? 'Ø§Ø±ØªÙØ§Ø¹ Ø§Ù„Ø³Ù„Ø§ÙŠØ¯Ø±' : 'Slider Height'}</label>
                                  <input type="range" min="200" max="800" step="50" value={section.settings?.height || 400} onChange={(e) => handleUpdateCustomSection(section.id, 'settings', {...section.settings, height: parseInt(e.target.value)})} className="w-full" />
                                  <div className="text-right text-xs text-slate-500">{section.settings?.height || 400}px</div>
                               </div>
@@ -934,13 +980,13 @@ export default function GZeedBuilder() {
 
                            {section.type === 'html' && (
                               <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
-                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'كود HTML' : 'HTML Code'}</label>
+                                 <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'ÙƒÙˆØ¯ HTML' : 'HTML Code'}</label>
                                  <textarea rows={8} value={section.content} onChange={(e) => handleUpdateCustomSection(section.id, 'content', e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-900 text-green-400 font-mono" placeholder="<div>...</div>" />
                               </div>
                            )}
                            
                            <button onClick={(e) => handleRemoveCustomSection(section.id, e)} className="w-full p-3 mt-4 bg-red-50 text-red-500 font-bold rounded-xl hover:bg-red-100 transition-colors">
-                              {lang === 'ar' ? 'حذف القسم' : 'Delete Section'}
+                              {lang === 'ar' ? 'Ø­Ø°Ù Ø§Ù„Ù‚Ø³Ù…' : 'Delete Section'}
                            </button>
                         </div>
                      );
@@ -952,7 +998,7 @@ export default function GZeedBuilder() {
             {activeSidebarTab === 'settings' && (
                <div className="space-y-6 animate-fade-in">
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'اسم المتجر' : 'Store Name'}</label>
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ø§Ø³Ù… Ø§Ù„Ù…ØªØ¬Ø±' : 'Store Name'}</label>
                      <input
                        type="text"
                        defaultValue={localStorage.getItem('gzeed_store_name') || ''}
@@ -961,11 +1007,11 @@ export default function GZeedBuilder() {
                          updateConfigInIframe({ storeName: e.target.value });
                        }}
                        className="w-full p-3 border border-slate-200 rounded-lg text-sm"
-                       placeholder={lang === 'ar' ? 'اسم متجرك' : 'Mon Magasin'}
+                       placeholder={lang === 'ar' ? 'Ø§Ø³Ù… Ù…ØªØ¬Ø±Ùƒ' : 'Mon Magasin'}
                      />
                   </div>
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'النطاق (Domain)' : 'Store Domain'}</label>
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ø§Ù„Ù†Ø·Ø§Ù‚ (Domain)' : 'Store Domain'}</label>
                      <input
                        type="text"
                        defaultValue={localStorage.getItem('gzeed_domain_name') || ''}
@@ -973,42 +1019,42 @@ export default function GZeedBuilder() {
                        className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-100 text-slate-500 cursor-not-allowed"
                        placeholder="yourstore.gzeed.com"
                      />
-                     <p className="text-[10px] text-slate-400 mt-1">{lang === 'ar' ? 'يمكن تغيير النطاق من لوحة التحكم ← الإعدادات' : 'Modifiable depuis le Tableau de bord → Paramètres'}</p>
+                     <p className="text-[10px] text-slate-400 mt-1">{lang === 'ar' ? 'ÙŠÙ…ÙƒÙ† ØªØºÙŠÙŠØ± Ø§Ù„Ù†Ø·Ø§Ù‚ Ù…Ù† Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… â† Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª' : 'Modifiable depuis le Tableau de bord â†’ ParamÃ¨tres'}</p>
                   </div>
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'لغة المتجر' : 'Store Language'}</label>
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ù„ØºØ© Ø§Ù„Ù…ØªØ¬Ø±' : 'Store Language'}</label>
                      <select value={storeLang} onChange={(e) => {
                        setStoreLang(e.target.value);
                        updateConfigInIframe({ storeLang: e.target.value });
                      }} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
-                       <option value="fr">{lang === 'ar' ? 'الفرنسية' : 'Français'}</option>
-                       <option value="ar">{lang === 'ar' ? 'العربية' : 'Arabe'}</option>
-                       <option value="en">{lang === 'ar' ? 'الإنجليزية' : 'English'}</option>
+                       <option value="fr">{lang === 'ar' ? 'Ø§Ù„ÙØ±Ù†Ø³ÙŠØ©' : 'FranÃ§ais'}</option>
+                       <option value="ar">{lang === 'ar' ? 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©' : 'Arabe'}</option>
+                       <option value="en">{lang === 'ar' ? 'Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©' : 'English'}</option>
                      </select>
                   </div>
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'العملة' : 'Devise'}</label>
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ø§Ù„Ø¹Ù…Ù„Ø©' : 'Devise'}</label>
                      <select value={storeCurrency} onChange={(e) => {
                        setStoreCurrency(e.target.value);
                        updateConfigInIframe({ storeCurrency: e.target.value });
                      }} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
-                       <option value="MAD">MAD (درهم مغربي)</option>
+                       <option value="MAD">MAD (Ø¯Ø±Ù‡Ù… Ù…ØºØ±Ø¨ÙŠ)</option>
                        <option value="USD">USD ($)</option>
-                       <option value="EUR">EUR (€)</option>
+                       <option value="EUR">EUR (â‚¬)</option>
                      </select>
                   </div>
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'الخط' : 'Police'}</label>
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ø§Ù„Ø®Ø·' : 'Police'}</label>
                      <select value={activeFont} onChange={(e) => handleFontChange(e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
                        <option value="font-sans">Inter / System Sans</option>
                        <option value="font-serif">Playfair / Serif</option>
                      </select>
                   </div>
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'حالة المتجر' : 'Statut'}</label>
+                     <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ø­Ø§Ù„Ø© Ø§Ù„Ù…ØªØ¬Ø±' : 'Statut'}</label>
                      <div className="flex items-center gap-3">
                        <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-                       <span className="text-sm font-bold text-slate-700">{lang === 'ar' ? 'نشط (Live)' : 'En ligne'}</span>
+                       <span className="text-sm font-bold text-slate-700">{lang === 'ar' ? 'Ù†Ø´Ø· (Live)' : 'En ligne'}</span>
                      </div>
                   </div>
                   <button
@@ -1016,7 +1062,7 @@ export default function GZeedBuilder() {
                     className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    {lang === 'ar' ? 'العودة للوحة التحكم' : 'Retour au Dashboard'}
+                    {lang === 'ar' ? 'Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…' : 'Retour au Dashboard'}
                   </button>
                </div>
              )}
@@ -1026,11 +1072,11 @@ export default function GZeedBuilder() {
                  <div className="p-5 bg-slate-50 rounded-xl border border-slate-100 text-slate-500 shadow-sm relative overflow-hidden">
                     <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl pointer-events-none" />
                     <Code className="w-8 h-8 mb-3 text-indigo-500 relative z-10" />
-                    <p className="text-sm font-black text-slate-900 mb-2 relative z-10">{lang === 'ar' ? 'محرر الأكواد المخصصة (GZeed Engine)' : 'Custom Code Editor (GZeed Engine)'}</p>
-                    <p className="text-xs font-medium leading-relaxed relative z-10">{lang === 'ar' ? 'أضف أكواد HTML/CSS/JS خاصة بك ليتم عرضها في المتجر. هاد الميزة كتخليك تصاوب قوالب احترافية بحال لي فـ Shopify (Liquid) و WordPress.' : 'Add custom HTML/CSS/JS to render in your store, similar to Shopify Liquid.'}</p>
+                    <p className="text-sm font-black text-slate-900 mb-2 relative z-10">{lang === 'ar' ? 'Ù…Ø­Ø±Ø± Ø§Ù„Ø£ÙƒÙˆØ§Ø¯ Ø§Ù„Ù…Ø®ØµØµØ© (GZeed Engine)' : 'Custom Code Editor (GZeed Engine)'}</p>
+                    <p className="text-xs font-medium leading-relaxed relative z-10">{lang === 'ar' ? 'Ø£Ø¶Ù Ø£ÙƒÙˆØ§Ø¯ HTML/CSS/JS Ø®Ø§ØµØ© Ø¨Ùƒ Ù„ÙŠØªÙ… Ø¹Ø±Ø¶Ù‡Ø§ ÙÙŠ Ø§Ù„Ù…ØªØ¬Ø±. Ù‡Ø§Ø¯ Ø§Ù„Ù…ÙŠØ²Ø© ÙƒØªØ®Ù„ÙŠÙƒ ØªØµØ§ÙˆØ¨ Ù‚ÙˆØ§Ù„Ø¨ Ø§Ø­ØªØ±Ø§ÙÙŠØ© Ø¨Ø­Ø§Ù„ Ù„ÙŠ ÙÙ€ Shopify (Liquid) Ùˆ WordPress.' : 'Add custom HTML/CSS/JS to render in your store, similar to Shopify Liquid.'}</p>
                  </div>
                  <div className="flex flex-col gap-3">
-                    <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'أكوادك المخصصة' : 'Your Custom Code'}</label>
+                    <label className="block text-xs font-black uppercase text-slate-500">{lang === 'ar' ? 'Ø£ÙƒÙˆØ§Ø¯Ùƒ Ø§Ù„Ù…Ø®ØµØµØ©' : 'Your Custom Code'}</label>
                     <div className="relative">
                        <textarea 
                          value={customCode}
@@ -1049,7 +1095,7 @@ export default function GZeedBuilder() {
                       className="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-black text-sm shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-colors flex items-center justify-center gap-2 hover:scale-[1.02]"
                     >
                       <Play className="w-4 h-4" />
-                      {lang === 'ar' ? 'تطبيق الكود على المتجر' : 'Apply Code to Store'}
+                      {lang === 'ar' ? 'ØªØ·Ø¨ÙŠÙ‚ Ø§Ù„ÙƒÙˆØ¯ Ø¹Ù„Ù‰ Ø§Ù„Ù…ØªØ¬Ø±' : 'Apply Code to Store'}
                     </button>
                  </div>
               </div>
@@ -1102,16 +1148,16 @@ export default function GZeedBuilder() {
          <div className="fixed inset-0 z-[9999] bg-slate-900/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => setSlideUnsplashPickerIdx(null)}>
             <div className="bg-white w-full sm:max-w-3xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh' }}>
                <div className="flex items-center justify-between p-4 border-b border-slate-100">
-                  <h3 className="font-bold text-slate-800">{lang === 'ar' ? 'بحث في Unsplash' : 'Search Unsplash'}</h3>
+                  <h3 className="font-bold text-slate-800">{lang === 'ar' ? 'Ø¨Ø­Ø« ÙÙŠ Unsplash' : 'Search Unsplash'}</h3>
                   <button onClick={() => setSlideUnsplashPickerIdx(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-500"><X className="w-5 h-5"/></button>
                </div>
                
                <div className="p-4 bg-slate-50">
                   <form onSubmit={(e) => { e.preventDefault(); searchUnsplashPhotos(unsplashSearchQuery); }} className="relative">
                      <Search className={`absolute w-5 h-5 text-slate-400 top-3 ${lang === 'ar' ? 'right-3' : 'left-3'}`} />
-                     <input type="text" value={unsplashSearchQuery} onChange={(e) => setUnsplashSearchQuery(e.target.value)} placeholder={lang === 'ar' ? 'ابحث عن صور (مثال: أزياء، عطور...)' : 'Search photos (e.g., fashion, perfume...)'} className={`w-full bg-white border border-slate-200 rounded-xl py-3 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${lang === 'ar' ? 'pr-10 pl-4' : 'pl-10 pr-4'}`} />
+                     <input type="text" value={unsplashSearchQuery} onChange={(e) => setUnsplashSearchQuery(e.target.value)} placeholder={lang === 'ar' ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† ØµÙˆØ± (Ù…Ø«Ø§Ù„: Ø£Ø²ÙŠØ§Ø¡ØŒ Ø¹Ø·ÙˆØ±...)' : 'Search photos (e.g., fashion, perfume...)'} className={`w-full bg-white border border-slate-200 rounded-xl py-3 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${lang === 'ar' ? 'pr-10 pl-4' : 'pl-10 pr-4'}`} />
                      <button type="submit" disabled={isSearchingUnsplash || !unsplashSearchQuery.trim()} className={`absolute top-2 ${lang === 'ar' ? 'left-2' : 'right-2'} bg-slate-900 text-white px-4 py-1.5 rounded-lg text-sm font-bold disabled:opacity-50 hover:bg-slate-800`}>
-                       {isSearchingUnsplash ? '...' : (lang === 'ar' ? 'بحث' : 'Search')}
+                       {isSearchingUnsplash ? '...' : (lang === 'ar' ? 'Ø¨Ø­Ø«' : 'Search')}
                      </button>
                   </form>
                   {unsplashSearchError && <p className="text-red-500 text-xs mt-2 font-medium">{unsplashSearchError}</p>}
@@ -1133,7 +1179,7 @@ export default function GZeedBuilder() {
                   ) : (
                      <div className="h-full flex flex-col items-center justify-center text-slate-400">
                         <Globe className="w-12 h-12 mb-3 text-slate-200" />
-                        <p className="font-medium text-sm">{lang === 'ar' ? 'ابحث عن صور عالية الجودة مجاناً' : 'Search high quality photos for free'}</p>
+                        <p className="font-medium text-sm">{lang === 'ar' ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† ØµÙˆØ± Ø¹Ø§Ù„ÙŠØ© Ø§Ù„Ø¬ÙˆØ¯Ø© Ù…Ø¬Ø§Ù†Ø§Ù‹' : 'Search high quality photos for free'}</p>
                      </div>
                   )}
                </div>
@@ -1143,3 +1189,4 @@ export default function GZeedBuilder() {
     </div>
   );
 }
+

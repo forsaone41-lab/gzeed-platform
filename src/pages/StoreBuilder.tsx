@@ -656,7 +656,8 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
   const [menuActiveColor, setMenuActiveColor] = useState(config.menuActiveColor || '');
   const [menuStyle, setMenuStyle] = useState<'underline' | 'pill' | 'bold'>(config.menuStyle || 'underline');
   const [headerPosition, setHeaderPosition] = useState<'top' | 'bottom'>(config.headerPosition || 'top');
-  const [headerStyle, setHeaderStyle] = useState<'normal' | 'fixed'>(config.headerStyle || 'normal');
+  const [headerStyle, setHeaderStyle] = useState<string>(config.headerStyle || 'standard');
+  const [headerWidth, setHeaderWidth] = useState<string>(config.headerWidth || 'full');
   // The store's plan (Normal/PRO/Premier) is admin-controlled, read from stores.subscription_tier
   // (a real DB column, not the merchant-writable config_json) - see fetchSubscriptionTier below.
   const [subscriptionTier, setSubscriptionTierState] = useState<string>(() => {
@@ -1149,6 +1150,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
               if (conf.headerTextColor) setHeaderTextColor(conf.headerTextColor);
               if (conf.headerPosition) setHeaderPosition(conf.headerPosition);
               if (conf.headerStyle) setHeaderStyle(conf.headerStyle);
+              if (conf.headerWidth) setHeaderWidth(conf.headerWidth);
               if (conf.topBarPosition) setTopBarPosition(conf.topBarPosition);
            }
         } catch (err) {
@@ -1334,11 +1336,13 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'UPDATE_THEME') {
-        const { primaryColor, fontFamily, cardStyle, buttonStyle } = event.data.payload;
+        const { primaryColor, fontFamily, cardStyle, buttonStyle, headerStyle, headerWidth } = event.data.payload;
         if (primaryColor) setPrimaryColor(primaryColor);
         if (fontFamily) setFontFamily(fontFamily);
         if (cardStyle) setCardStyle(cardStyle);
         if (buttonStyle) setButtonStyle(buttonStyle);
+        if (headerStyle) setHeaderStyle(headerStyle);
+        if (headerWidth) setHeaderWidth(headerWidth);
       }
       if (event.data?.type === 'SCROLL_TO_SECTION') {
         const sectionId = event.data.payload;
@@ -2306,18 +2310,38 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
   const StoreHeaderNavbar = ({ variant = 'light', page, setPage, isModal = false, headerMenuAlign: propAlign }: any) => {
     if (hiddenSections.includes('header')) return null;
     const isDark = variant === 'dark';
-    const align = propAlign || headerMenuAlign;
+    let align = propAlign || headerMenuAlign;
+    let forceTopBar = false;
+
+    if (headerStyle === 'banner-center') {
+      align = 'split';
+      forceTopBar = true;
+    } else if (headerStyle === 'banner-left') {
+      align = 'left';
+      forceTopBar = true;
+    } else if (headerStyle === 'floating') {
+      align = 'left';
+    }
+
     const bgStyle = headerBgColor && headerBgColor !== '#ffffff' 
       ? { backgroundColor: headerBgColor, color: headerTextColor || (isDark ? '#ffffff' : '#0f172a') }
       : (isDark ? { backgroundColor: '#111', color: '#f5f5f5' } : { backgroundColor: '#ffffff', color: headerTextColor || '#0f172a' });
 
-    const containerStickyClass = headerSticky 
+    let containerStickyClass = headerSticky 
       ? 'sticky top-0 z-[100] backdrop-blur-xl shadow-sm'
       : 'relative z-30';
 
+    if (headerStyle === 'floating') {
+       containerStickyClass = `fixed top-3 sm:top-5 left-3 right-3 sm:left-0 sm:right-0 ${headerWidth === 'center' ? 'sm:max-w-5xl' : 'sm:max-w-[1400px]'} sm:mx-auto z-[100] rounded-full shadow-lg border border-black/5 backdrop-blur-xl transition-all duration-300 overflow-hidden`;
+    }
+
+    const innerWrapperClass = headerWidth === 'center' ? 'max-w-5xl mx-auto w-full' : 'max-w-[1600px] mx-auto w-full';
+
+    const isPillMenu = menuStyle === 'pill' || headerStyle === 'floating';
+
     const getLinkStyleClass = (isActive: boolean) => {
       const base = "transition-all cursor-pointer ";
-      if (menuStyle === 'pill') {
+      if (isPillMenu) {
         return base + (isActive ? "px-4 py-1.5 rounded-full font-black text-white shadow-sm " : "px-4 py-1.5 rounded-full hover:bg-black/5 ");
       }
       if (menuStyle === 'bold') {
@@ -2328,12 +2352,12 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
     return (
       <header id="store-header" className={`store-header-navbar w-full transition-all duration-300 ${containerStickyClass}`} style={bgStyle}>
-        {showTopBar && topBarText && topBarPosition !== 'bottom' && (
-          <div className="w-full py-2 px-4 text-center text-xs font-bold overflow-hidden shrink-0 border-b border-black/5" style={{ backgroundColor: topBarBgColor, color: topBarTextColor }}>
-            {topBarAnimation === 'marquee' ? (
+        {(forceTopBar || showTopBar) && (topBarText || forceTopBar) && topBarPosition !== 'bottom' && (
+          <div className={`w-full py-2 px-4 text-center text-xs font-bold overflow-hidden shrink-0 border-b border-black/5 ${headerStyle === 'floating' ? 'rounded-t-full hidden' : ''}`} style={forceTopBar ? { backgroundColor: '#064e3b', color: '#ffffff' } : { backgroundColor: topBarBgColor, color: topBarTextColor }}>
+            {topBarAnimation === 'marquee' && !forceTopBar ? (
                <div className="whitespace-nowrap inline-block" style={{ animation: 'beya-topbar-marquee 14s linear infinite' }}>{topBarText}</div>
             ) : (
-               <span>{topBarText}</span>
+               <span>{topBarText || (storeIsAr ? 'شحن مجاني للطلبات فوق 300 درهم' : 'Free shipping over $30')}</span>
             )}
           </div>
         )}
@@ -2347,10 +2371,10 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         )}
 
         {align === 'split' ? (
-           <div className="px-6 py-4 grid grid-cols-2 md:grid-cols-3 items-center border-b border-black/5">
+           <div className={`px-6 py-4 grid grid-cols-2 md:grid-cols-3 items-center ${headerStyle === 'floating' ? '' : 'border-b border-black/5'} ${innerWrapperClass}`}>
               <div className="hidden md:flex items-center gap-6 text-sm justify-start">
                 {storePages.map((p: any) => (
-                   <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: menuStyle === 'pill' ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: menuStyle === 'pill' ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
+                   <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: isPillMenu ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: isPillMenu ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
                 ))}
               </div>
               <div className="flex items-center justify-start md:justify-center gap-4">
@@ -2362,7 +2386,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               </div>
            </div>
         ) : (
-           <div className="px-6 py-4 flex items-center justify-between gap-4 border-b border-black/5">
+           <div className={`px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-4 ${headerStyle === 'floating' ? '' : 'border-b border-black/5'} ${innerWrapperClass}`}>
              <div className="flex items-center gap-4 w-full md:w-auto justify-between">
                 <LogoEditor onClick={() => setPage('home')} className={`text-2xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : ''}`} style={{ color: primaryColor }} />
                 <MobileMenuButton />
@@ -2371,7 +2395,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
              {['center', 'left', 'right'].includes(align) && (
                <div className={`hidden md:flex items-center gap-6 text-sm ${align === 'left' ? 'ml-8 mr-auto' : align === 'right' ? 'ml-auto mr-8' : 'mx-auto'}`}>
                  {storePages.map((p: any) => (
-                    <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: menuStyle === 'pill' ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: menuStyle === 'pill' ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
+                    <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: isPillMenu ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: isPillMenu ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
                  ))}
                </div>
              )}
@@ -2385,7 +2409,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         {align === 'bottom' && (
           <div className={`hidden md:flex justify-center items-center gap-8 py-3 px-6 border-b text-sm font-bold ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-100 bg-slate-50/50'}`}>
             {storePages.map((p: any) => (
-               <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: menuStyle === 'pill' ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: menuStyle === 'pill' ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
+               <span key={p.id} onClick={() => setPage(p.id)} className={getLinkStyleClass(page === p.id)} style={page === p.id ? (menuActiveColor ? { color: menuActiveColor, borderColor: menuActiveColor, backgroundColor: isPillMenu ? (menuActiveColor || primaryColor) : undefined } : { borderColor: primaryColor, backgroundColor: isPillMenu ? primaryColor : undefined }) : (menuTextColor ? { color: menuTextColor } : {})}>{tr(p.title || p.label || p.id)}</span>
             ))}
           </div>
         )}
@@ -3560,18 +3584,40 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
       <div className="flex-1 overflow-y-auto pt-6 pb-16 md:pb-0">
         {page === 'home' && (
           <>
-            <div className="px-4">
-               <HeroBackgroundEditor className="rounded-[2rem] flex flex-col items-center justify-center text-center p-8 bg-cover relative overflow-hidden" style={{ backgroundImage: `url(${heroImage})`, height: `${isModal ? heroHeight + 50 : heroHeight - 150}px`, backgroundPosition: `${heroImagePosX}% ${heroImagePosY}%` }}>
-                  <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]"></div>
-                  <div className="relative z-10 flex flex-col items-center p-8 bg-white/90 rounded-[2rem] shadow-xl border-4 border-white">
-                     <EditableText as="h1" text={heroTitle || (storeLang === 'ar' ? 'مرح وحيوية!' : storeLang === 'en' ? 'Fun & Fresh!' : 'Fun & Frais !')} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className={`${isModal ? 'text-6xl' : 'text-4xl'} font-black tracking-tight mb-2`} style={{ color: primaryColor }} styleKey="heroTitle" />
-                     <EditableText as="p" text={heroSubtitle || (storeLang === 'ar' ? 'ملونة ومريحة وصُنعت للمرح.' : storeLang === 'en' ? 'Colorful, comfortable, and made for play.' : 'Coloré, confortable, et fait pour jouer.')} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-slate-600 font-medium mb-6 max-w-sm" styleKey="heroSubtitle" />
-                     <button onClick={() => setPage('collections')} className="px-8 py-4 text-white font-black tracking-wide text-sm hover:scale-110 transition-transform rounded-full shadow-lg" style={{ backgroundColor: primaryColor }}>{storeLang === 'ar' ? 'تسوق الآن 🎈' : storeLang === 'en' ? "LET'S SHOP 🎈" : 'ON Y VA 🎈'}</button>
-                  </div>
-               </HeroBackgroundEditor>
-            </div>
+             <div className="px-4 relative group">
+                {(() => {
+                  const slides = heroSlides?.length > 0 ? heroSlides : [{ image: heroImage, title: heroTitle, subtitle: heroSubtitle }];
+                  const curIdx = Math.max(0, Math.min(activeHeroSlide, slides.length - 1));
+                  const curSlide = slides[curIdx] || slides[0];
+                  return (
+                    <HeroBackgroundEditor className="rounded-[2rem] flex flex-col items-center justify-center text-center p-8 bg-cover relative overflow-hidden transition-all duration-500" style={{ backgroundImage: `url(${curSlide.image || heroImage})`, height: `${isModal ? heroHeight + 50 : heroHeight - 150}px`, backgroundPosition: `${heroImagePosX}% ${heroImagePosY}%` }}>
+                      <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]"></div>
+                      <div className="relative z-10 flex flex-col items-center p-8 bg-white/90 rounded-[2rem] shadow-xl border-4 border-white animate-fade-in">
+                         <EditableText as="h1" text={curSlide.title || heroTitle || (storeLang === 'ar' ? 'اكتشف مجموعتنا' : storeLang === 'en' ? 'Discover our collection' : 'Découvrez notre collection')} onTextChange={setHeroTitle} isLiveStore={isLiveStore} className={`${isModal ? 'text-6xl' : 'text-4xl'} font-black tracking-tight mb-2`} style={{ color: primaryColor }} styleKey="heroTitle" />
+                         <EditableText as="p" text={curSlide.subtitle || heroSubtitle || (storeLang === 'ar' ? 'أفضل المنتجات بأفضل الأسعار.' : storeLang === 'en' ? 'Best products at the best prices.' : 'Les meilleurs produits aux meilleurs prix.')} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} className="text-slate-600 font-medium mb-6 max-w-sm" styleKey="heroSubtitle" />
+                         <button onClick={() => setPage('collections')} className="px-8 py-4 text-white font-black tracking-wide text-sm hover:scale-110 transition-transform rounded-full shadow-lg" style={{ backgroundColor: primaryColor }}>{storeLang === 'ar' ? 'تسوق الآن' : storeLang === 'en' ? 'Shop Now' : 'Acheter'}</button>
+                      </div>
+                      
+                      {slides.length > 1 && (
+                        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20">
+                          {slides.map((_: any, i: number) => (
+                            <button key={i} onClick={(e) => { e.stopPropagation(); setActiveHeroSlide(i); }} className="rounded-full transition-all duration-300 shadow-sm" style={{ width: curIdx === i ? '24px' : '8px', height: '8px', backgroundColor: curIdx === i ? primaryColor : 'white' }} />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {slides.length > 1 && (
+                        <>
+                          <button onClick={(e) => { e.stopPropagation(); setActiveHeroSlide(prev => prev > 0 ? prev - 1 : slides.length - 1); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 shadow-md text-slate-800 flex items-center justify-center hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100 z-20"><ChevronLeft className="w-5 h-5" /></button>
+                          <button onClick={(e) => { e.stopPropagation(); setActiveHeroSlide(prev => prev < slides.length - 1 ? prev + 1 : 0); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 shadow-md text-slate-800 flex items-center justify-center hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100 z-20"><ChevronRight className="w-5 h-5" /></button>
+                        </>
+                      )}
+                    </HeroBackgroundEditor>
+                  );
+                })()}
+             </div>
             <div className={`${isModal ? 'p-16' : 'p-6'} mx-auto w-full`} style={{ maxWidth: `${siteMaxWidth}px` }}>
-               <h3 className="text-2xl md:text-3xl font-black text-center mb-6 md:mb-10 text-slate-800">{storeLang === 'ar' ? 'وصل حديثاً ✨' : storeLang === 'en' ? 'New Arrivals ✨' : 'Nouveautés ✨'}</h3>
+               <h3 className="text-2xl md:text-3xl font-black text-center mb-6 md:mb-10 text-slate-800">{storeLang === 'ar' ? 'وصل حديثاً' : storeLang === 'en' ? 'New Arrivals' : 'Nouveautés'}</h3>
                <div className="md:hidden grid grid-cols-2 gap-3">
                   {storeProducts.map((p: any, idx: number) => (
                      <MobileProductCard key={p.id} p={p} idx={idx} />
@@ -4163,23 +4209,41 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
             )}
 
             {!hiddenSections.includes('hero') && (
-              <div className="my-20 relative h-[500px] overflow-hidden">
-                <img src={heroImage} className="absolute inset-0 w-full h-full object-cover" alt="" />
-                <div className="absolute inset-0 bg-black/60 flex items-center">
-                  <div className="mx-auto px-6 w-full md:w-1/2" style={{ maxWidth: `${siteMaxWidth}px` }}>
-                    <h2 className="text-3xl md:text-4xl font-serif text-white mb-6 uppercase tracking-wider">
-                      {storeIsAr ? 'صُمم للأداء والأناقة' : 'Designed For Performance & Style'}
-                    </h2>
-                    <p className="text-gray-300 text-sm leading-relaxed mb-10 max-w-md">
-                      {storeIsAr
-                        ? 'منتجاتنا مصممة لتتحمل حرارة العمل مع الحفاظ على مظهر احترافي أنيق.'
-                        : 'Nos pièces sont conçues pour résister à la chaleur tout en gardant une allure professionnelle et élégante.'}
-                    </p>
-                    <button onClick={() => { setActiveCategory('All'); }} className="bg-white text-black px-8 py-3.5 text-xs font-bold tracking-widest uppercase hover:bg-gray-200 transition-colors">
-                      {storeIsAr ? 'اكتشف المجموعة' : 'Explore Collection'}
-                    </button>
-                  </div>
-                </div>
+              <div className="my-20 relative h-[500px] overflow-hidden group">
+                {(() => {
+                  const slides = heroSlides?.length > 0 ? heroSlides : [{ image: heroImage, title: heroTitle, subtitle: heroSubtitle }];
+                  const curIdx = Math.max(0, Math.min(activeHeroSlide, slides.length - 1));
+                  const curSlide = slides[curIdx] || slides[0];
+                  return (
+                    <>
+                      <img src={curSlide.image || heroImage} className="absolute inset-0 w-full h-full object-cover transition-all duration-700" alt="" />
+                      <div className="absolute inset-0 bg-black/60 flex items-center">
+                        <div className="mx-auto px-6 w-full md:w-1/2 relative z-10" style={{ maxWidth: `${siteMaxWidth}px` }}>
+                          <EditableText as="h2" text={curSlide.title || heroTitle || (storeIsAr ? 'صُمم للأداء والأناقة' : 'Designed For Performance & Style')} onTextChange={setHeroTitle} isLiveStore={isLiveStore} styleKey="heroTitle" className="text-3xl md:text-4xl font-serif text-white mb-6 uppercase tracking-wider" />
+                          <EditableText as="p" text={curSlide.subtitle || heroSubtitle || (storeIsAr ? 'منتجاتنا مصممة لتتحمل حرارة العمل مع الحفاظ على مظهر احترافي أنيق.' : 'Nos pièces sont conçues pour résister à la chaleur tout en gardant une allure professionnelle et élégante.')} onTextChange={setHeroSubtitle} isLiveStore={isLiveStore} styleKey="heroSubtitle" className="text-gray-300 text-sm leading-relaxed mb-10 max-w-md" />
+                          <button onClick={() => { setActiveCategory('All'); }} className="bg-white text-black px-8 py-3.5 text-xs font-bold tracking-widest uppercase hover:bg-gray-200 transition-colors">
+                            {storeIsAr ? 'اكتشف المجموعة' : 'Explore Collection'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {slides.length > 1 && (
+                        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-20">
+                          {slides.map((_: any, i: number) => (
+                            <button key={i} onClick={(e) => { e.stopPropagation(); setActiveHeroSlide(i); }} className="rounded-full transition-all border border-white" style={{ width: curIdx === i ? '32px' : '8px', height: '8px', backgroundColor: curIdx === i ? 'white' : 'transparent' }} />
+                          ))}
+                        </div>
+                      )}
+
+                      {slides.length > 1 && (
+                        <>
+                          <button onClick={(e) => { e.stopPropagation(); setActiveHeroSlide(prev => prev > 0 ? prev - 1 : slides.length - 1); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 z-20 border border-white/30 backdrop-blur-sm"><ChevronLeft className="w-6 h-6" /></button>
+                          <button onClick={(e) => { e.stopPropagation(); setActiveHeroSlide(prev => prev < slides.length - 1 ? prev + 1 : 0); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 z-20 border border-white/30 backdrop-blur-sm"><ChevronRight className="w-6 h-6" /></button>
+                        </>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             )}
 
