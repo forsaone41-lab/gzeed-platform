@@ -407,9 +407,9 @@ export default function GZeedBuilder() {
           {/* Tabs */}
           <div className="flex items-center p-2 border-b border-slate-100">
             {[
-              { id: 'theme', icon: Palette, label: lang === 'ar' ? 'Ø§Ù„Ù…Ø¸Ù‡Ø±' : lang === 'en' ? 'Theme' : 'ThÃ¨me' },
+              { id: 'theme', icon: Palette, label: lang === 'ar' ? 'Ø§Ù„Ù…Ø¸Ù‡Ø±' : lang === 'en' ? 'Theme' : 'Thème' },
               { id: 'sections', icon: Layers, label: lang === 'ar' ? 'Ø§Ù„Ø£Ù‚Ø³Ø§Ù…' : lang === 'en' ? 'Sections' : 'Sections' },
-              { id: 'settings', icon: Settings, label: lang === 'ar' ? 'Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª' : lang === 'en' ? 'Settings' : 'ParamÃ¨tres' },
+              { id: 'settings', icon: Settings, label: lang === 'ar' ? 'Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª' : lang === 'en' ? 'Settings' : 'Paramètres' },
               { id: 'code', icon: Code, label: lang === 'ar' ? 'ÙƒÙˆØ¯ (Ø¬Ø¯ÙŠØ¯)' : lang === 'en' ? 'Code' : 'Code' }
             ].map(tab => {
               const Icon = tab.icon;
@@ -431,7 +431,7 @@ export default function GZeedBuilder() {
             {activeSidebarTab === 'theme' && (
               <div className="space-y-8 animate-fade-in">
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ù‚Ø§Ù„Ø¨ Ø§Ù„Ù…ØªØ¬Ø±' : lang === 'en' ? 'Store Theme' : 'ThÃ¨me de la boutique'}</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ù‚Ø§Ù„Ø¨ Ø§Ù„Ù…ØªØ¬Ø±' : lang === 'en' ? 'Store Theme' : 'Thème de la boutique'}</h3>
                   <div className="relative">
                     <select 
                       value={activeThemeId}
@@ -1034,7 +1034,7 @@ export default function GZeedBuilder() {
                        className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-slate-100 text-slate-500 cursor-not-allowed"
                        placeholder="yourstore.gzeed.com"
                      />
-                     <p className="text-[10px] text-slate-400 mt-1">{lang === 'ar' ? 'ÙŠÙ…ÙƒÙ† ØªØºÙŠÙŠØ± Ø§Ù„Ù†Ø·Ø§Ù‚ Ù…Ù† Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… â† Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª' : 'Modifiable depuis le Tableau de bord â†’ ParamÃ¨tres'}</p>
+                     <p className="text-[10px] text-slate-400 mt-1">{lang === 'ar' ? 'ÙŠÙ…ÙƒÙ† ØªØºÙŠÙŠØ± Ø§Ù„Ù†Ø·Ø§Ù‚ Ù…Ù† Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… â† Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª' : 'Modifiable depuis le Tableau de bord â†’ Paramètres'}</p>
                   </div>
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                      <label className="block text-xs font-black uppercase text-slate-500 mb-2">{lang === 'ar' ? 'Ù„ØºØ© Ø§Ù„Ù…ØªØ¬Ø±' : 'Store Language'}</label>
@@ -1042,7 +1042,7 @@ export default function GZeedBuilder() {
                        setStoreLang(e.target.value);
                        updateConfigInIframe({ storeLang: e.target.value });
                      }} className="w-full p-3 border border-slate-200 rounded-lg text-sm bg-white">
-                       <option value="fr">{lang === 'ar' ? 'Ø§Ù„ÙØ±Ù†Ø³ÙŠØ©' : 'FranÃ§ais'}</option>
+                       <option value="fr">{lang === 'ar' ? 'Ø§Ù„ÙØ±Ù†Ø³ÙŠØ©' : 'Français'}</option>
                        <option value="ar">{lang === 'ar' ? 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©' : 'Arabe'}</option>
                        <option value="en">{lang === 'ar' ? 'Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©' : 'English'}</option>
                      </select>

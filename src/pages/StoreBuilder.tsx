@@ -367,7 +367,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
                  phone: clientPhone,
                  city: tissuCity || '',
                  address: tissuAddress || '',
-                 amount: `${price.toFixed(2)} MAD`,
+                 amount: `${price.toFixed(2)} ${storeCurrency}`,
                  status: cmd.statut || 'Nouveau',
                  statusColor,
                  date: cmd.dateCommande ? new Date(cmd.dateCommande).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR'),
@@ -378,7 +378,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
                    name: cmd.modele,
                    photo: realPhoto,
                    qty: qtyMatch,
-                   price: `${price.toFixed(2)} MAD`,
+                   price: `${price.toFixed(2)} ${storeCurrency}`,
                    options: `Couleurs: ${cmd.couleurs} - Tailles: ${cmd.tailles}`
                  }],
                  deleted: cmd.statut === 'Annulée'
@@ -643,8 +643,8 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
               {Array.from({ length: 5 }).map((_, i) => <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />)}
            </div>
            <div className="flex items-center gap-2">
-              <span className="text-sm font-black text-slate-900">{p.price} MAD</span>
-              <span className="text-[10px] text-slate-400 line-through">{Math.round(parseFloat(p.price) * 1.2)} MAD</span>
+              <span className="text-sm font-black text-slate-900">{p.price} {storeCurrency}</span>
+              <span className="text-[10px] text-slate-400 line-through">{Math.round(parseFloat(p.price) * 1.2)} {storeCurrency}</span>
            </div>
         </div>
      </div>
@@ -1441,7 +1441,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
              name: product.name,
              photo: product.photo || product.image || getCoverImage(product) || '',
              qty: qty || 1,
-             price: parseFloat(product.price).toFixed(2) + ' MAD',
+             price: parseFloat(product.price).toFixed(2) + ' ${storeCurrency}',
              options: `Couleurs: ${orderColor} - Tailles: ${orderSize}`
         }] : [],
         amount: product ? (parseFloat(product.price) * (qty || 1)).toFixed(2) + ' MAD' : "0.00 MAD",
@@ -2496,7 +2496,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
              </button>
           </div>
           <h4 className="font-bold text-xs text-slate-800 truncate">{p.name}</h4>
-          <p className="text-xs font-black mt-0.5" style={{ color: primaryColor }}>{p.price} MAD</p>
+          <p className="text-xs font-black mt-0.5" style={{ color: primaryColor }}>{p.price} {storeCurrency}</p>
        </div>
        )
     );
@@ -2630,7 +2630,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                    </div>
                                 </div>
                                 <h4 className="font-bold text-sm">{p.name}</h4>
-                                <p className="text-slate-500 text-sm mt-1">{p.price} MAD</p>
+                                <p className="text-slate-500 text-sm mt-1">{p.price} {storeCurrency}</p>
                              </div>
                           ))}
                        </div>
@@ -2777,7 +2777,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                            </div>
                         </div>
                         <h4 className="font-bold text-sm">{p.name}</h4>
-                        <p className="text-slate-500 text-sm mt-1">{p.price} MAD</p>
+                        <p className="text-slate-500 text-sm mt-1">{p.price} {storeCurrency}</p>
                      </div>
                      )
                   ))}
@@ -2799,7 +2799,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                     </div>
                     <div className="pdp-details-col flex-1 flex flex-col justify-center">
                        <h2 className="text-4xl font-black mb-4">{p.name}</h2>
-                       <p className="text-2xl font-bold mb-8" style={{ color: primaryColor }}>{p.price} MAD</p>
+                       <p className="text-2xl font-bold mb-8" style={{ color: primaryColor }}>{p.price} {storeCurrency}</p>
                        <ReadMoreDescription text={p.description || 'This is a premium quality product. Lorem ipsum dolor sit amet, consectetur adipiscing elit.'} className="text-slate-500 mb-8 leading-relaxed" isAr={storeIsAr} />
                        
                        {/* PRO SELECTORS */}
@@ -3155,7 +3155,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                            </div>
                         </div>
                         <h4 className="font-medium text-lg mb-2">{p.name}</h4>
-                        <p className="text-gray-500">{p.price} MAD</p>
+                        <p className="text-gray-500">{p.price} {storeCurrency}</p>
                      </div>
                      )
                   ))}
@@ -3198,7 +3198,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                            </div>
                         </div>
                         <h4 className="font-medium text-lg mb-2">{p.name}</h4>
-                        <p className="text-gray-500">{p.price} MAD</p>
+                        <p className="text-gray-500">{p.price} {storeCurrency}</p>
                      </div>
                      )
                   ))}
@@ -3220,7 +3220,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                     </div>
                     <div className="pdp-details-col flex-1 flex flex-col justify-center">
                        <h2 className="text-5xl font-light mb-4">{p.name}</h2>
-                       <p className="text-2xl font-light text-gray-500 mb-8">{p.price} MAD</p>
+                       <p className="text-2xl font-light text-gray-500 mb-8">{p.price} {storeCurrency}</p>
                        <ReadMoreDescription text={p.description || 'Experience true elegance with this meticulously designed piece. Perfect for every occasion.'} className="text-gray-500 mb-12 leading-relaxed font-light" isAr={storeIsAr} />
                        
                        {/* PRO SELECTORS */}
@@ -3398,7 +3398,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                      <div key={p.id} className="group cursor-pointer relative aspect-square border p-4 flex flex-col items-center justify-center" style={{ backgroundColor: cardBg, borderColor }} onClick={() => navigateToProduct(p.id)}>
                         {getCoverImage(p) ? <img src={getCoverImage(p) as string} className="w-full h-full object-cover mb-8" alt={p.name} /> : <ImageIcon className="w-16 h-16 opacity-10 mb-8" />}
                         <h4 className="font-serif text-2xl mb-2 group-hover:text-white transition-colors" style={{ color: primaryColor }}>{p.name}</h4>
-                        <p className="text-white/50 tracking-widest text-sm mb-6">{p.price} MAD</p>
+                        <p className="text-white/50 tracking-widest text-sm mb-6">{p.price} {storeCurrency}</p>
                         <button onClick={(e) => handleAddToCart(e, typeof p !== 'undefined' ? p : (typeof product !== 'undefined' ? product : null), typeof quantity !== 'undefined' ? quantity : 1, typeof selectedColor !== 'undefined' ? selectedColor : undefined, typeof selectedSize !== 'undefined' ? selectedSize : undefined)} className="opacity-0 group-hover:opacity-100 transition-opacity px-6 py-2 bg-white text-black text-xs tracking-widest">{tr('ADD TO CART')}</button>
                      </div>
                   ))}
@@ -3430,7 +3430,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                      <div key={p.id} className="group cursor-pointer relative aspect-square border p-4 flex flex-col items-center justify-center" style={{ backgroundColor: cardBg, borderColor }} onClick={() => navigateToProduct(p.id)}>
                         {getCoverImage(p) ? <img src={getCoverImage(p) as string} className="w-full h-full object-cover mb-8" alt={p.name} /> : <ImageIcon className="w-16 h-16 opacity-10 mb-8" />}
                         <h4 className="font-serif text-2xl mb-2 group-hover:text-white transition-colors" style={{ color: primaryColor }}>{p.name}</h4>
-                        <p className="text-white/50 tracking-widest text-sm mb-6">{p.price} MAD</p>
+                        <p className="text-white/50 tracking-widest text-sm mb-6">{p.price} {storeCurrency}</p>
                         <button onClick={(e) => handleAddToCart(e, typeof p !== 'undefined' ? p : (typeof product !== 'undefined' ? product : null), typeof quantity !== 'undefined' ? quantity : 1, typeof selectedColor !== 'undefined' ? selectedColor : undefined, typeof selectedSize !== 'undefined' ? selectedSize : undefined)} className="opacity-0 group-hover:opacity-100 transition-opacity px-6 py-2 bg-white text-black text-xs tracking-widest">{tr('ADD TO CART')}</button>
                      </div>
                   ))}
@@ -3452,7 +3452,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                     </div>
                     <div className="pdp-details-col flex-1 flex flex-col justify-center">
                        <h2 className="text-5xl font-serif mb-4 text-white">{p.name}</h2>
-                       <p className="text-2xl tracking-widest mb-8" style={{ color: primaryColor }}>{p.price} MAD</p>
+                       <p className="text-2xl tracking-widest mb-8" style={{ color: primaryColor }}>{p.price} {storeCurrency}</p>
                        <div className="w-12 h-px bg-white/20 mb-8"></div>
                        <ReadMoreDescription text={p.description || 'Embrace luxury with this exclusive item. Crafted with precision for the modern elegant individual.'} className="text-[#888] mb-12 tracking-wide leading-relaxed" isAr={storeIsAr} />
                        
@@ -3616,7 +3616,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
              </button>
           </div>
           <h4 className="font-bold text-xs text-slate-800 truncate px-0.5">{p.name}</h4>
-          <p className="text-xs font-black px-0.5" style={{ color: primaryColor }}>{p.price} MAD</p>
+          <p className="text-xs font-black px-0.5" style={{ color: primaryColor }}>{p.price} {storeCurrency}</p>
        </div>
     );
 
@@ -3681,7 +3681,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                            </div>
                         </div>
                         <h4 className="font-bold text-base text-center text-slate-700">{p.name}</h4>
-                        <p className="text-center font-black mt-1" style={{ color: primaryColor }}>{p.price} MAD</p>
+                        <p className="text-center font-black mt-1" style={{ color: primaryColor }}>{p.price} {storeCurrency}</p>
                      </div>
                      )
                   ))}
@@ -3727,7 +3727,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                            </div>
                         </div>
                         <h4 className="font-bold text-base text-center text-slate-700">{p.name}</h4>
-                        <p className="text-center font-black mt-1" style={{ color: primaryColor }}>{p.price} MAD</p>
+                        <p className="text-center font-black mt-1" style={{ color: primaryColor }}>{p.price} {storeCurrency}</p>
                      </div>
                      )
                   ))}
@@ -3749,7 +3749,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                     </div>
                     <div className="pdp-details-col flex-1 flex flex-col justify-center px-4">
                        <h2 className="text-5xl font-black mb-4 text-slate-800">{p.name}</h2>
-                       <p className="text-3xl font-black mb-8" style={{ color: primaryColor }}>{p.price} MAD</p>
+                       <p className="text-3xl font-black mb-8" style={{ color: primaryColor }}>{p.price} {storeCurrency}</p>
                        <ReadMoreDescription text={p.description || 'Fun, fresh, and perfectly designed for everyday adventures!'} className="text-slate-500 font-medium mb-8 text-lg" isAr={storeIsAr} />
                        
                        {/* PRO SELECTORS */}
@@ -3983,7 +3983,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                         <div className="text-left">
                            <h3 className="text-[13px] font-black uppercase tracking-widest text-[#1a1a1a] mb-1">{p.name}</h3>
                            <p className="text-[11px] text-[#666] mb-2">{p.category}</p>
-                           <p className="text-[13px] font-bold text-[#1a1a1a]">{storeIsAr ? 'ابتداءً من' : 'à partir de'} {p.price} MAD</p>
+                           <p className="text-[13px] font-bold text-[#1a1a1a]">{storeIsAr ? 'ابتداءً من' : 'à partir de'} {p.price} {storeCurrency}</p>
                         </div>
                      </div>
                      )
@@ -4005,7 +4005,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               </div>
               <div className="pdp-details-col w-full md:w-1/2 pt-4">
                  <h2 className="text-3xl font-black uppercase tracking-widest text-[#1a1a1a] mb-2">{product.name}</h2>
-                 <p className="text-xl font-bold text-[#444] mb-8">{product.price} MAD</p>
+                 <p className="text-xl font-bold text-[#444] mb-8">{product.price} {storeCurrency}</p>
                  
                  <div className="space-y-6 mb-8">
                     {product.colors?.filter((c:string)=>c.trim()!=='').length > 0 && (
@@ -4203,7 +4203,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                         <img src={getCoverImage(p)} alt={p.name} className="w-full h-full object-cover object-center mix-blend-darken p-8 group-hover:scale-105 transition-transform duration-700" />
                       </div>
                       <h4 className="font-bold text-[13px] text-[#222] mb-1 font-serif uppercase tracking-wide">{p.name}</h4>
-                      <p className="text-[13px] text-gray-500 mb-6 font-sans">{p.price} MAD</p>
+                      <p className="text-[13px] text-gray-500 mb-6 font-sans">{p.price} {storeCurrency}</p>
                       <button onClick={(e) => handleAddToCart(e, p, 1)} className="w-full border border-gray-300 hover:border-black text-[#222] py-3 text-[10px] font-bold tracking-widest uppercase transition-colors">
                         {storeIsAr ? 'أضف للسلة' : 'Add To Cart'}
                       </button>
@@ -4301,7 +4301,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                         <img src={getCoverImage(p)} alt={p.name} className="w-full h-full object-cover object-center mix-blend-darken p-8 group-hover:scale-105 transition-transform duration-700" />
                       </div>
                       <h4 className="font-bold text-[13px] text-[#222] mb-1 font-serif uppercase tracking-wide">{p.name}</h4>
-                      <p className="text-[13px] text-gray-500 font-sans">{p.price} MAD</p>
+                      <p className="text-[13px] text-gray-500 font-sans">{p.price} {storeCurrency}</p>
                     </div>
                   ))}
                 </div>
@@ -4322,7 +4322,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               </div>
               <div className="w-full md:w-1/2 pt-4">
                  <h2 className="text-3xl font-serif font-black uppercase tracking-widest text-[#111] mb-2">{p.name}</h2>
-                 <p className="text-xl font-bold text-[#444] mb-8">{p.price} MAD</p>
+                 <p className="text-xl font-bold text-[#444] mb-8">{p.price} {storeCurrency}</p>
 
                  <div className="space-y-6 mb-8">
                     {p.colors?.filter((c:string)=>c.trim()!=='').length > 0 && (
@@ -4482,7 +4482,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                 <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                              </div>
                              <h4 className="font-bold text-[12px] text-[#111] mb-2 font-serif uppercase tracking-widest group-hover:text-gray-600 transition-colors">{p.name}</h4>
-                             <p className="text-[13px] text-gray-500 font-sans tracking-wide">{p.price} MAD</p>
+                             <p className="text-[13px] text-gray-500 font-sans tracking-wide">{p.price} {storeCurrency}</p>
                           </div>
                        ))}
                        {filteredProducts.length === 0 && (
@@ -4581,8 +4581,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                            <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1.5">{p.category || 'Clothing'}</p>
                            <h4 className="text-sm font-bold text-slate-800 truncate mb-1.5 group-hover:text-red-500 transition-colors">{p.name}</h4>
                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-black text-slate-900">{p.price} MAD</span>
-                              {p.id === 1 && <span className="text-[11px] text-slate-400 line-through">{(parseFloat(p.price) * 1.2).toFixed(2)} MAD</span>}
+                              <span className="text-sm font-black text-slate-900">{p.price} {storeCurrency}</span>
+                              {p.id === 1 && <span className="text-[11px] text-slate-400 line-through">{(parseFloat(p.price) * 1.2).toFixed(2)} {storeCurrency}</span>}
                            </div>
                         </div>
                      </div>
@@ -4659,7 +4659,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                      <div className="text-left px-1">
                         <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1.5">{p.category || 'Clothing'}</p>
                         <h4 className="text-sm font-bold text-slate-800 truncate mb-1.5 group-hover:text-red-500 transition-colors">{p.name}</h4>
-                        <span className="text-sm font-black text-slate-900">{p.price} MAD</span>
+                        <span className="text-sm font-black text-slate-900">{p.price} {storeCurrency}</span>
                      </div>
                   </div>
                ))}
@@ -4927,7 +4927,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                          </div>
                          <h4 className="text-xs md:text-base font-bold text-slate-800 leading-tight mb-1 line-clamp-2">{p.name}</h4>
                          <div className="flex items-center justify-between">
-                            <span className="text-sm md:text-lg font-black text-emerald-600">{p.price} MAD</span>
+                            <span className="text-sm md:text-lg font-black text-emerald-600">{p.price} {storeCurrency}</span>
                          </div>
                       </div>
                    ))}
@@ -4958,7 +4958,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                           )}
                        </div>
                        <h4 className="text-xs md:text-base font-bold text-slate-800 leading-tight mb-1 line-clamp-2">{p.name}</h4>
-                       <span className="text-sm md:text-lg font-black text-emerald-600">{p.price} MAD</span>
+                       <span className="text-sm md:text-lg font-black text-emerald-600">{p.price} {storeCurrency}</span>
                     </div>
                  ))}
               </div>
@@ -5050,7 +5050,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                  </div>
 
                  <div className="flex items-center justify-between mb-8 md:mb-12">
-                    <span className="text-2xl md:text-4xl font-black text-emerald-600">{product.price} MAD</span>
+                    <span className="text-2xl md:text-4xl font-black text-emerald-600">{product.price} {storeCurrency}</span>
                     <div className="flex items-center border border-slate-200 rounded-full px-2 py-1 md:px-4 md:py-2">
                        <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 md:text-lg">-</button>
                        <span className="text-sm md:text-lg font-bold w-6 md:w-10 text-center">{quantity}</span>
@@ -5209,7 +5209,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                          {p.isOnSale && <div className="absolute top-4 left-4 bg-lime-400 text-slate-900 text-[9px] md:text-xs font-black px-2 md:px-3 py-0.5 md:py-1 rounded-md">{storeIsAr ? 'تخفيض' : 'Promo'}</div>}
                          <img src={getCoverImage(p)} className="w-full h-24 md:h-48 object-contain mt-6 mb-4 drop-shadow-xl" />
                          <div className="text-center">
-                            <span className="text-sm md:text-xl font-black text-slate-800">{p.price} MAD</span>
+                            <span className="text-sm md:text-xl font-black text-slate-800">{p.price} {storeCurrency}</span>
                          </div>
                       </div>
                    ))}
@@ -5254,7 +5254,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                        <img src={getCoverImage(p)} className="w-full h-24 md:h-48 object-contain mb-4 drop-shadow-xl" />
                        <div className="text-center">
                           <p className="text-xs md:text-sm font-bold text-slate-600 truncate mb-1">{p.name}</p>
-                          <span className="text-sm md:text-xl font-black text-slate-800">{p.price} MAD</span>
+                          <span className="text-sm md:text-xl font-black text-slate-800">{p.price} {storeCurrency}</span>
                        </div>
                     </div>
                  ))}
@@ -5297,7 +5297,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                           <div>
                              <p className="text-[10px] md:text-sm font-black tracking-widest uppercase mb-1 md:mb-2 opacity-80">{storeName}</p>
                              <h2 className="text-2xl md:text-6xl font-bold leading-none mb-2 md:mb-4">{product.name}</h2>
-                             <p className="text-lg md:text-3xl font-bold">{product.price} MAD</p>
+                             <p className="text-lg md:text-3xl font-bold">{product.price} {storeCurrency}</p>
                           </div>
                           <button onClick={(e) => { e.stopPropagation(); setPage('collections'); }} className="w-8 h-8 md:w-16 md:h-16 flex items-center justify-center border border-white/30 rounded-full backdrop-blur-md hover:bg-white/20 transition-colors">
                              <Heart className="w-4 h-4 md:w-8 md:h-8 text-white" />
@@ -5316,7 +5316,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                              {p.isOnSale && <div className="absolute top-2 left-2 bg-lime-400 text-slate-900 text-[8px] font-black px-1.5 py-0.5 rounded">{storeIsAr ? 'تخفيض' : 'Promo'}</div>}
                              <img src={getCoverImage(p)} className="w-full h-16 object-contain my-3 drop-shadow-md" />
                              <div className="text-center pb-1">
-                                <span className="text-[11px] font-black text-slate-800">{p.price} MAD</span>
+                                <span className="text-[11px] font-black text-slate-800">{p.price} {storeCurrency}</span>
                              </div>
                           </div>
                        ))}
@@ -5477,7 +5477,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                <div>
                                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{p.category || (storeIsAr ? 'منتج' : 'PRODUIT')}</p>
                                   <h4 className="font-bold text-slate-800 mb-1">{p.name}</h4>
-                                  <p className="font-black text-slate-900">{p.price} MAD</p>
+                                  <p className="font-black text-slate-900">{p.price} {storeCurrency}</p>
                                </div>
                                <button onClick={(e) => { e.stopPropagation(); setPage('collections'); }} className="text-slate-400 hover:text-rose-500 transition-colors"><Heart className="w-5 h-5" /></button>
                             </div>
@@ -5506,7 +5506,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{product.category || (storeIsAr ? 'منتج' : 'PRODUIT')}</p>
                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-4">{product.name}</h1>
                        <div className="flex items-center gap-4 mb-6">
-                          <span className="text-3xl font-black text-slate-900">{product.price} MAD</span>
+                          <span className="text-3xl font-black text-slate-900">{product.price} {storeCurrency}</span>
                        </div>
                        <p className="text-slate-600 mb-8 leading-relaxed">{product.description || (storeIsAr ? 'منتج عالي الجودة مختار بعناية لمتجرنا.' : 'Un produit de qualité, soigneusement sélectionné pour notre boutique.')}</p>
                        <button onClick={() => setPage('checkout')} className="w-full md:w-auto bg-[#3a3f44] text-white px-12 py-4 font-black uppercase tracking-widest text-sm hover:bg-black transition-colors shadow-xl shadow-black/10 flex items-center justify-center gap-2">
@@ -5555,7 +5555,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                        </div>
                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{p.category || (storeIsAr ? 'منتج' : 'PRODUIT')}</p>
                        <h4 className="font-bold text-slate-800 mb-1">{p.name}</h4>
-                       <p className="font-black text-slate-900">{p.price} MAD</p>
+                       <p className="font-black text-slate-900">{p.price} {storeCurrency}</p>
                     </div>
                  ))}
               </div>
@@ -5662,8 +5662,8 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                             <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">{p.category || (storeIsAr ? 'منتج' : 'Simple')}</p>
                             <h4 className="text-sm font-bold text-slate-800 leading-snug mb-1 line-clamp-1">{p.name}</h4>
                             <div className="flex items-center gap-2">
-                               <span className="text-sm font-black text-sky-600">{p.price} MAD</span>
-                               {p.comparePrice && <span className="text-xs text-rose-400 line-through">{p.comparePrice} MAD</span>}
+                               <span className="text-sm font-black text-sky-600">{p.price} {storeCurrency}</span>
+                               {p.comparePrice && <span className="text-xs text-rose-400 line-through">{p.comparePrice} {storeCurrency}</span>}
                             </div>
                          </div>
                       ))}
@@ -5687,7 +5687,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{product.category || (storeIsAr ? 'منتج' : 'PRODUIT')}</p>
                        <h1 className="text-3xl font-black text-slate-900 leading-tight mb-4">{product.name}</h1>
                        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
-                          <span className="text-3xl font-black text-sky-600">{product.price} MAD</span>
+                          <span className="text-3xl font-black text-sky-600">{product.price} {storeCurrency}</span>
                        </div>
                        <p className="text-slate-600 mb-8 leading-relaxed text-sm">{product.description || (storeIsAr ? 'منتج عالي الجودة مختار بعناية لمتجرنا.' : 'Un produit de qualité, soigneusement sélectionné pour notre boutique.')}</p>
                        <button onClick={() => setPage('checkout')} className="w-full md:w-auto bg-emerald-500 text-white px-12 py-4 font-black uppercase tracking-widest text-sm hover:bg-emerald-600 transition-colors shadow-lg rounded-xl flex items-center justify-center gap-2">
@@ -5877,7 +5877,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                           </div>
                           <div className="text-center px-2">
                              <h4 className="font-serif text-lg text-slate-900 mb-1 line-clamp-1">{p.name}</h4>
-                             <p className="text-sm font-bold" style={{ color: primaryColor }}>{p.price} MAD</p>
+                             <p className="text-sm font-bold" style={{ color: primaryColor }}>{p.price} {storeCurrency}</p>
                           </div>
                        </div>
                     ))}
@@ -5901,7 +5901,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                     <div className="w-full pdp-details-col flex flex-col justify-center">
                        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: primaryColor }}>{product.category || (storeIsAr ? 'مستحضرات تجميل' : 'Cosmétiques')}</p>
                        <h1 className={`${pdpTitleSize} font-serif text-slate-900 mb-4`}>{product.name}</h1>
-                       <div className="text-3xl font-light text-slate-900 mb-8">{product.price} MAD</div>
+                       <div className="text-3xl font-light text-slate-900 mb-8">{product.price} {storeCurrency}</div>
                        <p className={`text-slate-600 mb-8 leading-relaxed ${pdpDescSize}`}>{product.description || (storeIsAr ? 'منتج رائع يعتني بجمالك.' : 'Un produit parfait pour votre routine beauté.')}</p>
 
                        <div className="space-y-6 mb-8">
@@ -5993,7 +5993,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                 </div>
                                 <div className="px-2">
                                    <h4 className="font-bold text-slate-900 mb-1 line-clamp-1">{p.name}</h4>
-                                   <p className="text-sm font-medium" style={{ color: primaryColor }}>{p.price} MAD</p>
+                                   <p className="text-sm font-medium" style={{ color: primaryColor }}>{p.price} {storeCurrency}</p>
                                 </div>
                              </div>
                           ))}
@@ -6031,7 +6031,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                           <img src={getCoverImage(p) as string} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                        </div>
                        <h4 className="font-serif text-slate-800 mb-1 text-sm md:text-base line-clamp-1 text-center">{p.name}</h4>
-                       <p className="font-bold text-center text-sm" style={{ color: primaryColor }}>{p.price} MAD</p>
+                       <p className="font-bold text-center text-sm" style={{ color: primaryColor }}>{p.price} {storeCurrency}</p>
                     </div>
                  ))}
               </div>
@@ -6207,7 +6207,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                </div>
                                <div className="flex-1 flex flex-col justify-center">
                                   <h4 className="font-bold text-slate-800 text-sm leading-tight">{item.product.name}</h4>
-                                  <p className="text-sm font-black mt-1" style={{ color: primaryColor }}>{item.product.price} MAD</p>
+                                  <p className="text-sm font-black mt-1" style={{ color: primaryColor }}>{item.product.price} {storeCurrency}</p>
                                   <div className="flex items-center gap-2 mt-2">
                                      {item.color && <span className="w-4 h-4 rounded-full border shadow-sm" style={{ backgroundColor: item.color }}></span>}
                                      {item.size && <span className="text-[10px] font-bold bg-slate-100 px-1.5 py-0.5 rounded uppercase">{item.size}</span>}
@@ -6813,7 +6813,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                                 <p className="text-[10px] text-slate-400">{c.orders} {isAr ? 'طلب' : 'commande(s)'}</p>
                                              </div>
                                           </div>
-                                          <p className="text-xs font-black text-emerald-600 shrink-0">{c.total.toLocaleString('fr-FR')} MAD</p>
+                                          <p className="text-xs font-black text-emerald-600 shrink-0">{c.total.toLocaleString('fr-FR')} {storeCurrency}</p>
                                        </div>
                                     ))}
                                  </div>
@@ -7128,7 +7128,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                              <div className="flex flex-col justify-center overflow-hidden">
                                 <h4 className="text-sm font-bold text-slate-800 truncate">{p.name}</h4>
                                 <p className="text-[10px] text-slate-400 mt-0.5 truncate">{p.category}</p>
-                                <p className="text-xs font-black text-slate-900 mt-1">{p.price} MAD</p>
+                                <p className="text-xs font-black text-slate-900 mt-1">{p.price} {storeCurrency}</p>
                              </div>
                           </div>
                        ))}
@@ -8462,7 +8462,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                           </div>
                           <h4 className="font-bold text-slate-800 text-lg">{erpItem.name}</h4>
                           <div className="flex items-center justify-between mt-3">
-                             <p className="text-indigo-600 font-black text-lg">{erpItem.price} MAD</p>
+                             <p className="text-indigo-600 font-black text-lg">{erpItem.price} {storeCurrency}</p>
                              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">{erpItem.stock} en stock</span>
                           </div>
                        </div>
@@ -9609,7 +9609,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                            </p>
                         </div>
                         <div className="text-right">
-                           <span className="text-lg font-black text-indigo-700">{selectedUpgradeTier === 'PRO' ? '299' : '499'} MAD</span>
+                           <span className="text-lg font-black text-indigo-700">{selectedUpgradeTier === 'PRO' ? '299' : '499'} {storeCurrency}</span>
                            <span className="text-xs text-indigo-500 block font-bold">/{isAr ? 'شهر' : 'mois'}</span>
                         </div>
                      </div>
