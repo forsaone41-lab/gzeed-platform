@@ -485,6 +485,7 @@ export default function StoreBuilder({ isLiveStore = false, appCurrentUser }: { 
     setIsBulkDeleteOpen(false);
   };
   const [storeLang, setStoreLang] = useState<'fr'|'en'|'ar'>(config.storeLang || 'fr');
+  const [storeCurrency, setStoreCurrency] = useState<string>(config.storeCurrency || 'MAD');
   const storeIsAr = storeLang === 'ar';
   // Use dashLang for the dashboard UI, reading from the SaaS setting beya_dash_lang
   const [dashLang, setDashLang] = useState<'fr' | 'en' | 'ar'>(() => (localStorage.getItem('beya_dash_lang') as any) || (adminIsAr ? 'ar' : 'fr'));
@@ -1392,6 +1393,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.heroSliderStyle !== undefined) setHeroSliderStyle(payload.heroSliderStyle);
         if (payload.storeName !== undefined) setStoreName(payload.storeName);
         if (payload.storeLang !== undefined) setStoreLang(payload.storeLang);
+        if (payload.storeCurrency !== undefined) setStoreCurrency(payload.storeCurrency);
         if (payload.pdpImageWidth !== undefined) setPdpImageWidth(payload.pdpImageWidth);
         if (payload.pdpImageAspect !== undefined) setPdpImageAspect(payload.pdpImageAspect);
         if (payload.pdpTitleSize !== undefined) setPdpTitleSize(payload.pdpTitleSize);
@@ -1401,7 +1403,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
         if (payload.showRelatedProducts !== undefined) setShowRelatedProducts(payload.showRelatedProducts);
         if (payload.showDeliveryInfo !== undefined) setShowDeliveryInfo(payload.showDeliveryInfo);
         if (payload.showProductReviews !== undefined) setShowProductReviews(payload.showProductReviews);
-        // storeDomain and storeCurrency can be added to config state if needed later
+        // storeDomain can be added to config state if needed later
       }
     };
     window.addEventListener('message', handleMessage);
