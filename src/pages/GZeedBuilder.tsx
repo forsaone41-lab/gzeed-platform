@@ -326,7 +326,7 @@ export default function GZeedBuilder() {
               GZ
             </div>
             <span className="font-bold text-slate-900 hidden sm:block">
-              {lang === 'ar' ? 'Ù…Ø­Ø±Ø± Ø§Ù„ÙˆØ§Ø¬Ù‡Ø©' : lang === 'en' ? 'Visual Editor' : 'Ã‰diteur Visuel'}
+              {lang === 'ar' ? 'Ù…Ø­Ø±Ø± Ø§Ù„ÙˆØ§Ø¬Ù‡Ø©' : lang === 'en' ? 'Visual Editor' : 'Éditeur Visuel'}
             </span>
           </div>
         </div>
@@ -492,7 +492,7 @@ export default function GZeedBuilder() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ø´ÙƒÙ„ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¹Ù„ÙˆÙŠØ©' : lang === 'en' ? 'Header Style' : 'Style de l\'En-tÃªte'}</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ø´ÙƒÙ„ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¹Ù„ÙˆÙŠØ©' : lang === 'en' ? 'Header Style' : 'Style de l\'En-tête'}</h3>
                   <div className="grid grid-cols-2 gap-3 mb-6">
                     <button 
                       onClick={() => handleHeaderStyleChange('standard')}
@@ -513,7 +513,7 @@ export default function GZeedBuilder() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¹Ù„ÙˆÙŠØ©' : lang === 'en' ? 'Header Width' : 'Largeur de l\'En-tÃªte'}</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{lang === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¹Ù„ÙˆÙŠØ©' : lang === 'en' ? 'Header Width' : 'Largeur de l\'En-tête'}</h3>
                   <div className="grid grid-cols-2 gap-3 mb-6">
                     <button 
                       onClick={() => handleHeaderWidthChange('full')}
@@ -565,9 +565,9 @@ export default function GZeedBuilder() {
             {activeSidebarTab === 'sections' && !activeConfigSection && (
               <div className="space-y-3 animate-fade-in">
                 {[
-                  { id: 'header', icon: Layout, label: lang === 'ar' ? 'Ø§Ù„Ø´Ø±ÙŠØ· Ø§Ù„Ø¹Ù„ÙˆÙŠ' : lang === 'en' ? 'Header Navigation' : 'En-tÃªte' },
-                  { id: 'hero', icon: Palette, label: lang === 'ar' ? 'Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©' : lang === 'en' ? 'Hero Banner' : 'BanniÃ¨re HÃ©ro' },
-                  { id: 'categories', icon: Layers, label: lang === 'ar' ? 'ØªØµÙ†ÙŠÙØ§Øª Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª' : lang === 'en' ? 'Category Grid' : 'Grille de CatÃ©gories' },
+                  { id: 'header', icon: Layout, label: lang === 'ar' ? 'Ø§Ù„Ø´Ø±ÙŠØ· Ø§Ù„Ø¹Ù„ÙˆÙŠ' : lang === 'en' ? 'Header Navigation' : 'En-tête' },
+                  { id: 'hero', icon: Palette, label: lang === 'ar' ? 'Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©' : lang === 'en' ? 'Hero Banner' : 'Bannière Héro' },
+                  { id: 'categories', icon: Layers, label: lang === 'ar' ? 'ØªØµÙ†ÙŠÙØ§Øª Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª' : lang === 'en' ? 'Category Grid' : 'Grille de Catégories' },
                   { id: 'products', icon: Box, label: lang === 'ar' ? 'Ø´Ø¨ÙƒØ© Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª' : lang === 'en' ? 'Product Grid' : 'Grille de Produits' },
                   { id: 'pdp', icon: ShoppingBag, label: lang === 'ar' ? 'ØµÙØ­Ø© Ø§Ù„Ù…Ù†ØªØ¬' : lang === 'en' ? 'Product Page' : 'Page Produit' },
                   { id: 'footer', icon: Layout, label: lang === 'ar' ? 'ØªØ°ÙŠÙŠÙ„ Ø§Ù„ØµÙØ­Ø©' : lang === 'en' ? 'Footer' : 'Pied de page' }
