@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -27,7 +27,10 @@ import {
   ShoppingBag,
   ImageIcon,
   Video,
-  Type
+  Type,
+  Mail,
+  Star,
+  MessageSquare
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
