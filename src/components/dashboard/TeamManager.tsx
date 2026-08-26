@@ -20,19 +20,58 @@ export default function TeamManager() {
   const [newRole, setNewRole] = useState('manager');
 
   useEffect(() => {
-    const saved = localStorage.getItem('gzeed_team');
-    if (saved) {
-      try {
-        setTeam(JSON.parse(saved));
-      } catch (e) {
-        console.error(e);
+    const fetchUserAndSetTeam = async () => {
+      let userEmail = 'owner@store.com';
+      let userName = lang === 'ar' ? 'أنت (المالك)' : 'You (Owner)';
+      
+      // Try to get from mock auth
+      const mockAuth = localStorage.getItem('textrack_auth');
+      if (mockAuth) {
+        try {
+          const parsed = JSON.parse(mockAuth);
+          if (parsed.email) userEmail = parsed.email;
+          if (parsed.name) userName = `${parsed.name} (Owner)`;
+        } catch(e) {}
+      } else {
+        // Try to get from supabase
+        try {
+          const { supabase } = await import('../../supabase');
+          const { data } = await supabase.auth.getUser();
+          if (data?.user?.email) {
+            userEmail = data.user.email;
+          }
+        } catch (error) {
+          console.error("Supabase not available or user not logged in", error);
+        }
       }
-    } else {
+
+      const saved = localStorage.getItem('gzeed_team');
+      if (saved) {
+        try {
+          let parsedTeam = JSON.parse(saved);
+          // Always ensure the first/admin user has the correct email
+          const adminIndex = parsedTeam.findIndex((m: any) => m.role === 'admin');
+          if (adminIndex !== -1 && parsedTeam[adminIndex].email === 'owner@store.com') {
+             parsedTeam[adminIndex].email = userEmail;
+             parsedTeam[adminIndex].name = userName;
+             localStorage.setItem('gzeed_team', JSON.stringify(parsedTeam));
+          }
+          setTeam(parsedTeam);
+          return;
+        } catch (e) {
+          console.error(e);
+        }
+      } 
+      
       // Default owner
-      setTeam([
-        { id: '1', name: lang === 'ar' ? 'أنت (المالك)' : 'You (Owner)', email: 'owner@store.com', role: 'admin', status: 'active' }
-      ]);
-    }
+      const newTeam = [
+        { id: '1', name: userName, email: userEmail, role: 'admin', status: 'active' as const }
+      ];
+      setTeam(newTeam);
+      localStorage.setItem('gzeed_team', JSON.stringify(newTeam));
+    };
+
+    fetchUserAndSetTeam();
   }, [lang]);
 
   const saveTeam = (t: TeamMember[]) => {
