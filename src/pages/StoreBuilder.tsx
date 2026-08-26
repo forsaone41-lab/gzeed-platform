@@ -2008,6 +2008,50 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
                                  <img src={url.trim()} className="w-full h-full object-cover" />
                               </div>
                            ))}
+                         </div>
+                     )}
+                     {section.type === 'newsletter' && (
+                        <div className="bg-slate-50 rounded-3xl p-10 md:p-16 text-center max-w-4xl mx-auto border border-slate-100">
+                           {!section.title && <h3 className="text-2xl md:text-3xl font-serif text-slate-900 mb-4">{storeIsAr ? 'اشترك في نشرتنا البريدية' : 'Subscribe to our Newsletter'}</h3>}
+                           <p className="text-slate-500 mb-8 max-w-xl mx-auto">{section.content || (storeIsAr ? 'احصل على آخر التحديثات والعروض الحصرية مباشرة في بريدك الإلكتروني.' : 'Get the latest updates and exclusive offers directly in your inbox.')}</p>
+                           <form className="flex flex-col md:flex-row gap-3 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
+                              <input type="email" placeholder={storeIsAr ? 'بريدك الإلكتروني...' : 'Your email address...'} className="flex-1 px-6 py-4 rounded-full border border-slate-200 focus:outline-none focus:border-cyan-500" />
+                              <button type="submit" className="px-8 py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-slate-800 transition-colors">{storeIsAr ? 'اشتراك' : 'Subscribe'}</button>
+                           </form>
+                        </div>
+                     )}
+                     {section.type === 'features' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                           {[
+                              { icon: <Star className="w-8 h-8" />, title: storeIsAr ? 'جودة عالية' : 'Premium Quality', desc: storeIsAr ? 'نضمن لك أفضل جودة' : 'We guarantee the best quality' },
+                              { icon: <Truck className="w-8 h-8" />, title: storeIsAr ? 'توصيل سريع' : 'Fast Delivery', desc: storeIsAr ? 'شحن سريع لجميع المدن' : 'Fast shipping to all cities' },
+                              { icon: <ShieldCheck className="w-8 h-8" />, title: storeIsAr ? 'دفع آمن' : 'Secure Payment', desc: storeIsAr ? 'طرق دفع متعددة وآمنة' : 'Multiple secure payment methods' }
+                           ].map((feat, i) => (
+                              <div key={i} className="flex flex-col items-center text-center p-6">
+                                 <div className="w-16 h-16 bg-cyan-50 text-cyan-600 rounded-full flex items-center justify-center mb-6">
+                                    {feat.icon}
+                                 </div>
+                                 <h4 className="text-lg font-bold text-slate-900 mb-3">{feat.title}</h4>
+                                 <p className="text-slate-500">{feat.desc}</p>
+                              </div>
+                           ))}
+                        </div>
+                     )}
+                     {section.type === 'testimonials' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                           {[
+                              { text: storeIsAr ? 'منتجات رائعة وجودة ممتازة، أنصح الجميع بالتعامل معهم!' : 'Amazing products and excellent quality, highly recommend!', name: storeIsAr ? 'سارة م.' : 'Sarah M.' },
+                              { text: storeIsAr ? 'خدمة سريعة واحترافية، التغليف كان ممتازاً.' : 'Fast and professional service, packaging was great.', name: storeIsAr ? 'أحمد ب.' : 'Ahmed B.' }
+                           ].map((test, i) => (
+                              <div key={i} className="bg-white border border-slate-200 p-8 rounded-2xl relative">
+                                 <MessageSquare className="w-8 h-8 text-slate-100 absolute top-6 right-6" />
+                                 <div className="flex text-amber-400 mb-4">
+                                    <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
+                                 </div>
+                                 <p className="text-slate-600 italic mb-6 relative z-10">"{test.text}"</p>
+                                 <div className="font-bold text-slate-900">{test.name}</div>
+                              </div>
+                           ))}
                         </div>
                      )}
                   </div>
@@ -4393,6 +4437,62 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
               <button onClick={() => setPage('home')} className="px-8 py-3 bg-[#f2f2f2] text-[#111] font-bold uppercase tracking-widest text-xs hover:bg-[#e5e5e5] transition-colors">
                  {storeIsAr ? "العودة للرئيسية" : "Retour à l'accueil"}
               </button>
+           </div>
+        )}
+
+        {page === 'collections' && (
+           <div className="mx-auto w-full px-6 py-16 bg-white" style={{ maxWidth: `${siteMaxWidth}px` }}>
+              <div className="flex flex-col md:flex-row gap-16">
+                 {/* Left Sidebar Filter */}
+                 <div className="w-full md:w-64 shrink-0 hidden md:block">
+                    <div className="sticky top-32">
+                       <h3 className="text-xs font-black uppercase tracking-widest text-[#111] mb-8 pb-4 border-b border-gray-100">{storeIsAr ? 'الفئات' : 'Catégories'}</h3>
+                       <div className="flex flex-col gap-5">
+                          {categories.map((c: string) => (
+                             <button key={tr(c)} onClick={() => setActiveCategory(c)} className={`text-left text-[13px] font-sans tracking-widest uppercase transition-all flex justify-between items-center group ${activeCategory === c ? 'text-[#111] font-bold' : 'text-gray-400 hover:text-[#111]'}`}>
+                                <span>{c === 'All' ? allCollectionsTitle : tr(c)}</span>
+                                {activeCategory === c && <span className="w-1.5 h-1.5 bg-[#111] rounded-full"></span>}
+                             </button>
+                          ))}
+                       </div>
+                    </div>
+                 </div>
+
+                 {/* Mobile Filter */}
+                 <div className="md:hidden flex overflow-x-auto pb-4 gap-6 scrollbar-hide mb-8 border-b border-gray-100">
+                     {categories.map((c: string) => (
+                        <button key={tr(c)} onClick={() => setActiveCategory(c)} className={`shrink-0 text-[11px] font-bold uppercase tracking-widest pb-3 border-b-2 transition-colors ${activeCategory === c ? 'border-[#111] text-[#111]' : 'border-transparent text-gray-400'}`}>
+                           {c === 'All' ? allCollectionsTitle : tr(c)}
+                        </button>
+                     ))}
+                 </div>
+
+                 {/* Products Grid */}
+                 <div className="flex-1">
+                    <div className="flex justify-between items-end mb-12 pb-4 border-b border-gray-100">
+                       <h2 className="text-3xl font-serif uppercase tracking-widest text-[#111] leading-none">{activeCategory === 'All' ? allCollectionsTitle : tr(activeCategory)}</h2>
+                       <span className="text-xs font-bold text-gray-400 tracking-widest uppercase mb-1">{filteredProducts.length} {storeIsAr ? 'عناصر' : 'Articles'}</span>
+                    </div>
+
+                    <div className={`grid ${previewDevice === 'mobile' && !isModal ? 'grid-cols-2' : gridColsClass('md3')} gap-x-8 gap-y-16`}>
+                       {filteredProducts.map((p: any) => (
+                          <div key={p.id} className="group flex flex-col cursor-pointer" onClick={() => navigateToProduct(p.id)}>
+                             <div className="bg-[#f4f4f4] aspect-[3/4] mb-5 overflow-hidden relative">
+                                <img src={getCoverImage(p)} alt={p.name} className="w-full h-full object-cover object-center mix-blend-darken p-8 group-hover:scale-110 transition-transform duration-1000 ease-out" />
+                                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                             </div>
+                             <h4 className="font-bold text-[12px] text-[#111] mb-2 font-serif uppercase tracking-widest group-hover:text-gray-600 transition-colors">{p.name}</h4>
+                             <p className="text-[13px] text-gray-500 font-sans tracking-wide">{p.price} MAD</p>
+                          </div>
+                       ))}
+                       {filteredProducts.length === 0 && (
+                          <div className="col-span-full py-32 text-center text-gray-400 text-xs tracking-widest uppercase font-bold border border-dashed border-gray-200">
+                             {storeIsAr ? 'لا توجد منتجات في هذه الفئة' : 'Aucun article trouvé dans cette catégorie'}
+                          </div>
+                       )}
+                    </div>
+                 </div>
+              </div>
            </div>
         )}
       </div>

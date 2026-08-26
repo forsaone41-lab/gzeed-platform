@@ -611,22 +611,34 @@ export default function GZeedBuilder() {
                         <h3 className="font-bold text-lg text-slate-800">{lang === 'ar' ? 'Ø§Ø®ØªØ± Ù†ÙˆØ¹ Ø§Ù„Ù‚Ø³Ù…' : 'Choose Section Type'}</h3>
                         <button onClick={() => setShowAddSectionModal(false)} className="text-slate-400 hover:text-slate-700 p-2"><X className="w-5 h-5" /></button>
                       </div>
-                      <div className="p-6 grid grid-cols-2 gap-4">
-                        <button onClick={() => handleAddCustomSection('text')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-cyan-500 hover:bg-cyan-50 transition-all">
-                           <Type className="w-8 h-8 text-cyan-600" />
-                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'Ù†Øµ' : 'Text'}</span>
+                      <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                        <button onClick={() => handleAddCustomSection('text')} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-cyan-500 hover:bg-cyan-50 transition-all text-center">
+                           <Type className="w-6 h-6 text-cyan-600" />
+                           <span className="font-bold text-slate-700 text-[11px]">{lang === 'ar' ? 'نص' : 'Text'}</span>
                         </button>
-                        <button onClick={() => handleAddCustomSection('slider')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-all">
-                           <ImageIcon className="w-8 h-8 text-amber-600" />
-                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'Ù…Ø¹Ø±Ø¶ ØµÙˆØ±' : 'Slider'}</span>
+                        <button onClick={() => handleAddCustomSection('slider')} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-all text-center">
+                           <ImageIcon className="w-6 h-6 text-amber-600" />
+                           <span className="font-bold text-slate-700 text-[11px]">{lang === 'ar' ? 'معرض صور' : 'Slider'}</span>
                         </button>
-                        <button onClick={() => handleAddCustomSection('video')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-rose-500 hover:bg-rose-50 transition-all">
-                           <Video className="w-8 h-8 text-rose-600" />
-                           <span className="font-bold text-slate-700">{lang === 'ar' ? 'ÙÙŠØ¯ÙŠÙˆ' : 'Video'}</span>
+                        <button onClick={() => handleAddCustomSection('video')} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-rose-500 hover:bg-rose-50 transition-all text-center">
+                           <Video className="w-6 h-6 text-rose-600" />
+                           <span className="font-bold text-slate-700 text-[11px]">{lang === 'ar' ? 'فيديو' : 'Video'}</span>
                         </button>
-                        <button onClick={() => handleAddCustomSection('html')} className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all">
-                           <Code className="w-8 h-8 text-indigo-600" />
-                           <span className="font-bold text-slate-700">HTML</span>
+                        <button onClick={() => handleAddCustomSection('newsletter')} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-all text-center">
+                           <Mail className="w-6 h-6 text-emerald-600" />
+                           <span className="font-bold text-slate-700 text-[11px]">{lang === 'ar' ? 'نشرة بريدية' : 'Newsletter'}</span>
+                        </button>
+                        <button onClick={() => handleAddCustomSection('features')} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all text-center">
+                           <Star className="w-6 h-6 text-blue-600" />
+                           <span className="font-bold text-slate-700 text-[11px]">{lang === 'ar' ? 'مميزاتنا' : 'Features'}</span>
+                        </button>
+                        <button onClick={() => handleAddCustomSection('testimonials')} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-pink-500 hover:bg-pink-50 transition-all text-center">
+                           <MessageSquare className="w-6 h-6 text-pink-600" />
+                           <span className="font-bold text-slate-700 text-[11px]">{lang === 'ar' ? 'آراء العملاء' : 'Testimonials'}</span>
+                        </button>
+                        <button onClick={() => handleAddCustomSection('html')} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all text-center">
+                           <Code className="w-6 h-6 text-indigo-600" />
+                           <span className="font-bold text-slate-700 text-[11px]">HTML</span>
                         </button>
                       </div>
                     </div>
