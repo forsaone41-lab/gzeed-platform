@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag, Wallet, MinusCircle, ArrowRight, Tags, MessageCircle } from 'lucide-react';
+import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag, Wallet, MinusCircle, ArrowRight, Tags, MessageCircle, Ruler } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { QRCodeSVG } from 'qrcode.react';
@@ -29,14 +29,19 @@ export default function TailorDashboard() {
   const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
   const netProfit = actualRevenue - totalExpenses;
   
+  // App Mode
+  const [activeMode, setActiveMode] = useState<'retouche' | 'traditional'>('retouche');
+
   // Orders State
   const [orders, setOrders] = useState([
-    { id: 1, ticketId: 'ORD-8932', client: 'محمد', phone: '0612345678', type: 'تقصير سروال', price: 30, status: 'completed' },
-    { id: 2, ticketId: 'ORD-8933', client: 'فاطمة', phone: '0698765432', type: 'تضييق فستان', price: 70, status: 'pending' },
+    { id: 1, ticketId: 'ORD-8932', client: 'محمد', phone: '0612345678', type: 'تقصير سروال', price: 30, category: 'retouche', status: 'completed' },
+    { id: 2, ticketId: 'ORD-8933', client: 'فاطمة', phone: '0698765432', type: 'تضييق فستان', price: 70, category: 'retouche', status: 'pending' },
+    { id: 3, ticketId: 'TRD-1024', client: 'ليلى', phone: '0655443322', type: 'جلابة مخزنية', price: 600, avance: 200, category: 'traditional', status: 'pending', measurements: { length: 135, chest: 28, shoulders: 40, sleeves: 58 } },
   ]);
 
   // Modal States
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showTraditionalModal, setShowTraditionalModal] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [showTagsModal, setShowTagsModal] = useState(false);
@@ -59,6 +64,12 @@ export default function TailorDashboard() {
     notes: ''
   });
 
+  // New Traditional Order Form State
+  const [newTradOrder, setNewTradOrder] = useState({
+    client: '', phone: '', type: '', price: '', avance: '', 
+    measurements: { length: '', chest: '', shoulders: '', sleeves: '' }
+  });
+
   const progress = Math.min((actualRevenue / dailyTarget) * 100, 100);
   const isSuccess = actualRevenue >= dailyTarget;
 
@@ -70,15 +81,37 @@ export default function TailorDashboard() {
       ticketId,
       ...newOrder,
       price: Number(newOrder.price),
+      category: 'retouche',
       status: 'pending'
     };
     
     setOrders([orderToSave, ...orders]);
     setActualRevenue(prev => prev + orderToSave.price);
     
-    // Reset form and show ticket
     setNewOrder({ client: '', phone: '', type: '', price: '', notes: '' });
     setShowOrderModal(false);
+    setActiveTicket(orderToSave);
+    setShowTicketModal(true);
+  };
+
+  const handleCreateTradOrder = (e: React.FormEvent) => {
+    e.preventDefault();
+    const ticketId = 'TRD-' + Math.floor(1000 + Math.random() * 9000);
+    const orderToSave = {
+      id: orders.length + 1,
+      ticketId,
+      ...newTradOrder,
+      price: Number(newTradOrder.price),
+      avance: Number(newTradOrder.avance),
+      category: 'traditional',
+      status: 'pending'
+    };
+    
+    setOrders([orderToSave, ...orders]);
+    setActualRevenue(prev => prev + orderToSave.avance);
+    
+    setNewTradOrder({ client: '', phone: '', type: '', price: '', avance: '', measurements: { length: '', chest: '', shoulders: '', sleeves: '' } });
+    setShowTraditionalModal(false);
     setActiveTicket(orderToSave);
     setShowTicketModal(true);
   };
@@ -130,7 +163,7 @@ export default function TailorDashboard() {
       <div className="max-w-6xl mx-auto md:space-y-6">
         
         {/* iOS Style Header */}
-        <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl md:bg-white p-4 md:p-6 rounded-b-[32px] md:rounded-2xl shadow-sm border-b md:border border-slate-200 print:hidden flex justify-between items-center mb-6 md:mb-0">
+        <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl md:bg-white p-4 md:p-6 rounded-b-[32px] md:rounded-2xl shadow-sm border-b md:border border-slate-200 print:hidden flex justify-between items-center mb-4">
           <div>
             <h1 className="text-xl md:text-2xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
               <Scissors className="w-6 h-6 text-indigo-600" />
@@ -158,11 +191,29 @@ export default function TailorDashboard() {
               {isAr ? 'سكان (Scan)' : 'Scan Ticket'}
             </button>
             <button 
-              onClick={() => setShowOrderModal(true)}
+              onClick={() => activeMode === 'retouche' ? setShowOrderModal(true) : setShowTraditionalModal(true)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-indigo-600/20"
             >
               <Plus className="w-5 h-5" />
               {isAr ? 'طلب جديد' : 'New Order'}
+            </button>
+          </div>
+        </div>
+
+        {/* Mode Switcher */}
+        <div className="px-4 md:px-0 mb-6 print:hidden">
+          <div className="bg-white p-1.5 rounded-2xl border border-slate-200 inline-flex shadow-sm w-full md:w-auto">
+            <button 
+              onClick={() => setActiveMode('retouche')}
+              className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-bold text-sm transition-all ${activeMode === 'retouche' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              {isAr ? 'الروتوش السريع' : 'Alterations'}
+            </button>
+            <button 
+              onClick={() => setActiveMode('traditional')}
+              className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-bold text-sm transition-all ${activeMode === 'traditional' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              {isAr ? 'الخياطة التقليدية (جلابة/قفطان)' : 'Traditional Tailoring'}
             </button>
           </div>
         </div>
@@ -278,9 +329,11 @@ export default function TailorDashboard() {
 
           {/* Orders List */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 col-span-1 lg:col-span-2">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">{isAr ? 'طلبات اليوم' : 'Today\'s Orders'}</h2>
+            <h2 className="text-xl font-bold text-slate-800 mb-6">
+              {isAr ? (activeMode === 'retouche' ? 'طلبات الروتوش اليوم' : 'طلبات الخياطة التقليدية') : 'Today\'s Orders'}
+            </h2>
           <div className="space-y-3">
-            {orders.map(order => (
+            {orders.filter(o => o.category === activeMode).map(order => (
               <div key={order.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200 cursor-pointer" onClick={() => { setActiveTicket(order); setShowTicketModal(true); }}>
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center ${order.status === 'completed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
@@ -324,7 +377,7 @@ export default function TailorDashboard() {
           <span className="text-[10px] font-bold">{isAr ? 'الملصقات' : 'Tags'}</span>
         </button>
         
-        <button onClick={() => setShowOrderModal(true)} className="relative -top-6 bg-indigo-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-indigo-600/40 border-4 border-[#f2f2f7] shrink-0">
+        <button onClick={() => activeMode === 'retouche' ? setShowOrderModal(true) : setShowTraditionalModal(true)} className="relative -top-6 bg-indigo-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-indigo-600/40 border-4 border-[#f2f2f7] shrink-0">
           <Plus className="w-6 h-6" />
         </button>
 
@@ -395,7 +448,86 @@ export default function TailorDashboard() {
               </div>
 
               <button type="submit" className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-lg transition-all shadow-lg shadow-indigo-600/20 mt-4">
-                {isAr ? 'تأكيد واستخراج التذكرة' : 'Confirm & Generate Ticket'}
+                {isAr ? 'تأكيد واستخراج التذكرة' : 'Create & Print Ticket'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* NEW TRADITIONAL ORDER MODAL (BELDI) */}
+      {showTraditionalModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:hidden overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 my-8">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white/90 backdrop-blur z-10">
+              <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                <Ruler className="w-6 h-6 text-indigo-600" />
+                {isAr ? 'طلب خياطة تقليدية' : 'Traditional Tailoring'}
+              </h2>
+              <button onClick={() => setShowTraditionalModal(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateTradOrder} className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'الزبون' : 'Client'}</label>
+                  <input required value={newTradOrder.client} onChange={e => setNewTradOrder({...newTradOrder, client: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 font-medium" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'الهاتف' : 'Phone'}</label>
+                  <input required value={newTradOrder.phone} onChange={e => setNewTradOrder({...newTradOrder, phone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 font-medium" dir="ltr" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'النوع (جلابة، قفطان...)' : 'Type (Djellaba...)'}</label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {['جلابة', 'قفطان', 'تكشيطة', 'جابادور', 'كندورة'].map(type => (
+                    <button key={type} type="button" onClick={() => setNewTradOrder({...newTradOrder, type})} className={`px-4 py-2 rounded-xl font-bold text-sm border transition-colors ${newTradOrder.type === type ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}>{type}</button>
+                  ))}
+                </div>
+                <input required value={newTradOrder.type} onChange={e => setNewTradOrder({...newTradOrder, type: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 font-medium" placeholder={isAr ? "نوع الخياطة والثوب" : "Details"} />
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <h3 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
+                  <Ruler className="w-4 h-4" /> {isAr ? 'القياسات (سنتيمتر)' : 'Measurements (cm)'}
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">{isAr ? 'الكتاف' : 'Shoulders'}</label>
+                    <input type="number" value={newTradOrder.measurements.shoulders} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, shoulders: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-center font-bold" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">{isAr ? 'الصدر' : 'Chest'}</label>
+                    <input type="number" value={newTradOrder.measurements.chest} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, chest: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-center font-bold" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">{isAr ? 'الكمام' : 'Sleeves'}</label>
+                    <input type="number" value={newTradOrder.measurements.sleeves} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, sleeves: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-center font-bold" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">{isAr ? 'الطول' : 'Length'}</label>
+                    <input type="number" value={newTradOrder.measurements.length} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, length: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-center font-bold" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'الثمن الإجمالي (DH)' : 'Total Price'}</label>
+                  <input required type="number" value={newTradOrder.price} onChange={e => setNewTradOrder({...newTradOrder, price: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 font-black text-slate-800" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'التسبيق (Avance)' : 'Advance Payment'}</label>
+                  <input required type="number" value={newTradOrder.avance} onChange={e => setNewTradOrder({...newTradOrder, avance: e.target.value})} className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-3 outline-none focus:border-emerald-500 font-black" />
+                </div>
+              </div>
+
+              <button type="submit" className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-lg transition-all shadow-lg shadow-indigo-600/20">
+                {isAr ? 'تسجيل طلب الخياطة' : 'Save Traditional Order'}
               </button>
             </form>
           </div>
@@ -435,6 +567,27 @@ export default function TailorDashboard() {
                 <span className="font-bold text-slate-800">{activeTicket.type}</span>
                 <span className="font-black text-lg text-slate-900">{activeTicket.price} DH</span>
               </div>
+              
+              {activeTicket.category === 'traditional' && (
+                <div className="mt-4 p-4 border border-dashed border-slate-300 rounded-xl bg-slate-50 print:bg-white text-sm">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-slate-500">التسبيق (Avance):</span>
+                    <span className="font-bold text-emerald-600">{activeTicket.avance} DH</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">الباقي (Reste):</span>
+                    <span className="font-bold text-rose-600">{activeTicket.price - activeTicket.avance} DH</span>
+                  </div>
+                  {activeTicket.measurements && (
+                    <div className="mt-3 pt-3 border-t border-dashed border-slate-200 grid grid-cols-4 gap-2 text-center text-xs">
+                      <div><div className="text-slate-400">الكتاف</div><div className="font-bold">{activeTicket.measurements.shoulders}</div></div>
+                      <div><div className="text-slate-400">الصدر</div><div className="font-bold">{activeTicket.measurements.chest}</div></div>
+                      <div><div className="text-slate-400">الكمام</div><div className="font-bold">{activeTicket.measurements.sleeves}</div></div>
+                      <div><div className="text-slate-400">الطول</div><div className="font-bold">{activeTicket.measurements.length}</div></div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Scannable QR Code */}
               <div className="mt-8 text-center pt-4">
