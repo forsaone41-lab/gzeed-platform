@@ -67,6 +67,7 @@ const GZeedDashboard  = lazy(() => import('./pages/GZeedDashboard'));
 const WelcomeGZeed    = lazy(() => import('./pages/WelcomeGZeed'));
 const ProjectSelection = lazy(() => import('./pages/ProjectSelection'));
 const GZeedBuilder    = lazy(() => import('./pages/GZeedBuilder'));
+const TailorDashboard = lazy(() => import('./pages/TailorDashboard'));
 const GZeedLogin      = lazy(() => import('./pages/GZeedLogin'));
 const AISpace         = lazy(() => import('./pages/AISpace'));
 const Achats          = lazy(() => import('./pages/Achats'));
@@ -636,6 +637,7 @@ function AppContent() {
         <Route path="/welcome" element={<Suspense fallback={<PageLoader />}><WelcomeGZeed /></Suspense>} />
         <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
         <Route path="/gzeed-builder" element={<Suspense fallback={<PageLoader />}><GZeedBuilder /></Suspense>} />
+        <Route path="/tailor-dashboard" element={<Suspense fallback={<PageLoader />}><TailorDashboard /></Suspense>} />
         <Route path="/store/:storeNameUrl" element={<div className="min-h-screen bg-white"><StoreBuilder isLiveStore={true} /></div>} />
         <Route path="/store-builder" element={
           <Suspense fallback={<PageLoader />}>
