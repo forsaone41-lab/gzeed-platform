@@ -102,21 +102,23 @@ export default function TailorDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 font-sans" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#f2f2f7] md:p-6 font-sans pb-28 md:pb-6" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="max-w-6xl mx-auto md:space-y-6">
         
-        {/* Header */}
-        <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:hidden">
+        {/* iOS Style Header */}
+        <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl md:bg-white p-4 md:p-6 rounded-b-[32px] md:rounded-2xl shadow-sm border-b md:border border-slate-200 print:hidden flex justify-between items-center mb-6 md:mb-0">
           <div>
-            <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
               <Scissors className="w-6 h-6 text-indigo-600" />
-              {isAr ? 'نظام تسيير الخياطة والروتوش' : 'Tailor & Retouche POS'}
+              {isAr ? 'إدارة الخياطة والروتوش' : 'Tailor POS'}
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
-              {isAr ? 'لوحة تحكم ذكية للطلبات وتتبع المداخيل' : 'Smart dashboard for orders and revenue'}
+            <p className="text-slate-500 text-xs md:text-sm mt-1 font-medium">
+              {isAr ? 'نظام تتبع المداخيل والطلبات' : 'Smart dashboard for orders'}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-3">
             <button 
               onClick={() => setShowTagsModal(true)}
               className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors"
@@ -141,6 +143,7 @@ export default function TailorDashboard() {
           </div>
         </div>
 
+        <div className="px-4 md:px-0 space-y-6">
         {/* Financial Dashboard */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:hidden">
           <div className="flex items-center gap-2 mb-6">
@@ -281,6 +284,25 @@ export default function TailorDashboard() {
           </div>
         </div>
 
+        </div>
+
+      </div>
+
+      {/* iOS Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 p-2 pb-6 flex justify-around items-center z-40">
+        <button onClick={() => setShowTagsModal(true)} className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-600 w-20">
+          <Tags className="w-6 h-6" />
+          <span className="text-[10px] font-bold">{isAr ? 'الملصقات' : 'Tags'}</span>
+        </button>
+        
+        <button onClick={() => setShowOrderModal(true)} className="relative -top-6 bg-indigo-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-indigo-600/40 border-4 border-[#f2f2f7] shrink-0">
+          <Plus className="w-6 h-6" />
+        </button>
+
+        <button onClick={() => setShowScanner(true)} className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-600 w-20">
+          <QrCode className="w-6 h-6" />
+          <span className="text-[10px] font-bold">{isAr ? 'سكان' : 'Scan'}</span>
+        </button>
       </div>
 
       {/* NEW ORDER MODAL */}
