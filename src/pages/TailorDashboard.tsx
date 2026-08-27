@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag, Wallet, MinusCircle, ArrowRight } from 'lucide-react';
+import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag, Wallet, MinusCircle, ArrowRight, Tags } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { QRCodeSVG } from 'qrcode.react';
@@ -30,7 +30,16 @@ export default function TailorDashboard() {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [showTagsModal, setShowTagsModal] = useState(false);
   const [activeTicket, setActiveTicket] = useState<any>(null);
+
+  // Tags Form State
+  const [tagData, setTagData] = useState({
+    name: 'سروال كلاسيك',
+    price: '150',
+    size: 'M',
+    quantity: 1
+  });
 
   // New Order Form State
   const [newOrder, setNewOrder] = useState({
@@ -99,6 +108,13 @@ export default function TailorDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowTagsModal(true)}
+              className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors"
+            >
+              <Tags className="w-5 h-5" />
+              {isAr ? 'الملصقات (Étiquettes)' : 'Tags'}
+            </button>
             <button 
               onClick={() => setShowScanner(true)}
               className="bg-slate-900 hover:bg-black text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-slate-900/20"
@@ -408,6 +424,80 @@ export default function TailorDashboard() {
             <div className="p-4 bg-slate-50 text-center text-sm font-bold text-slate-500">
               {isAr ? 'قم بتوجيه الكاميرا نحو الكود الموجود في التذكرة' : 'Point your camera at the ticket barcode'}
             </div>
+          </div>
+        </div>
+      )}
+      {/* TAGS (ETIQUETTES) MODAL */}
+      {showTagsModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:bg-white print:p-0">
+          <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col md:flex-row print:shadow-none print:max-w-none print:w-full">
+            
+            {/* Form Section */}
+            <div className="p-6 md:w-1/2 border-b md:border-b-0 md:border-r border-slate-100 print:hidden bg-slate-50">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                  <Tags className="w-6 h-6 text-indigo-600" />
+                  {isAr ? 'تصميم ملصق (Étiquette)' : 'Design Tag'}
+                </h2>
+                <button onClick={() => setShowTagsModal(false)} className="p-2 hover:bg-slate-200 rounded-full text-slate-400">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'اسم المنتوج' : 'Product Name'}</label>
+                  <input value={tagData.name} onChange={e => setTagData({...tagData, name: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 font-medium" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'الثمن (DH)' : 'Price'}</label>
+                    <input type="number" value={tagData.price} onChange={e => setTagData({...tagData, price: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 font-black text-slate-800" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'المقاس' : 'Size'}</label>
+                    <input value={tagData.size} onChange={e => setTagData({...tagData, size: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 font-black text-center uppercase" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'الكمية (للطباعة)' : 'Quantity to Print'}</label>
+                  <input type="number" min="1" max="100" value={tagData.quantity} onChange={e => setTagData({...tagData, quantity: Number(e.target.value)})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 font-medium" />
+                </div>
+              </div>
+              <button 
+                onClick={handlePrint}
+                className="w-full mt-6 py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-lg"
+              >
+                <Printer className="w-5 h-5" />
+                {isAr ? 'طباعة الملصقات' : 'Print Tags'}
+              </button>
+            </div>
+
+            {/* Preview & Print Section */}
+            <div className="p-6 md:w-1/2 bg-white flex flex-col items-center justify-center overflow-auto max-h-[60vh] print:max-h-none print:p-0">
+              <div className="print:hidden text-sm font-bold text-slate-400 mb-4">{isAr ? 'معاينة الملصقات (يظهر في الطباعة)' : 'Tags Preview'}</div>
+              
+              <div className="flex flex-wrap gap-4 justify-center print:gap-2 print:justify-start">
+                {Array.from({ length: tagData.quantity || 1 }).map((_, i) => (
+                  <div key={i} className="w-48 bg-white border-2 border-slate-900 rounded-xl p-4 flex flex-col items-center text-center shadow-sm print:border print:shadow-none print:break-inside-avoid">
+                    <div className="font-black text-xs tracking-widest text-slate-900 uppercase mb-2">BEYA CREATIVE</div>
+                    <div className="h-px w-full bg-slate-200 mb-2"></div>
+                    <div className="font-bold text-sm text-slate-800 mb-1">{tagData.name || 'Product'}</div>
+                    <div className="font-black text-xl text-slate-900 mb-3">{tagData.price || '0'} DH</div>
+                    
+                    <div className="flex justify-center mb-2">
+                       <QRCodeSVG value={`PRD-${tagData.name}-${tagData.price}`} size={60} level="M" />
+                    </div>
+                    
+                    <div className="mt-auto pt-2 w-full flex justify-between items-center text-xs font-bold text-slate-500">
+                      <span>SIZE:</span>
+                      <span className="bg-slate-900 text-white px-2 py-0.5 rounded">{tagData.size || 'M'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       )}
