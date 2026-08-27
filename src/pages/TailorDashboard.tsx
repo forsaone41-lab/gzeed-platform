@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag } from 'lucide-react';
+import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag, Wallet, MinusCircle, ArrowRight } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { QRCodeSVG } from 'qrcode.react';
@@ -10,6 +10,15 @@ export default function TailorDashboard() {
   // Financial Data State
   const [dailyTarget, setDailyTarget] = useState(500);
   const [actualRevenue, setActualRevenue] = useState(250);
+  
+  // Expenses State (Gestion)
+  const [expenses, setExpenses] = useState([
+    { id: 1, desc: 'خيط وإبر', amount: 30 },
+  ]);
+  const [newExpense, setNewExpense] = useState({ desc: '', amount: '' });
+
+  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const netProfit = actualRevenue - totalExpenses;
   
   // Orders State
   const [orders, setOrders] = useState([
@@ -116,41 +125,49 @@ export default function TailorDashboard() {
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-slate-50 p-5 rounded-xl border border-slate-100">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-slate-500 font-medium">{isAr ? 'الهدف اليومي (درهم)' : 'Daily Target (MAD)'}</span>
+                <span className="text-slate-500 font-medium text-sm">{isAr ? 'الهدف اليومي' : 'Daily Target'}</span>
                 <Target className="w-5 h-5 text-indigo-400" />
               </div>
               <input 
                 type="number" 
                 value={dailyTarget}
                 onChange={(e) => setDailyTarget(Number(e.target.value))}
-                className="text-3xl font-black text-slate-800 bg-transparent border-none p-0 focus:ring-0 w-full outline-none"
+                className="text-2xl font-black text-slate-800 bg-transparent border-none p-0 focus:ring-0 w-full outline-none"
               />
             </div>
             
-            <div className="bg-slate-50 p-5 rounded-xl border border-slate-100">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-slate-500 font-medium">{isAr ? 'المدخول الحالي (درهم)' : 'Current Revenue (MAD)'}</span>
+                <span className="text-slate-500 font-medium text-sm">{isAr ? 'المداخيل (Gross)' : 'Revenue'}</span>
                 <DollarSign className="w-5 h-5 text-emerald-400" />
               </div>
-              <div className="text-3xl font-black text-emerald-600">
-                {actualRevenue} <span className="text-sm font-bold text-emerald-400">MAD</span>
+              <div className="text-2xl font-black text-emerald-600">
+                {actualRevenue} <span className="text-xs font-bold text-emerald-400">MAD</span>
               </div>
             </div>
 
-            <div className={`p-5 rounded-xl border ${isSuccess ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
+            <div className="bg-rose-50 p-4 rounded-xl border border-rose-100">
               <div className="flex items-center justify-between mb-2">
-                <span className={`font-medium ${isSuccess ? 'text-emerald-700' : 'text-amber-700'}`}>
-                  {isAr ? 'حالة المشروع اليوم' : 'Today\'s Project Status'}
-                </span>
+                <span className="text-rose-700 font-medium text-sm">{isAr ? 'المصاريف' : 'Expenses'}</span>
+                <MinusCircle className="w-5 h-5 text-rose-400" />
               </div>
-              <div className={`text-xl font-black ${isSuccess ? 'text-emerald-600' : 'text-amber-600'}`}>
-                {isSuccess 
-                  ? (isAr ? '🔥 مشروع ناجح ومربح اليوم' : '🔥 Profitable Today')
-                  : (isAr ? '⚠️ لم نصل للهدف بعد' : '⚠️ Target Not Reached')
-                }
+              <div className="text-2xl font-black text-rose-600">
+                {totalExpenses} <span className="text-xs font-bold text-rose-400">MAD</span>
+              </div>
+            </div>
+
+            <div className={`p-4 rounded-xl border ${netProfit >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className={`font-medium text-sm ${netProfit >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                  {isAr ? 'الربح الصافي (Net Profit)' : 'Net Profit'}
+                </span>
+                <Wallet className={`w-5 h-5 ${netProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`} />
+              </div>
+              <div className={`text-2xl font-black ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {netProfit} <span className="text-xs font-bold opacity-70">MAD</span>
               </div>
             </div>
           </div>
@@ -169,9 +186,47 @@ export default function TailorDashboard() {
           </div>
         </div>
 
-        {/* Orders List */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:hidden">
-          <h2 className="text-xl font-bold text-slate-800 mb-6">{isAr ? 'طلبات اليوم' : 'Today\'s Orders'}</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print:hidden">
+          
+          {/* Expenses / Gestion Section */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 col-span-1 h-fit">
+            <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-rose-500" />
+              {isAr ? 'المصاريف اليومية' : 'Daily Expenses'}
+            </h2>
+            
+            <div className="space-y-4 mb-6">
+              {expenses.map(exp => (
+                <div key={exp.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                  <span className="font-medium text-slate-700">{exp.desc}</span>
+                  <span className="font-bold text-rose-600">-{exp.amount} DH</span>
+                </div>
+              ))}
+            </div>
+
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (newExpense.desc && newExpense.amount) {
+                  setExpenses([...expenses, { id: Date.now(), desc: newExpense.desc, amount: Number(newExpense.amount) }]);
+                  setNewExpense({ desc: '', amount: '' });
+                }
+              }}
+              className="space-y-3 pt-4 border-t border-slate-100"
+            >
+              <input required value={newExpense.desc} onChange={e => setNewExpense({...newExpense, desc: e.target.value})} placeholder={isAr ? "شنو خسرتي؟ (مثلا: خيط)" : "Description"} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 outline-none focus:border-indigo-500 font-medium text-sm" />
+              <div className="flex gap-2">
+                <input required type="number" value={newExpense.amount} onChange={e => setNewExpense({...newExpense, amount: e.target.value})} placeholder={isAr ? "الثمن" : "Amount"} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 outline-none focus:border-indigo-500 font-bold text-sm" />
+                <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-xl font-bold hover:bg-black transition-colors shrink-0">
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Orders List */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 col-span-1 lg:col-span-2">
+            <h2 className="text-xl font-bold text-slate-800 mb-6">{isAr ? 'طلبات اليوم' : 'Today\'s Orders'}</h2>
           <div className="space-y-3">
             {orders.map(order => (
               <div key={order.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200 cursor-pointer" onClick={() => { setActiveTicket(order); setShowTicketModal(true); }}>
@@ -197,6 +252,7 @@ export default function TailorDashboard() {
                 </div>
               </div>
             ))}
+          </div>
           </div>
         </div>
 
