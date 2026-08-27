@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag, Wallet, MinusCircle, ArrowRight, Tags, MessageCircle, Ruler } from 'lucide-react';
+import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag, Wallet, MinusCircle, ArrowRight, Tags, MessageCircle, Ruler, Pencil } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { QRCodeSVG } from 'qrcode.react';
@@ -68,6 +68,7 @@ export default function TailorDashboard() {
   const [showScanner, setShowScanner] = useState(false);
   const [showTagsModal, setShowTagsModal] = useState(false);
   const [activeTicket, setActiveTicket] = useState<any>(null);
+  const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
 
   // Tags Form State
   const [tagData, setTagData] = useState({
@@ -101,18 +102,24 @@ export default function TailorDashboard() {
 
   const handleCreateOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    const ticketId = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
+    const isEditing = editingOrderId !== null;
+    const ticketId = isEditing ? activeTicket.ticketId : 'ORD-' + Math.floor(1000 + Math.random() * 9000);
     const orderToSave = {
-      id: orders.length + 1,
+      id: isEditing ? editingOrderId : orders.length + 1,
       ticketId,
       ...newOrder,
       price: Number(newOrder.price),
       category: 'retouche',
-      status: 'pending'
+      status: isEditing ? activeTicket.status : 'pending'
     };
     
-    setOrders([orderToSave, ...orders]);
-    setActualRevenue(prev => prev + orderToSave.price);
+    if (isEditing) {
+      setOrders(orders.map(o => o.id === editingOrderId ? orderToSave : o));
+      setEditingOrderId(null);
+    } else {
+      setOrders([orderToSave, ...orders]);
+      setActualRevenue(prev => prev + orderToSave.price);
+    }
     
     setNewOrder({ client: '', phone: '', type: '', price: '', notes: '' });
     setShowOrderModal(false);
@@ -122,19 +129,25 @@ export default function TailorDashboard() {
 
   const handleCreateTradOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    const ticketId = 'TRD-' + Math.floor(1000 + Math.random() * 9000);
+    const isEditing = editingOrderId !== null;
+    const ticketId = isEditing ? activeTicket.ticketId : 'TRD-' + Math.floor(1000 + Math.random() * 9000);
     const orderToSave = {
-      id: orders.length + 1,
+      id: isEditing ? editingOrderId : orders.length + 1,
       ticketId,
       ...newTradOrder,
       price: Number(newTradOrder.price),
       avance: Number(newTradOrder.avance),
       category: 'traditional',
-      status: 'pending'
+      status: isEditing ? activeTicket.status : 'pending'
     };
     
-    setOrders([orderToSave, ...orders]);
-    setActualRevenue(prev => prev + orderToSave.avance);
+    if (isEditing) {
+      setOrders(orders.map(o => o.id === editingOrderId ? orderToSave : o));
+      setEditingOrderId(null);
+    } else {
+      setOrders([orderToSave, ...orders]);
+      setActualRevenue(prev => prev + orderToSave.avance);
+    }
     
     setNewTradOrder({ 
       client: '', phone: '', type: '', price: '', avance: '', 
@@ -205,13 +218,6 @@ export default function TailorDashboard() {
           
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
-            <button 
-              onClick={() => setShowTagsModal(true)}
-              className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors"
-            >
-              <Tags className="w-5 h-5" />
-              {isAr ? 'الملصقات (Étiquettes)' : 'Tags'}
-            </button>
             <button 
               onClick={() => setShowScanner(true)}
               className="bg-slate-900 hover:bg-black text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-slate-900/20"
@@ -672,7 +678,7 @@ export default function TailorDashboard() {
             </div>
 
             {/* Actions */}
-            <div className="p-4 bg-slate-50 grid grid-cols-2 gap-3 print:hidden border-t border-slate-100">
+            <div className="p-4 bg-slate-50 grid grid-cols-2 md:grid-cols-4 gap-3 print:hidden border-t border-slate-100">
               <button 
                 onClick={() => {
                   if (activeTicket.status === 'pending') {
@@ -680,31 +686,54 @@ export default function TailorDashboard() {
                     setActiveTicket({...activeTicket, status: 'completed'});
                   }
                 }}
-                className={`py-3 border rounded-xl font-bold transition-colors ${activeTicket.status === 'pending' ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' : 'bg-slate-200 text-slate-500 border-slate-200 cursor-not-allowed'}`}
+                className={`col-span-2 py-3 border rounded-xl font-bold transition-colors ${activeTicket.status === 'pending' ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' : 'bg-slate-200 text-slate-500 border-slate-200 cursor-not-allowed'}`}
                 disabled={activeTicket.status === 'completed'}
               >
                 {activeTicket.status === 'pending' ? (isAr ? 'تأكيد التسليم' : 'Mark as Done') : (isAr ? 'تم التسليم' : 'Completed')}
               </button>
+              
+              <button 
+                onClick={() => {
+                  setEditingOrderId(activeTicket.id);
+                  setShowTicketModal(false);
+                  if (activeTicket.category === 'traditional') {
+                    setNewTradOrder({
+                      client: activeTicket.client, phone: activeTicket.phone, type: activeTicket.type, price: String(activeTicket.price), avance: String(activeTicket.avance || 0),
+                      measurements: activeTicket.measurements || { shoulders: '', chest: '', waist: '', hips: '', sleeves: '', armhole: '', bicep: '', wrist: '', length: '', bottomWidth: '' }
+                    });
+                    setShowTraditionalModal(true);
+                  } else {
+                    setNewOrder({
+                      client: activeTicket.client, phone: activeTicket.phone, type: activeTicket.type, price: String(activeTicket.price), notes: ''
+                    });
+                    setShowOrderModal(true);
+                  }
+                }}
+                className="py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
+              >
+                <Pencil className="w-4 h-4" />
+                {isAr ? 'تعديل' : 'Edit'}
+              </button>
+
               <button 
                 onClick={() => sendWhatsApp(activeTicket)}
                 className="py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
               >
-                <MessageCircle className="w-5 h-5" />
-                WhatsApp
+                <MessageCircle className="w-4 h-4" />
               </button>
               
-              <button 
-                onClick={() => setShowTicketModal(false)}
-                className="py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-100 transition-colors"
-              >
-                إغلاق
-              </button>
               <button 
                 onClick={handlePrint}
                 className="py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
               >
-                <Printer className="w-5 h-5" />
-                طباعة
+                <Printer className="w-4 h-4" />
+              </button>
+
+              <button 
+                onClick={() => setShowTicketModal(false)}
+                className="py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
