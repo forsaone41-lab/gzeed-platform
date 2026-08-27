@@ -419,15 +419,15 @@ export default function TailorDashboard() {
       {/* NEW ORDER MODAL */}
       {showOrderModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:hidden">
-          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
               <h2 className="text-xl font-black text-slate-800">{isAr ? 'إضافة طلب جديد' : 'Add New Order'}</h2>
               <button onClick={() => setShowOrderModal(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <form onSubmit={handleCreateOrder} className="p-6 space-y-5">
+            <form onSubmit={handleCreateOrder} className="p-6 space-y-5 overflow-y-auto">
               {/* Photo Upload Placeholder */}
               <div className="w-full h-24 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-400 hover:bg-slate-100 hover:border-indigo-300 transition-colors cursor-pointer">
                 <Camera className="w-6 h-6 mb-1 text-indigo-400" />
@@ -486,9 +486,9 @@ export default function TailorDashboard() {
 
       {/* NEW TRADITIONAL ORDER MODAL (BELDI) */}
       {showTraditionalModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:hidden overflow-y-auto">
-          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 my-8">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white/90 backdrop-blur z-10">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:hidden">
+          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
               <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
                 <Ruler className="w-6 h-6 text-indigo-600" />
                 {isAr ? 'طلب خياطة تقليدية' : 'Traditional Tailoring'}
@@ -498,7 +498,7 @@ export default function TailorDashboard() {
               </button>
             </div>
             
-            <form onSubmit={handleCreateTradOrder} className="p-6 space-y-6">
+            <form onSubmit={handleCreateTradOrder} className="p-6 space-y-6 overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-2">{isAr ? 'الزبون' : 'Client'}</label>
