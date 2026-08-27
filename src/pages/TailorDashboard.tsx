@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { Scanner } from '@yudiel/react-qr-scanner';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function TailorDashboard() {
   const { isAr } = useLang();
@@ -286,29 +287,10 @@ export default function TailorDashboard() {
                 <span className="font-black text-lg text-slate-900">{activeTicket.price} DH</span>
               </div>
 
-              {/* Barcode Mock */}
+              {/* Scannable QR Code */}
               <div className="mt-8 text-center pt-4">
-                <div className="flex justify-center mb-2 opacity-80">
-                   {/* Using SVG to mock a real barcode look */}
-                   <svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
-                     <rect x="10" y="0" width="4" height="60" fill="black" />
-                     <rect x="18" y="0" width="8" height="60" fill="black" />
-                     <rect x="30" y="0" width="2" height="60" fill="black" />
-                     <rect x="36" y="0" width="12" height="60" fill="black" />
-                     <rect x="52" y="0" width="4" height="60" fill="black" />
-                     <rect x="60" y="0" width="2" height="60" fill="black" />
-                     <rect x="66" y="0" width="10" height="60" fill="black" />
-                     <rect x="80" y="0" width="6" height="60" fill="black" />
-                     <rect x="90" y="0" width="14" height="60" fill="black" />
-                     <rect x="108" y="0" width="4" height="60" fill="black" />
-                     <rect x="116" y="0" width="8" height="60" fill="black" />
-                     <rect x="128" y="0" width="2" height="60" fill="black" />
-                     <rect x="134" y="0" width="10" height="60" fill="black" />
-                     <rect x="148" y="0" width="6" height="60" fill="black" />
-                     <rect x="158" y="0" width="4" height="60" fill="black" />
-                     <rect x="166" y="0" width="12" height="60" fill="black" />
-                     <rect x="182" y="0" width="8" height="60" fill="black" />
-                   </svg>
+                <div className="flex justify-center mb-2">
+                   <QRCodeSVG value={activeTicket.ticketId} size={100} level="M" />
                 </div>
                 <span className="text-xs font-bold tracking-[0.3em] text-slate-500">{activeTicket.ticketId}</span>
               </div>
