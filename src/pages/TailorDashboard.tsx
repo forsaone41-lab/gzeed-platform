@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag, Wallet, MinusCircle, ArrowRight, Tags } from 'lucide-react';
+import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag, Wallet, MinusCircle, ArrowRight, Tags, MessageCircle } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { QRCodeSVG } from 'qrcode.react';
@@ -99,6 +99,30 @@ export default function TailorDashboard() {
         alert(isAr ? 'لم يتم العثور على هذا الطلب!' : 'Order not found!');
       }
     }
+  };
+
+  const sendWhatsApp = (order: any) => {
+    if (!order.phone) {
+      alert(isAr ? 'لا يوجد رقم هاتف مسجل لهذا الزبون' : 'No phone number for this client');
+      return;
+    }
+    
+    let phone = order.phone.replace(/\s+/g, '');
+    if (phone.startsWith('0')) {
+      phone = '212' + phone.substring(1);
+    } else if (phone.startsWith('+')) {
+      phone = phone.substring(1);
+    }
+    
+    let message = '';
+    if (order.status === 'completed') {
+      message = `مرحبا ${order.client}، 👋\nالبياسة ديالك (${order.type}) راهي واجدة تقدر تجي تاخدها من BEYA CREATIVE.\n\n🏷️ الثمن: ${order.price} درهم.\nمرحبا بك في أي وقت!`;
+    } else {
+      message = `مرحبا ${order.client}، 👋\nتم تسجيل طلبك (${order.type}) بنجاح في BEYA CREATIVE.\n\n🧾 رقم الطلب: ${order.ticketId}\n💰 الثمن: ${order.price} درهم.\n\nغادي نعلموك فاش توجد، شكرا لك!`;
+    }
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -274,9 +298,14 @@ export default function TailorDashboard() {
                   <div className="font-black text-xl text-slate-800">
                     {order.price} <span className="text-sm text-slate-400">MAD</span>
                   </div>
-                  <button className="text-slate-400 hover:text-indigo-600 transition-colors">
-                    <Barcode className="w-6 h-6" />
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={(e) => { e.stopPropagation(); sendWhatsApp(order); }} className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors" title="Send WhatsApp">
+                      <MessageCircle className="w-5 h-5" />
+                    </button>
+                    <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+                      <Barcode className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -417,7 +446,7 @@ export default function TailorDashboard() {
             </div>
 
             {/* Actions */}
-            <div className="p-4 bg-slate-50 flex gap-3 print:hidden border-t border-slate-100">
+            <div className="p-4 bg-slate-50 grid grid-cols-2 gap-3 print:hidden border-t border-slate-100">
               <button 
                 onClick={() => {
                   if (activeTicket.status === 'pending') {
@@ -425,20 +454,28 @@ export default function TailorDashboard() {
                     setActiveTicket({...activeTicket, status: 'completed'});
                   }
                 }}
-                className={`flex-1 py-3 border rounded-xl font-bold transition-colors ${activeTicket.status === 'pending' ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' : 'bg-slate-200 text-slate-500 border-slate-200 cursor-not-allowed'}`}
+                className={`py-3 border rounded-xl font-bold transition-colors ${activeTicket.status === 'pending' ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' : 'bg-slate-200 text-slate-500 border-slate-200 cursor-not-allowed'}`}
                 disabled={activeTicket.status === 'completed'}
               >
                 {activeTicket.status === 'pending' ? (isAr ? 'تأكيد التسليم' : 'Mark as Done') : (isAr ? 'تم التسليم' : 'Completed')}
               </button>
               <button 
+                onClick={() => sendWhatsApp(activeTicket)}
+                className="py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
+              >
+                <MessageCircle className="w-5 h-5" />
+                WhatsApp
+              </button>
+              
+              <button 
                 onClick={() => setShowTicketModal(false)}
-                className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-100 transition-colors"
+                className="py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-100 transition-colors"
               >
                 إغلاق
               </button>
               <button 
                 onClick={handlePrint}
-                className="flex-1 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
+                className="py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
               >
                 <Printer className="w-5 h-5" />
                 طباعة
