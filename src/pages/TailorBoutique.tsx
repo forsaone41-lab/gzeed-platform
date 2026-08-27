@@ -3,14 +3,17 @@ import { ShoppingBag, Ruler, Camera, ChevronRight, CheckCircle, Upload, Shopping
 import { useLang } from '../contexts/LangContext';
 
 const MOCK_PRODUCTS = [
-  { id: 1, name: 'جلابة مخزنية بخياطة المعلم', price: 650, image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&q=80&w=1000', rating: 4.8 },
-  { id: 2, name: 'قفطان عصري خفيف', price: 800, image: 'https://images.unsplash.com/photo-1583391733958-d15fa899ddca?auto=format&fit=crop&q=80&w=1000', rating: 4.9 },
-  { id: 3, name: 'تكشيطة للعرائس', price: 2500, image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=1000', rating: 5.0 },
+  { id: 1, category: 'جلابة', name: 'جلابة مخزنية بخياطة المعلم', price: 650, image: 'https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?auto=format&fit=crop&q=80&w=1000', rating: 4.8 },
+  { id: 2, category: 'قفطان', name: 'قفطان عصري خفيف', price: 800, image: 'https://images.unsplash.com/photo-1583391733958-d15fa899ddca?auto=format&fit=crop&q=80&w=1000', rating: 4.9 },
+  { id: 3, category: 'تكشيطة', name: 'تكشيطة للعرائس', price: 2500, image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=1000', rating: 5.0 },
+  { id: 4, category: 'جلابة', name: 'جلابة شتوية قفال', price: 750, image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&q=80&w=1000', rating: 4.7 },
+  { id: 5, category: 'قفطان', name: 'قفطان جوهرة', price: 1200, image: 'https://images.unsplash.com/photo-1550614000-4b95dd2449a5?auto=format&fit=crop&q=80&w=1000', rating: 4.9 },
 ];
 
 export default function TailorBoutique() {
   const { isAr } = useLang();
   const [activeTab, setActiveTab] = useState<'ready' | 'custom'>('ready');
+  const [selectedCategory, setSelectedCategory] = useState<string>('الكل');
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
@@ -86,18 +89,34 @@ export default function TailorBoutique() {
         {/* READY TO WEAR STORE */}
         {activeTab === 'ready' && (
           <div>
-            <div className="flex justify-between items-end mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
               <div>
                 <h3 className="text-2xl font-black text-slate-900">{isAr ? 'أحدث الموديلات' : 'Latest Arrivals'}</h3>
                 <p className="text-slate-500 mt-1">{isAr ? 'متوفرة بمقاسات M, L, XL' : 'Available in standard sizes'}</p>
               </div>
+              
+              {/* Filter Tabs */}
+              <div className="flex bg-slate-100 p-1.5 rounded-2xl overflow-x-auto w-full md:w-auto">
+                {['الكل', 'جلابة', 'قفطان', 'تكشيطة'].map(cat => (
+                  <button 
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'}`}
+                  >
+                    {cat === 'الكل' && !isAr ? 'All' : cat === 'جلابة' && !isAr ? 'Djellaba' : cat === 'قفطان' && !isAr ? 'Caftan' : cat === 'تكشيطة' && !isAr ? 'Tekchita' : cat}
+                  </button>
+                ))}
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {MOCK_PRODUCTS.map(product => (
+              {MOCK_PRODUCTS.filter(p => selectedCategory === 'الكل' || p.category === selectedCategory).map(product => (
                 <div key={product.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-xl transition-all group cursor-pointer" onClick={() => openProduct(product)}>
                   <div className="h-80 overflow-hidden relative">
                     <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute top-4 right-4 bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                      {product.category}
+                    </div>
                     <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm">
                       <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                       {product.rating}
