@@ -578,9 +578,8 @@ export default function TailorDashboard() {
                     <input type="number" value={newTradOrder.measurements.bottomWidth} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, bottomWidth: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
                   </div>
                 </div>
-                </div>
-                </div>
               </div>
+            </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
