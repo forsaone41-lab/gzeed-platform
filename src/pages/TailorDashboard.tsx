@@ -36,7 +36,7 @@ export default function TailorDashboard() {
   const [orders, setOrders] = useState([
     { id: 1, ticketId: 'ORD-8932', client: 'محمد', phone: '0612345678', type: 'تقصير سروال', price: 30, category: 'retouche', status: 'completed' },
     { id: 2, ticketId: 'ORD-8933', client: 'فاطمة', phone: '0698765432', type: 'تضييق فستان', price: 70, category: 'retouche', status: 'pending' },
-    { id: 3, ticketId: 'TRD-1024', client: 'ليلى', phone: '0655443322', type: 'جلابة مخزنية', price: 600, avance: 200, category: 'traditional', status: 'pending', measurements: { length: 135, chest: 28, shoulders: 40, sleeves: 58 } },
+    { id: 3, ticketId: 'TRD-1024', client: 'ليلى', phone: '0655443322', type: 'جلابة مخزنية', price: 600, avance: 200, category: 'traditional', status: 'pending', measurements: { length: 135, chest: 28, shoulders: 40, sleeves: 58, waist: 26, hips: 30, armhole: 24, bicep: 18, wrist: 14, bottomWidth: 40 } },
   ]);
 
   // Modal States
@@ -67,7 +67,11 @@ export default function TailorDashboard() {
   // New Traditional Order Form State
   const [newTradOrder, setNewTradOrder] = useState({
     client: '', phone: '', type: '', price: '', avance: '', 
-    measurements: { length: '', chest: '', shoulders: '', sleeves: '' }
+    measurements: { 
+      shoulders: '', chest: '', waist: '', hips: '', 
+      sleeves: '', armhole: '', bicep: '', wrist: '', 
+      length: '', bottomWidth: '' 
+    }
   });
 
   const progress = Math.min((actualRevenue / dailyTarget) * 100, 100);
@@ -110,7 +114,10 @@ export default function TailorDashboard() {
     setOrders([orderToSave, ...orders]);
     setActualRevenue(prev => prev + orderToSave.avance);
     
-    setNewTradOrder({ client: '', phone: '', type: '', price: '', avance: '', measurements: { length: '', chest: '', shoulders: '', sleeves: '' } });
+    setNewTradOrder({ 
+      client: '', phone: '', type: '', price: '', avance: '', 
+      measurements: { shoulders: '', chest: '', waist: '', hips: '', sleeves: '', armhole: '', bicep: '', wrist: '', length: '', bottomWidth: '' } 
+    });
     setShowTraditionalModal(false);
     setActiveTicket(orderToSave);
     setShowTicketModal(true);
@@ -493,24 +500,51 @@ export default function TailorDashboard() {
 
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <h3 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
-                  <Ruler className="w-4 h-4" /> {isAr ? 'القياسات (سنتيمتر)' : 'Measurements (cm)'}
+                  <Ruler className="w-4 h-4" /> {isAr ? 'القياسات المفصلة (سنتيمتر)' : 'Detailed Measurements (cm)'}
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {/* Row 1 */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">{isAr ? 'الكتاف' : 'Shoulders'}</label>
-                    <input type="number" value={newTradOrder.measurements.shoulders} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, shoulders: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-center font-bold" />
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'الكتاف' : 'Shoulders'}</label>
+                    <input type="number" value={newTradOrder.measurements.shoulders} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, shoulders: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">{isAr ? 'الصدر' : 'Chest'}</label>
-                    <input type="number" value={newTradOrder.measurements.chest} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, chest: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-center font-bold" />
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'الصدر' : 'Chest'}</label>
+                    <input type="number" value={newTradOrder.measurements.chest} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, chest: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">{isAr ? 'الكمام' : 'Sleeves'}</label>
-                    <input type="number" value={newTradOrder.measurements.sleeves} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, sleeves: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-center font-bold" />
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'الحزام' : 'Waist'}</label>
+                    <input type="number" value={newTradOrder.measurements.waist} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, waist: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">{isAr ? 'الطول' : 'Length'}</label>
-                    <input type="number" value={newTradOrder.measurements.length} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, length: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-center font-bold" />
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'الحوض (Bassin)' : 'Hips'}</label>
+                    <input type="number" value={newTradOrder.measurements.hips} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, hips: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'الطول الكلي' : 'Length'}</label>
+                    <input type="number" value={newTradOrder.measurements.length} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, length: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
+                  </div>
+                  
+                  {/* Row 2 */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'الكمام' : 'Sleeves'}</label>
+                    <input type="number" value={newTradOrder.measurements.sleeves} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, sleeves: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'التركيز' : 'Armhole'}</label>
+                    <input type="number" value={newTradOrder.measurements.armhole} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, armhole: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'الذراع' : 'Bicep'}</label>
+                    <input type="number" value={newTradOrder.measurements.bicep} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, bicep: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'فم الكم' : 'Wrist'}</label>
+                    <input type="number" value={newTradOrder.measurements.wrist} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, wrist: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'الجلايل' : 'Évasement'}</label>
+                    <input type="number" value={newTradOrder.measurements.bottomWidth} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, bottomWidth: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
                   </div>
                 </div>
               </div>
@@ -579,11 +613,18 @@ export default function TailorDashboard() {
                     <span className="font-bold text-rose-600">{activeTicket.price - activeTicket.avance} DH</span>
                   </div>
                   {activeTicket.measurements && (
-                    <div className="mt-3 pt-3 border-t border-dashed border-slate-200 grid grid-cols-4 gap-2 text-center text-xs">
-                      <div><div className="text-slate-400">الكتاف</div><div className="font-bold">{activeTicket.measurements.shoulders}</div></div>
-                      <div><div className="text-slate-400">الصدر</div><div className="font-bold">{activeTicket.measurements.chest}</div></div>
-                      <div><div className="text-slate-400">الكمام</div><div className="font-bold">{activeTicket.measurements.sleeves}</div></div>
-                      <div><div className="text-slate-400">الطول</div><div className="font-bold">{activeTicket.measurements.length}</div></div>
+                    <div className="mt-3 pt-3 border-t border-dashed border-slate-200 grid grid-cols-5 gap-2 text-center text-[10px]">
+                      <div><div className="text-slate-400">الكتاف</div><div className="font-bold text-sm">{activeTicket.measurements.shoulders || '-'}</div></div>
+                      <div><div className="text-slate-400">الصدر</div><div className="font-bold text-sm">{activeTicket.measurements.chest || '-'}</div></div>
+                      <div><div className="text-slate-400">الحزام</div><div className="font-bold text-sm">{activeTicket.measurements.waist || '-'}</div></div>
+                      <div><div className="text-slate-400">الحوض</div><div className="font-bold text-sm">{activeTicket.measurements.hips || '-'}</div></div>
+                      <div><div className="text-slate-400">الطول</div><div className="font-bold text-sm">{activeTicket.measurements.length || '-'}</div></div>
+                      
+                      <div><div className="text-slate-400">الكمام</div><div className="font-bold text-sm">{activeTicket.measurements.sleeves || '-'}</div></div>
+                      <div><div className="text-slate-400">التركيز</div><div className="font-bold text-sm">{activeTicket.measurements.armhole || '-'}</div></div>
+                      <div><div className="text-slate-400">الذراع</div><div className="font-bold text-sm">{activeTicket.measurements.bicep || '-'}</div></div>
+                      <div><div className="text-slate-400">فم الكم</div><div className="font-bold text-sm">{activeTicket.measurements.wrist || '-'}</div></div>
+                      <div><div className="text-slate-400">الجلايل</div><div className="font-bold text-sm">{activeTicket.measurements.bottomWidth || '-'}</div></div>
                     </div>
                   )}
                 </div>
