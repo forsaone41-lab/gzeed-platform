@@ -68,6 +68,8 @@ const WelcomeGZeed    = lazy(() => import('./pages/WelcomeGZeed'));
 const ProjectSelection = lazy(() => import('./pages/ProjectSelection'));
 const GZeedBuilder    = lazy(() => import('./pages/GZeedBuilder'));
 const TailorDashboard = lazy(() => import('./pages/TailorDashboard'));
+const TailorAuth      = lazy(() => import('./pages/TailorAuth'));
+const TailorBoutique  = lazy(() => import('./pages/TailorBoutique'));
 const GZeedLogin      = lazy(() => import('./pages/GZeedLogin'));
 const AISpace         = lazy(() => import('./pages/AISpace'));
 const Achats          = lazy(() => import('./pages/Achats'));
@@ -824,6 +826,8 @@ function AppContent() {
           </Suspense>
         } />
         <Route path="/tailor-dashboard" element={<Suspense fallback={<PageLoader />}><TailorDashboard /></Suspense>} />
+        <Route path="/tailor-login" element={<Suspense fallback={<PageLoader />}><TailorAuth /></Suspense>} />
+        <Route path="/tailor-boutique" element={<Suspense fallback={<PageLoader />}><TailorBoutique /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </>
@@ -968,6 +972,8 @@ function AppContent() {
       <Route path="/saas-admin" element={<Suspense fallback={<PageLoader />}><SaaSAdminPage /></Suspense>} />
       <Route path="/godmode" element={<Suspense fallback={<PageLoader />}><SaaSAdminPage /></Suspense>} />
       <Route path="/tailor-dashboard" element={<Suspense fallback={<PageLoader />}><TailorDashboard /></Suspense>} />
+      <Route path="/tailor-login" element={<Suspense fallback={<PageLoader />}><TailorAuth /></Suspense>} />
+      <Route path="/tailor-boutique" element={<Suspense fallback={<PageLoader />}><TailorBoutique /></Suspense>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </PlatformSettingsProvider>
