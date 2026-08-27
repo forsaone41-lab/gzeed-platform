@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
+import { Scanner } from '@yudiel/react-qr-scanner';
 
 export default function TailorDashboard() {
   const { isAr } = useLang();
@@ -18,6 +19,7 @@ export default function TailorDashboard() {
   // Modal States
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const [activeTicket, setActiveTicket] = useState<any>(null);
 
   // New Order Form State
@@ -57,6 +59,20 @@ export default function TailorDashboard() {
     window.print();
   };
 
+  const handleScan = (detectedCodes: any[]) => {
+    if (detectedCodes && detectedCodes.length > 0) {
+      const result = detectedCodes[0].rawValue;
+      const foundOrder = orders.find(o => o.ticketId === result);
+      if (foundOrder) {
+        setActiveTicket(foundOrder);
+        setShowScanner(false);
+        setShowTicketModal(true);
+      } else {
+        alert(isAr ? 'لم يتم العثور على هذا الطلب!' : 'Order not found!');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-6 font-sans" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="max-w-6xl mx-auto space-y-6">
@@ -72,13 +88,22 @@ export default function TailorDashboard() {
               {isAr ? 'لوحة تحكم ذكية للطلبات وتتبع المداخيل' : 'Smart dashboard for orders and revenue'}
             </p>
           </div>
-          <button 
-            onClick={() => setShowOrderModal(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-indigo-600/20"
-          >
-            <Plus className="w-5 h-5" />
-            {isAr ? 'طلب جديد' : 'New Order'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowScanner(true)}
+              className="bg-slate-900 hover:bg-black text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-slate-900/20"
+            >
+              <QrCode className="w-5 h-5" />
+              {isAr ? 'سكان (Scan)' : 'Scan Ticket'}
+            </button>
+            <button 
+              onClick={() => setShowOrderModal(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-indigo-600/20"
+            >
+              <Plus className="w-5 h-5" />
+              {isAr ? 'طلب جديد' : 'New Order'}
+            </button>
+          </div>
         </div>
 
         {/* Financial Dashboard */}
@@ -292,6 +317,18 @@ export default function TailorDashboard() {
             {/* Actions */}
             <div className="p-4 bg-slate-50 flex gap-3 print:hidden border-t border-slate-100">
               <button 
+                onClick={() => {
+                  if (activeTicket.status === 'pending') {
+                    setOrders(orders.map(o => o.id === activeTicket.id ? {...o, status: 'completed'} : o));
+                    setActiveTicket({...activeTicket, status: 'completed'});
+                  }
+                }}
+                className={`flex-1 py-3 border rounded-xl font-bold transition-colors ${activeTicket.status === 'pending' ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' : 'bg-slate-200 text-slate-500 border-slate-200 cursor-not-allowed'}`}
+                disabled={activeTicket.status === 'completed'}
+              >
+                {activeTicket.status === 'pending' ? (isAr ? 'تأكيد التسليم' : 'Mark as Done') : (isAr ? 'تم التسليم' : 'Completed')}
+              </button>
+              <button 
                 onClick={() => setShowTicketModal(false)}
                 className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-100 transition-colors"
               >
@@ -302,8 +339,36 @@ export default function TailorDashboard() {
                 className="flex-1 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
               >
                 <Printer className="w-5 h-5" />
-                طباعة التذكرة
+                طباعة
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SCANNER MODAL */}
+      {showScanner && (
+        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 print:hidden">
+          <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl relative">
+            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white z-10 relative">
+              <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                <QrCode className="w-6 h-6 text-indigo-600" />
+                {isAr ? 'مسح التذكرة' : 'Scan Ticket'}
+              </h2>
+              <button onClick={() => setShowScanner(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="relative bg-black w-full aspect-square flex items-center justify-center">
+              <Scanner 
+                onScan={handleScan}
+                formats={['qr_code', 'code_128', 'ean_13']}
+                styles={{ container: { width: '100%', height: '100%' } }}
+              />
+              <div className="absolute inset-0 border-[6px] border-indigo-500/50 rounded-2xl m-8 pointer-events-none"></div>
+            </div>
+            <div className="p-4 bg-slate-50 text-center text-sm font-bold text-slate-500">
+              {isAr ? 'قم بتوجيه الكاميرا نحو الكود الموجود في التذكرة' : 'Point your camera at the ticket barcode'}
             </div>
           </div>
         </div>
