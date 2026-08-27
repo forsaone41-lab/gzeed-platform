@@ -1,48 +1,88 @@
 import React, { useState } from 'react';
-import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock } from 'lucide-react';
-import { useLang } from '../contexts/LangContext'; // Assuming this exists in your project
+import { Scissors, TrendingUp, DollarSign, Target, Plus, CheckCircle, Clock, Camera, Barcode, QrCode, Printer, X, User, Phone, Tag } from 'lucide-react';
+import { useLang } from '../contexts/LangContext';
 
 export default function TailorDashboard() {
   const { isAr } = useLang();
   
   // Financial Data State
-  const [dailyTarget, setDailyTarget] = useState(500); // 500 DH daily target
-  const [actualRevenue, setActualRevenue] = useState(250); // Today's current revenue
+  const [dailyTarget, setDailyTarget] = useState(500);
+  const [actualRevenue, setActualRevenue] = useState(250);
   
   // Orders State
   const [orders, setOrders] = useState([
-    { id: 1, type: 'تقصير سروال', price: 30, status: 'completed' },
-    { id: 2, type: 'تضييق فستان', price: 70, status: 'pending' },
-    { id: 3, type: 'خياطة أزرار', price: 20, status: 'completed' },
-    { id: 4, type: 'روتوش سترة', price: 130, status: 'completed' },
+    { id: 1, ticketId: 'ORD-8932', client: 'محمد', phone: '0612345678', type: 'تقصير سروال', price: 30, status: 'completed' },
+    { id: 2, ticketId: 'ORD-8933', client: 'فاطمة', phone: '0698765432', type: 'تضييق فستان', price: 70, status: 'pending' },
   ]);
+
+  // Modal States
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [activeTicket, setActiveTicket] = useState<any>(null);
+
+  // New Order Form State
+  const [newOrder, setNewOrder] = useState({
+    client: '',
+    phone: '',
+    type: '',
+    price: '',
+    notes: ''
+  });
 
   const progress = Math.min((actualRevenue / dailyTarget) * 100, 100);
   const isSuccess = actualRevenue >= dailyTarget;
+
+  const handleCreateOrder = (e: React.FormEvent) => {
+    e.preventDefault();
+    const ticketId = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
+    const orderToSave = {
+      id: orders.length + 1,
+      ticketId,
+      ...newOrder,
+      price: Number(newOrder.price),
+      status: 'pending'
+    };
+    
+    setOrders([orderToSave, ...orders]);
+    setActualRevenue(prev => prev + orderToSave.price);
+    
+    // Reset form and show ticket
+    setNewOrder({ client: '', phone: '', type: '', price: '', notes: '' });
+    setShowOrderModal(false);
+    setActiveTicket(orderToSave);
+    setShowTicketModal(true);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 font-sans" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header */}
-        <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:hidden">
           <div>
             <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
               <Scissors className="w-6 h-6 text-indigo-600" />
-              {isAr ? 'لوحة تحكم الخياطة والروتوش' : 'Tailor & Retouche Dashboard'}
+              {isAr ? 'نظام تسيير الخياطة والروتوش' : 'Tailor & Retouche POS'}
             </h1>
             <p className="text-slate-500 text-sm mt-1">
-              {isAr ? 'تتبع الطلبات والدراسة المالية اليومية' : 'Track orders and daily financial targets'}
+              {isAr ? 'لوحة تحكم ذكية للطلبات وتتبع المداخيل' : 'Smart dashboard for orders and revenue'}
             </p>
           </div>
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors">
+          <button 
+            onClick={() => setShowOrderModal(true)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-indigo-600/20"
+          >
             <Plus className="w-5 h-5" />
             {isAr ? 'طلب جديد' : 'New Order'}
           </button>
         </div>
 
-        {/* Financial Dashboard (دراسة الجدوى اليومية) */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        {/* Financial Dashboard */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:hidden">
           <div className="flex items-center gap-2 mb-6">
             <TrendingUp className="w-6 h-6 text-emerald-500" />
             <h2 className="text-xl font-bold text-slate-800">
@@ -60,7 +100,7 @@ export default function TailorDashboard() {
                 type="number" 
                 value={dailyTarget}
                 onChange={(e) => setDailyTarget(Number(e.target.value))}
-                className="text-3xl font-black text-slate-800 bg-transparent border-none p-0 focus:ring-0 w-full"
+                className="text-3xl font-black text-slate-800 bg-transparent border-none p-0 focus:ring-0 w-full outline-none"
               />
             </div>
             
@@ -89,7 +129,6 @@ export default function TailorDashboard() {
             </div>
           </div>
 
-          {/* Progress Bar */}
           <div>
             <div className="flex justify-between text-sm font-bold mb-2">
               <span className="text-slate-500">{isAr ? 'نسبة تحقيق الهدف' : 'Target Progress'}</span>
@@ -105,22 +144,30 @@ export default function TailorDashboard() {
         </div>
 
         {/* Orders List */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:hidden">
           <h2 className="text-xl font-bold text-slate-800 mb-6">{isAr ? 'طلبات اليوم' : 'Today\'s Orders'}</h2>
           <div className="space-y-3">
             {orders.map(order => (
-              <div key={order.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+              <div key={order.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200 cursor-pointer" onClick={() => { setActiveTicket(order); setShowTicketModal(true); }}>
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${order.status === 'completed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
-                    {order.status === 'completed' ? <CheckCircle className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${order.status === 'completed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                    {order.status === 'completed' ? <CheckCircle className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800">{order.type}</h3>
-                    <p className="text-xs text-slate-500">{order.status === 'completed' ? (isAr ? 'مكتمل' : 'Completed') : (isAr ? 'قيد الإنجاز' : 'Pending')}</p>
+                    <h3 className="font-bold text-slate-800 text-lg">{order.client} <span className="text-slate-400 text-sm font-normal mx-2">| {order.ticketId}</span></h3>
+                    <p className="text-sm font-medium text-slate-600">{order.type}</p>
                   </div>
                 </div>
-                <div className="font-black text-lg text-slate-700">
-                  {order.price} <span className="text-sm">MAD</span>
+                <div className="mt-4 md:mt-0 flex items-center gap-6">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {order.status === 'completed' ? (isAr ? 'مكتمل' : 'Completed') : (isAr ? 'قيد الإنجاز' : 'Pending')}
+                  </span>
+                  <div className="font-black text-xl text-slate-800">
+                    {order.price} <span className="text-sm text-slate-400">MAD</span>
+                  </div>
+                  <button className="text-slate-400 hover:text-indigo-600 transition-colors">
+                    <Barcode className="w-6 h-6" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -128,6 +175,140 @@ export default function TailorDashboard() {
         </div>
 
       </div>
+
+      {/* NEW ORDER MODAL */}
+      {showOrderModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:hidden">
+          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+              <h2 className="text-xl font-black text-slate-800">{isAr ? 'إضافة طلب جديد' : 'Add New Order'}</h2>
+              <button onClick={() => setShowOrderModal(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateOrder} className="p-6 space-y-5">
+              {/* Photo Upload Placeholder */}
+              <div className="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-400 hover:bg-slate-100 hover:border-indigo-300 transition-colors cursor-pointer">
+                <Camera className="w-8 h-8 mb-2 text-indigo-400" />
+                <span className="font-medium text-sm">{isAr ? 'التقط صورة للقطعة (اختياري)' : 'Take a photo of the item'}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2"><User className="w-4 h-4"/> {isAr ? 'اسم الزبون' : 'Client Name'}</label>
+                  <input required value={newOrder.client} onChange={e => setNewOrder({...newOrder, client: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" placeholder={isAr ? "مثال: يوسف" : "e.g. Youssef"} />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2"><Phone className="w-4 h-4"/> {isAr ? 'رقم الهاتف' : 'Phone'}</label>
+                  <input required value={newOrder.phone} onChange={e => setNewOrder({...newOrder, phone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" placeholder="06..." dir="ltr" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2"><Scissors className="w-4 h-4"/> {isAr ? 'نوع الخدمة' : 'Service Type'}</label>
+                  <input required value={newOrder.type} onChange={e => setNewOrder({...newOrder, type: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" placeholder={isAr ? "مثال: تقصير سروال جينز" : "e.g. Shorten jeans"} />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2"><Tag className="w-4 h-4"/> {isAr ? 'الثمن' : 'Price'}</label>
+                  <div className="relative">
+                    <input required type="number" value={newOrder.price} onChange={e => setNewOrder({...newOrder, price: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-black text-slate-800" placeholder="0" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">DH</span>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-lg transition-all shadow-lg shadow-indigo-600/20 mt-4">
+                {isAr ? 'تأكيد واستخراج التذكرة' : 'Confirm & Generate Ticket'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TICKET MODAL (Can be printed) */}
+      {showTicketModal && activeTicket && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:bg-white print:p-0">
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 print:shadow-none print:max-w-none print:w-80 print:mx-auto">
+            
+            {/* Ticket Header */}
+            <div className="p-6 text-center border-b border-dashed border-slate-300 bg-slate-50 print:bg-white">
+              <Scissors className="w-8 h-8 text-slate-800 mx-auto mb-2" />
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">ATELIER GZEED</h2>
+              <p className="text-slate-500 text-xs mt-1">الخياطة والروتوش السريع</p>
+            </div>
+
+            {/* Ticket Body */}
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500">رقم الطلب</span>
+                <span className="font-black text-slate-900">{activeTicket.ticketId}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500">الزبون</span>
+                <span className="font-bold text-slate-900">{activeTicket.client}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500">الهاتف</span>
+                <span className="font-bold text-slate-900" dir="ltr">{activeTicket.phone}</span>
+              </div>
+              
+              <div className="h-px w-full bg-dashed border-t border-dashed border-slate-300 my-4"></div>
+              
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-slate-800">{activeTicket.type}</span>
+                <span className="font-black text-lg text-slate-900">{activeTicket.price} DH</span>
+              </div>
+
+              {/* Barcode Mock */}
+              <div className="mt-8 text-center pt-4">
+                <div className="flex justify-center mb-2 opacity-80">
+                   {/* Using SVG to mock a real barcode look */}
+                   <svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+                     <rect x="10" y="0" width="4" height="60" fill="black" />
+                     <rect x="18" y="0" width="8" height="60" fill="black" />
+                     <rect x="30" y="0" width="2" height="60" fill="black" />
+                     <rect x="36" y="0" width="12" height="60" fill="black" />
+                     <rect x="52" y="0" width="4" height="60" fill="black" />
+                     <rect x="60" y="0" width="2" height="60" fill="black" />
+                     <rect x="66" y="0" width="10" height="60" fill="black" />
+                     <rect x="80" y="0" width="6" height="60" fill="black" />
+                     <rect x="90" y="0" width="14" height="60" fill="black" />
+                     <rect x="108" y="0" width="4" height="60" fill="black" />
+                     <rect x="116" y="0" width="8" height="60" fill="black" />
+                     <rect x="128" y="0" width="2" height="60" fill="black" />
+                     <rect x="134" y="0" width="10" height="60" fill="black" />
+                     <rect x="148" y="0" width="6" height="60" fill="black" />
+                     <rect x="158" y="0" width="4" height="60" fill="black" />
+                     <rect x="166" y="0" width="12" height="60" fill="black" />
+                     <rect x="182" y="0" width="8" height="60" fill="black" />
+                   </svg>
+                </div>
+                <span className="text-xs font-bold tracking-[0.3em] text-slate-500">{activeTicket.ticketId}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="p-4 bg-slate-50 flex gap-3 print:hidden border-t border-slate-100">
+              <button 
+                onClick={() => setShowTicketModal(false)}
+                className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-100 transition-colors"
+              >
+                إغلاق
+              </button>
+              <button 
+                onClick={handlePrint}
+                className="flex-1 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
+              >
+                <Printer className="w-5 h-5" />
+                طباعة التذكرة
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
