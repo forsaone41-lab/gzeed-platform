@@ -823,6 +823,7 @@ function AppContent() {
             <SaaSAdminPage />
           </Suspense>
         } />
+        <Route path="/tailor-dashboard" element={<Suspense fallback={<PageLoader />}><TailorDashboard /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </>
@@ -966,6 +967,7 @@ function AppContent() {
       <Route path="/store/:storeNameUrl" element={<div className="min-h-screen bg-white"><StoreBuilder isLiveStore={true} /></div>} />
       <Route path="/saas-admin" element={<Suspense fallback={<PageLoader />}><SaaSAdminPage /></Suspense>} />
       <Route path="/godmode" element={<Suspense fallback={<PageLoader />}><SaaSAdminPage /></Suspense>} />
+      <Route path="/tailor-dashboard" element={<Suspense fallback={<PageLoader />}><TailorDashboard /></Suspense>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </PlatformSettingsProvider>
