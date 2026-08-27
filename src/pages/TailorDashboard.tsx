@@ -13,6 +13,28 @@ const quickServices = [
   { name: 'روتوش سترة', price: 80 },
 ];
 
+const DressSketch = () => (
+  <svg viewBox="0 0 200 300" fill="none" stroke="currentColor" strokeWidth="2" className="w-32 h-48 md:w-full md:h-full text-indigo-200" preserveAspectRatio="xMidYMid meet">
+    <path d="M60 40 Q100 30 140 40" />
+    <path d="M60 40 L30 120 L45 125 L70 80" />
+    <path d="M140 40 L170 120 L155 125 L130 80" />
+    <path d="M70 80 Q85 110 80 140 Q70 200 50 280 L150 280 Q130 200 120 140 Q115 110 130 80" />
+    <path d="M90 40 C90 55 110 55 110 40" />
+    <g stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" className="text-indigo-400">
+      <line x1="60" y1="35" x2="140" y2="35" /> 
+      <line x1="75" y1="85" x2="125" y2="85" /> 
+      <line x1="80" y1="120" x2="120" y2="120" /> 
+      <line x1="75" y1="160" x2="125" y2="160" /> 
+      <line x1="100" y1="40" x2="100" y2="280" /> 
+      <line x1="60" y1="40" x2="35" y2="120" /> 
+    </g>
+    <circle cx="60" cy="40" r="3" fill="currentColor" className="text-indigo-600" />
+    <circle cx="140" cy="40" r="3" fill="currentColor" className="text-indigo-600" />
+    <circle cx="75" cy="85" r="3" fill="currentColor" className="text-indigo-600" />
+    <circle cx="125" cy="85" r="3" fill="currentColor" className="text-indigo-600" />
+  </svg>
+);
+
 export default function TailorDashboard() {
   const { isAr } = useLang();
   
@@ -498,11 +520,20 @@ export default function TailorDashboard() {
                 <input required value={newTradOrder.type} onChange={e => setNewTradOrder({...newTradOrder, type: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 font-medium" placeholder={isAr ? "نوع الخياطة والثوب" : "Details"} />
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                <h3 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
-                  <Ruler className="w-4 h-4" /> {isAr ? 'القياسات المفصلة (سنتيمتر)' : 'Detailed Measurements (cm)'}
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col md:flex-row gap-6">
+                
+                {/* 2D Sketch Reference */}
+                <div className="md:w-1/3 flex flex-col items-center justify-center bg-white rounded-xl border border-slate-200 p-4 relative shadow-inner">
+                  <DressSketch />
+                  <span className="absolute bottom-2 text-[10px] font-black tracking-widest text-slate-300">{isAr ? 'رسم تخطيطي 2D' : '2D TECH SKETCH'}</span>
+                </div>
+
+                {/* Measurements Form */}
+                <div className="md:w-2/3">
+                  <h3 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
+                    <Ruler className="w-4 h-4" /> {isAr ? 'القياسات المفصلة (سنتيمتر)' : 'Detailed Measurements (cm)'}
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {/* Row 1 */}
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'الكتاف' : 'Shoulders'}</label>
@@ -546,6 +577,8 @@ export default function TailorDashboard() {
                     <label className="block text-[10px] font-bold text-slate-500 mb-1">{isAr ? 'الجلايل' : 'Évasement'}</label>
                     <input type="number" value={newTradOrder.measurements.bottomWidth} onChange={e => setNewTradOrder({...newTradOrder, measurements: {...newTradOrder.measurements, bottomWidth: e.target.value}})} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 outline-none focus:border-indigo-500 text-center font-bold text-sm" />
                   </div>
+                </div>
+                </div>
                 </div>
               </div>
 
