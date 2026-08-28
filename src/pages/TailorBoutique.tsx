@@ -4,10 +4,10 @@ import { useLang } from '../contexts/LangContext';
 
 const MOCK_PRODUCTS = [
   { id: 1, category: 'جلابة', name: 'جلابة مخزنية بخياطة المعلم', price: 650, image: 'https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?auto=format&fit=crop&q=80&w=1000', rating: 4.8 },
-  { id: 2, category: 'قفطان', name: 'قفطان عصري خفيف', price: 800, image: 'https://images.unsplash.com/photo-1583391733958-d15fa899ddca?auto=format&fit=crop&q=80&w=1000', rating: 4.9 },
+  { id: 2, category: 'قفطان', name: 'قفطان عصري خفيف', price: 800, image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?auto=format&fit=crop&q=80&w=1000', rating: 4.9 },
   { id: 3, category: 'تكشيطة', name: 'تكشيطة للعرائس', price: 2500, image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=1000', rating: 5.0 },
-  { id: 4, category: 'جلابة', name: 'جلابة شتوية قفال', price: 750, image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&q=80&w=1000', rating: 4.7 },
-  { id: 5, category: 'قفطان', name: 'قفطان جوهرة', price: 1200, image: 'https://images.unsplash.com/photo-1550614000-4b95dd2449a5?auto=format&fit=crop&q=80&w=1000', rating: 4.9 },
+  { id: 4, category: 'جلابة', name: 'جلابة شتوية قفال', price: 750, image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&q=80&w=1000', rating: 4.7 },
+  { id: 5, category: 'قفطان', name: 'قفطان جوهرة', price: 1200, image: 'https://images.unsplash.com/photo-1612336307429-8a898d10e223?auto=format&fit=crop&q=80&w=1000', rating: 4.9 },
 ];
 
 export default function TailorBoutique() {
