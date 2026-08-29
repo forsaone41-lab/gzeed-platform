@@ -40,6 +40,7 @@ const THEMES = [
   // Normal (free) tier - only these 2 stay unlocked for every store
   { id: 'streetwear', name: 'Streetwear Pro', layout: 'hero-center', defaultColor: '#0f172a', defaultFont: 'font-sans', tier: 'free', previewImg: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop' },
   { id: 'minimalist', name: 'Minimalist', layout: 'split-screen', defaultColor: '#171717', defaultFont: 'font-serif', tier: 'free', previewImg: 'https://images.unsplash.com/photo-1489987707023-afc7f93c6508?q=80&w=800&auto=format&fit=crop' },
+  { id: 'uniform-store', name: 'Uniform Pro', layout: 'hero-center', defaultColor: '#4f46e5', defaultFont: 'font-sans', tier: 'free', previewImg: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=800&auto=format&fit=crop' },
   // PRO themes - locked behind the store's subscription_tier (admin-controlled, see stores.subscription_tier)
   { id: 'glamour-beauty', name: 'Glamour Beauty', layout: 'glamour-beauty', defaultColor: '#ec4899', defaultFont: 'font-serif', tier: 'pro', previewImg: 'https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=800&auto=format&fit=crop' },
   { id: 'abaya', name: 'Luxury Abaya', layout: 'elegant', defaultColor: '#b48a44', defaultFont: 'font-serif', tier: 'pro', previewImg: 'https://images.unsplash.com/photo-1589465885857-44edb59bbff2?q=80&w=800&auto=format&fit=crop' },
