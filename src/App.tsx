@@ -384,8 +384,8 @@ function AppContent() {
   }, [location.pathname]);
 
   const hostname = window.location.hostname;
-  // Always true in this repository since it's the dedicated GZeed platform (controls branding/copy only)
-  const isGZeed = true;
+  // GZeed SaaS platform should only load on gzeed.com domains or if forced
+  const isGZeed = hostname.includes('gzeed.com') || (hostname.includes('localhost') && localStorage.getItem('force_gzeed') === 'true');
   // isSaaSDomain must be based purely on hostname - NOT on isGZeed - otherwise every
   // hostname (including real tenant subdomains like foo.gzeed.com) is misclassified as
   // the main platform domain and live storefronts never render.
@@ -756,6 +756,30 @@ function AppContent() {
 
   // ?? Dedicated Merchant Portal (SaaS Dashboard)
   if (currentUser.role === 'merchant') {
+    if (!isGZeed) {
+      return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4" dir={isAr ? 'rtl' : 'ltr'}>
+          <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 max-w-md w-full text-center">
+            <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6 text-rose-600">
+              <LogOut className="w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 mb-4">{isAr ? 'حساب متجر (GZeed)' : 'Compte Marchand (GZeed)'}</h2>
+            <p className="text-slate-600 mb-8 font-medium">
+              {isAr 
+                ? 'أنت مسجل الدخول بحساب تاجر. للوصول إلى نظام إدارة BEYA، يرجى تسجيل الخروج والدخول بحساب الإدارة.' 
+                : 'Vous êtes connecté avec un compte marchand. Pour accéder à l\'ERP BEYA, veuillez vous déconnecter et utiliser un compte administrateur.'}
+            </p>
+            <a href="https://gzeed.com" className="block w-full py-3.5 bg-indigo-600 text-white font-bold rounded-xl mb-3 hover:bg-indigo-700 transition-colors">
+              {isAr ? 'الذهاب إلى منصة المتاجر (GZeed)' : 'Aller sur GZeed.com'}
+            </a>
+            <button onClick={handleLogout} className="w-full py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">
+              {isAr ? 'تسجيل الخروج (العودة للنظام)' : 'Déconnexion (Retour à l\'ERP)'}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <>
         {recoveryModal}
