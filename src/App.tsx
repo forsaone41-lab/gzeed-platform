@@ -636,6 +636,7 @@ function AppContent() {
         <Route path="/demo/city-rentals" element={<CityRentalsDemo />} />
         <Route path="/demo/ecommerce/abaya" element={<AbayaDemo />} />
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
+        <Route path="/demo/uniform-store" element={<UniformStoreDemo />} />
         <Route path="/store-signup" element={<Suspense fallback={<PageLoader />}><GZeedSignup /></Suspense>} />
         <Route path="/welcome" element={<Suspense fallback={<PageLoader />}><WelcomeGZeed /></Suspense>} />
         <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
@@ -950,7 +951,6 @@ function AppContent() {
         <Route path="/demo/tourism" element={<TourismDemo />} />
         <Route path="/demo/vacation-deals" element={<VacationDealsDemo />} />
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
-        <Route path="/demo/uniform-store" element={<UniformStoreDemo />} />
         <Route path="/partners" element={
           <Suspense fallback={<PageLoader />}>
             <Partners />
