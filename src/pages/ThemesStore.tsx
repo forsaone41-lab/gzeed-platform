@@ -6,6 +6,7 @@ import { useLang } from '../contexts/LangContext';
 const PUBLIC_THEMES = [
   { id: 'streetwear', name: 'Streetwear Pro', defaultColor: '#0f172a', tier: 'free', previewImg: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=800&auto=format&fit=crop' },
   { id: 'minimalist', name: 'Minimalist', defaultColor: '#171717', tier: 'free', previewImg: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop' },
+  { id: 'uniform-store', name: 'Uniform Pro', defaultColor: '#4f46e5', tier: 'free', previewImg: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=800&auto=format&fit=crop' },
   { id: 'abaya', name: 'Luxury Abaya', defaultColor: '#b48a44', tier: 'pro', previewImg: 'https://images.unsplash.com/photo-1589465885857-44edb59bbff2?q=80&w=800&auto=format&fit=crop' },
   { id: 'sportswear', name: 'Active Sport', defaultColor: '#84cc16', tier: 'pro', previewImg: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800&auto=format&fit=crop' },
   { id: 'eco', name: 'Eco Nature', defaultColor: '#4d7c0f', tier: 'pro', previewImg: 'https://images.unsplash.com/photo-1523381294911-8d3cead13475?q=80&w=800&auto=format&fit=crop' },

@@ -110,6 +110,7 @@ const ServiceProDemo = lazy(() => import('./pages/demos/ServiceProDemo'));
 const ApartmentDemo = lazy(() => import('./pages/demos/ApartmentDemo'));
 const BeautySalonDemo = lazy(() => import('./pages/demos/BeautySalonDemo'));
 const TraiteurDemo = lazy(() => import('./pages/demos/TraiteurDemo'));
+const UniformStoreDemo = lazy(() => import('./pages/demos/UniformStoreDemo'));
 const LogisticsDemo = lazy(() => import('./pages/demos/LogisticsDemo'));
 const CityRentalsDemo = lazy(() => import('./pages/demos/CityRentalsDemo'));
 const EcommerceDemo = lazy(() => import('./pages/demos/EcommerceDemo'));
@@ -949,6 +950,7 @@ function AppContent() {
         <Route path="/demo/tourism" element={<TourismDemo />} />
         <Route path="/demo/vacation-deals" element={<VacationDealsDemo />} />
         <Route path="/demo/ecommerce/:themeId" element={<EcommerceDemo />} />
+        <Route path="/demo/uniform-store" element={<UniformStoreDemo />} />
         <Route path="/partners" element={
           <Suspense fallback={<PageLoader />}>
             <Partners />

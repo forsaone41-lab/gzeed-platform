@@ -434,6 +434,7 @@ export default function GZeedDashboard() {
     if (id === "perfume") return "#/demo/ecommerce/luxury-perfume";
     if (id === "abaya") return "#/demo/ecommerce/abaya";
     if (id === "minimalist") return "#/demo/ecommerce/minimalist";
+    if (id === "uniform-store") return "#/demo/uniform-store";
     return `#/demo/ecommerce/${id}`;
   };
 
