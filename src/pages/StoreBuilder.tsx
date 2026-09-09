@@ -6218,7 +6218,7 @@ Return ONLY a raw JSON object (no markdown formatting, no backticks) with the fo
 
           {/* Featured Categories */}
           <div id="store-categories">
-          <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-24">
+          <div className="max-w-[1400px] mx-auto px-6 lg:px-12 pb-24 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(config?.featuredCategories && config.featuredCategories.length > 0 ? config.featuredCategories : [
                 { title: isAr ? 'سترات' : 'VESTES', image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&q=80&w=1000' },
