@@ -1,7 +1,7 @@
 import { HashRouter, Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
 import * as React from 'react';
 import { useState, useEffect, Component, ReactNode, lazy, Suspense } from 'react';
-import { Menu, Package, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Menu, Package, Lock, Eye, EyeOff, Loader2, LogOut } from 'lucide-react';
 import { supabase } from './supabase';
 import Sidebar from './components/Sidebar';
 import Calculator from './components/Tools/Calculator';
@@ -369,6 +369,7 @@ function AppContent() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [company, setCompany] = useState<CompanyProfile>(loadCompanyProfile());
   const location = useLocation();
+  const { isAr } = useLang();
 
   // Facebook Pixel tracking on route changes
   useEffect(() => {
@@ -385,7 +386,7 @@ function AppContent() {
 
   const hostname = window.location.hostname;
   // GZeed SaaS platform should only load on gzeed.com domains or if forced
-  const isGZeed = hostname.includes('gzeed.com') || (hostname.includes('localhost') && localStorage.getItem('force_gzeed') === 'true');
+  const isGZeed = hostname.includes('gzeed.com') || (hostname.includes('localhost') && localStorage.getItem('force_beya') !== 'true');
   // isSaaSDomain must be based purely on hostname - NOT on isGZeed - otherwise every
   // hostname (including real tenant subdomains like foo.gzeed.com) is misclassified as
   // the main platform domain and live storefronts never render.
@@ -990,7 +991,6 @@ function AppContent() {
       </Route>
       {/* Standalone SaaS Route for BEYA STORE Builder (Accessible by admin via this specific route) */}
       <Route path="/project-selection" element={<Suspense fallback={<PageLoader />}><ProjectSelection /></Suspense>} />
-      <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><GZeedDashboard /></Suspense>} />
       <Route path="/store-builder" element={(currentUser?.role === 'admin') ? <div className="min-h-screen bg-white"><StoreBuilder appCurrentUser={currentUser} /></div> : <Navigate to="/" replace />} />
       <Route path="/store-analytics" element={<Suspense fallback={<PageLoader />}><StoreAnalytics currentUser={currentUser} /></Suspense>} />
       <Route path="/beya-designer" element={<Suspense fallback={<PageLoader />}><BeyaDesignerPage /></Suspense>} />

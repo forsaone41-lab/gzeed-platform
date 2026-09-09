@@ -97,7 +97,9 @@ export default function GZeedDashboard() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/login");
+    localStorage.removeItem('textrack_auth');
+    window.location.href = '/#/';
+    window.location.reload();
   };
 
   // Basic Info States

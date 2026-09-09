@@ -1,212 +1,402 @@
-import React, { useState } from 'react';
-import { ShoppingBag, Search, Menu, Phone, Mail, MapPin, ChevronRight, CheckCircle, Shield, Truck, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingBag, Search, Menu, User, ChevronRight, ArrowRight, ArrowLeft, Star } from 'lucide-react';
 import { useLang } from '../../contexts/LangContext';
 
-const UNIFORM_CATEGORIES = [
-  { id: 'medical', name: 'الطبي والصحي', nameFr: 'Medical & Health', image: 'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?auto=format&fit=crop&q=80&w=1000' },
-  { id: 'corporate', name: 'الشركات والمكاتب', nameFr: 'Corporate', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=1000' },
-  { id: 'hospitality', name: 'الفنادق والمطاعم', nameFr: 'Hospitality', image: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=1000' },
-  { id: 'industrial', name: 'الصناعة والأمن', nameFr: 'Industrial & Safety', image: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&q=80&w=1000' },
-];
-
 const MOCK_PRODUCTS = [
-  { id: 1, category: 'medical', name: 'طقم طبي احترافي (Scrubs)', nameFr: 'Professional Medical Scrub', price: 299, image: 'https://images.unsplash.com/photo-1584982751601-973059632832?auto=format&fit=crop&q=80&w=1000', colors: ['#0ea5e9', '#0f172a', '#10b981'] },
-  { id: 2, category: 'corporate', name: 'بدلة رسمية للمكاتب', nameFr: 'Corporate Suit', price: 850, image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=1000', colors: ['#0f172a', '#334155'] },
-  { id: 3, category: 'hospitality', name: 'مئزر طاهي (Chef Coat)', nameFr: 'Executive Chef Coat', price: 180, image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&q=80&w=1000', colors: ['#ffffff', '#000000'] },
-  { id: 4, category: 'industrial', name: 'سترة أمان عاكسة', nameFr: 'Safety Reflective Vest', price: 120, image: 'https://images.unsplash.com/photo-1534065609405-18b6c0e0b355?auto=format&fit=crop&q=80&w=1000', colors: ['#eab308', '#f97316'] },
+  { id: 1, category: 'chef-coats', name: 'VESTE EXECUTIVE', nameFr: 'VESTE EXECUTIVE', price: 950, image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&q=80&w=800', hoverImage: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=800', colors: ['#ffffff', '#000000', '#475569'], sizes: ['S', 'M', 'L', 'XL', 'XXL'], rating: 4.9, reviews: 124 },
+  { id: 2, category: 'aprons', name: 'TABLIER CUIR BISTROT', nameFr: 'TABLIER CUIR BISTROT', price: 550, image: 'https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?auto=format&fit=crop&q=80&w=800', hoverImage: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=800', colors: ['#1e293b', '#78716c'], sizes: ['Standard'], rating: 4.8, reviews: 89 },
+  { id: 3, category: 'chef-coats', name: 'VESTE FEMME LÉGÈRE', nameFr: 'VESTE FEMME LÉGÈRE', price: 890, image: 'https://images.unsplash.com/photo-1581182800629-7d90925ad072?auto=format&fit=crop&q=80&w=800', hoverImage: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&q=80&w=800', colors: ['#ffffff'], sizes: ['XS', 'S', 'M', 'L'], rating: 5.0, reviews: 56 },
+  { id: 4, category: 'pants', name: 'PANTALON PRO STRETCH', nameFr: 'PANTALON PRO STRETCH', price: 450, image: 'https://images.unsplash.com/photo-1577219492769-b63a779fac28?auto=format&fit=crop&q=80&w=800', hoverImage: 'https://images.unsplash.com/photo-1577219492769-b63a779fac28?auto=format&fit=crop&q=80&w=800', colors: ['#000000', '#1e293b'], sizes: ['38', '40', '42', '44', '46'], rating: 4.7, reviews: 210 },
 ];
 
 export default function UniformStoreDemo() {
   const { isAr } = useLang();
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [scrolled, setScrolled] = useState(false);
+  const [currentView, setCurrentView] = useState<'home' | 'product'>('home');
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedSize, setSelectedSize] = useState<string>('');
+  const [selectedColor, setSelectedColor] = useState<string>('');
+  const [cartCount, setCartCount] = useState(0);
+  const [showCartSuccess, setShowCartSuccess] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleAddToCart = () => {
+    setCartCount(prev => prev + 1);
+    setShowCartSuccess(true);
+    setTimeout(() => {
+      setShowCartSuccess(false);
+    }, 2000);
+  };
+
+  const openProductPage = (product: any) => {
+    setSelectedProduct(product);
+    setSelectedSize(product.sizes[0]);
+    setSelectedColor(product.colors[0]);
+    setCurrentView('product');
+    window.scrollTo(0, 0);
+  };
+
+  const goHome = () => {
+    setCurrentView('home');
+    window.scrollTo(0, 0);
+  };
+
+  const isNavSolid = scrolled || currentView === 'product';
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans" dir={isAr ? 'rtl' : 'ltr'}>
-      {/* Topbar */}
-      <div className="bg-slate-900 text-slate-300 py-2 text-xs font-medium hidden md:block">
-        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-          <div className="flex gap-6">
-            <span className="flex items-center gap-2"><Phone className="w-3 h-3" /> +212 500 000 000</span>
-            <span className="flex items-center gap-2"><Mail className="w-3 h-3" /> contact@uniformpro.ma</span>
-          </div>
-          <div className="flex gap-4">
-            <span>{isAr ? 'توصيل مجاني للطلبات الكبرى' : 'Free Shipping on Bulk Orders'}</span>
-          </div>
-        </div>
+    <div className="min-h-screen bg-white font-sans text-slate-900" dir={isAr ? 'rtl' : 'ltr'}>
+      {/* Top Banner */}
+      <div className="bg-black text-white py-2 text-[10px] uppercase tracking-widest text-center font-medium">
+        {isAr ? 'شحن مجاني للطلبات فوق 1000 درهم' : 'LIVRAISON GRATUITE À PARTIR DE 1000 DH'}
       </div>
 
-      {/* Navbar */}
-      <nav className="bg-white sticky top-0 z-40 border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
-              <Shield className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="font-black text-xl tracking-tight text-slate-900">Uniform<span className="text-indigo-600">Pro</span></h1>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{isAr ? 'الزي المهني' : 'Professional Wear'}</p>
-            </div>
-          </div>
+      {/* Navigation */}
+      <nav className={`fixed w-full z-40 transition-all duration-300 ${isNavSolid ? 'bg-white shadow-sm py-4' : 'bg-transparent py-6'}`}>
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 flex items-center justify-between">
           
-          <div className="hidden md:flex items-center gap-8 font-bold text-slate-600">
-            <a href="#" className="text-indigo-600">{isAr ? 'الرئيسية' : 'Home'}</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">{isAr ? 'القطاعات' : 'Sectors'}</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">{isAr ? 'من نحن' : 'About Us'}</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">{isAr ? 'اتصل بنا' : 'Contact'}</a>
+          <div className="flex items-center gap-6 md:hidden">
+            <button className={`${isNavSolid ? 'text-black' : 'text-white'}`}><Menu className="w-6 h-6" /></button>
+            <button className={`${isNavSolid ? 'text-black' : 'text-white'}`}><Search className="w-5 h-5" /></button>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button className="hidden md:flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-slate-800 transition-colors">
-              <Users className="w-4 h-4" />
-              {isAr ? 'طلب عرض سعر (B2B)' : 'Request Quote'}
-            </button>
-            <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors md:hidden">
-              <Menu className="w-6 h-6" />
+          <div className="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest">
+            <button onClick={goHome} className={`hover:opacity-70 transition-opacity ${isNavSolid ? 'text-black' : 'text-white'}`}>{isAr ? 'الرجال' : 'HOMME'}</button>
+            <button onClick={goHome} className={`hover:opacity-70 transition-opacity ${isNavSolid ? 'text-black' : 'text-white'}`}>{isAr ? 'النساء' : 'FEMME'}</button>
+            <button onClick={goHome} className={`hover:opacity-70 transition-opacity ${isNavSolid ? 'text-black' : 'text-white'}`}>{isAr ? 'المجموعات' : 'COLLECTIONS'}</button>
+          </div>
+          
+          <div 
+            onClick={goHome}
+            className={`absolute left-1/2 -translate-x-1/2 text-2xl font-black tracking-tighter cursor-pointer ${isNavSolid ? 'text-black' : 'text-white'}`}
+          >
+            ZIY<span className="font-light">PRO</span>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <button className={`hidden md:block hover:opacity-70 transition-opacity ${isNavSolid ? 'text-black' : 'text-white'}`}><Search className="w-5 h-5" /></button>
+            <button className={`hidden md:block hover:opacity-70 transition-opacity ${isNavSolid ? 'text-black' : 'text-white'}`}><User className="w-5 h-5" /></button>
+            <button className={`hover:opacity-70 transition-opacity flex items-center gap-2 ${isNavSolid ? 'text-black' : 'text-white'}`}>
+              <ShoppingBag className="w-5 h-5" />
+              <span className="text-xs font-bold hidden sm:inline">({cartCount})</span>
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="relative bg-slate-900 text-white overflow-hidden">
-        <div className="absolute inset-0">
-          <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80" alt="Corporate" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent"></div>
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-4 py-24 md:py-32 relative z-10">
-          <div className="max-w-2xl">
-            <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
-              {isAr ? 'الزي الرسمي الذي يعكس احترافية شركتك' : 'Professional Uniforms That Reflect Your Brand'}
-            </h2>
-            <p className="text-slate-300 text-lg mb-8">
-              {isAr 
-                ? 'نقدم حلولاً متكاملة للزي المهني لجميع القطاعات. جودة عالية، تصاميم مريحة، وأسعار تنافسية للشركات والمؤسسات.'
-                : 'Complete uniform solutions for all sectors. High quality, comfortable designs, and competitive prices for businesses.'}
-            </p>
+      {currentView === 'home' && (
+        <>
+          {/* Hero Section */}
+          <div className="relative h-screen min-h-[600px] w-full overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=100&w=2000" 
+              alt="Chef cooking" 
+              className="absolute inset-0 w-full h-full object-cover object-top"
+            />
+            <div className="absolute inset-0 bg-black/30"></div>
             
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
-                {isAr ? 'اكتشف التشكيلة' : 'Explore Collection'}
-              </button>
-              <button className="px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-xl font-bold text-lg hover:bg-white/20 transition-all flex items-center justify-center gap-2">
-                {isAr ? 'الطلب بالجملة' : 'Bulk Orders'} <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Features */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-                <Shield className="w-6 h-6" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 text-lg">{isAr ? 'جودة مضمونة' : 'Guaranteed Quality'}</h4>
-                <p className="text-slate-500 text-sm mt-1">{isAr ? 'أقمشة متينة تتحمل ظروف العمل' : 'Durable fabrics for work conditions'}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 text-lg">{isAr ? 'تخصيص للشركات' : 'Corporate Customization'}</h4>
-                <p className="text-slate-500 text-sm mt-1">{isAr ? 'تطريز وطباعة شعار شركتك' : 'Embroidery and logo printing'}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-                <Truck className="w-6 h-6" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 text-lg">{isAr ? 'توصيل لجميع المدن' : 'Nationwide Delivery'}</h4>
-                <p className="text-slate-500 text-sm mt-1">{isAr ? 'توصيل سريع وموثوق للطلبيات' : 'Fast and reliable bulk shipping'}</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
+              <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight uppercase">
+                {isAr ? 'مجموعة الخريف' : 'NOUVELLE COLLECTION'}
+              </h1>
+              <p className="text-lg md:text-xl font-light mb-10 max-w-xl mx-auto uppercase tracking-widest">
+                {isAr ? 'أناقة واحترافية في المطبخ' : 'L\'ÉLÉGANCE AU SERVICE DE LA GASTRONOMIE'}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md mx-auto">
+                <button className="flex-1 px-8 py-4 bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-slate-100 transition-colors">
+                  {isAr ? 'تسوق للرجال' : 'SHOP HOMME'}
+                </button>
+                <button className="flex-1 px-8 py-4 bg-transparent border border-white text-white text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-colors">
+                  {isAr ? 'تسوق للنساء' : 'SHOP FEMME'}
+                </button>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Sectors */}
-      <div className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-12">
-          <h3 className="text-3xl font-black text-slate-900 mb-4">{isAr ? 'القطاعات التي نخدمها' : 'Sectors We Serve'}</h3>
-          <p className="text-slate-500 max-w-2xl mx-auto">{isAr ? 'نوفر أزياء مهنية متخصصة تلبي متطلبات ومعايير كل قطاع.' : 'We provide specialized professional wear meeting the standards of each sector.'}</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {UNIFORM_CATEGORIES.map(category => (
-            <div key={category.id} className="group cursor-pointer relative overflow-hidden rounded-3xl h-80 shadow-md">
-              <img src={category.image} alt={category.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent"></div>
-              <div className="absolute bottom-6 left-6 right-6">
-                <h4 className="text-xl font-black text-white mb-2">{isAr ? category.name : category.nameFr}</h4>
-                <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity translate-y-4 group-hover:translate-y-0 duration-300">
-                  {isAr ? 'عرض المنتجات' : 'View Products'} <ChevronRight className="w-4 h-4" />
+          {/* Featured Categories */}
+          <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-24">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="group relative h-[70vh] min-h-[500px] overflow-hidden bg-slate-100 cursor-pointer">
+                <img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" alt="Veste de chef" />
+                <div className="absolute inset-0 bg-black/10 transition-colors group-hover:bg-black/20"></div>
+                <div className="absolute bottom-10 left-10 text-white">
+                  <h2 className="text-3xl font-black uppercase mb-4 tracking-tight">{isAr ? 'سترات' : 'VESTES'}</h2>
+                  <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest border-b border-white pb-1 group-hover:gap-4 transition-all">
+                    {isAr ? 'اكتشف' : 'DÉCOUVRIR'} <ArrowRight className="w-4 h-4" />
+                  </span>
+                </div>
+              </div>
+              <div className="group relative h-[70vh] min-h-[500px] overflow-hidden bg-slate-100 cursor-pointer">
+                <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" alt="Tabliers" />
+                <div className="absolute inset-0 bg-black/10 transition-colors group-hover:bg-black/20"></div>
+                <div className="absolute bottom-10 left-10 text-white">
+                  <h2 className="text-3xl font-black uppercase mb-4 tracking-tight">{isAr ? 'مآزر' : 'TABLIERS'}</h2>
+                  <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest border-b border-white pb-1 group-hover:gap-4 transition-all">
+                    {isAr ? 'اكتشف' : 'DÉCOUVRIR'} <ArrowRight className="w-4 h-4" />
+                  </span>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Featured Products */}
-      <div className="bg-slate-100 py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
-            <div>
-              <h3 className="text-3xl font-black text-slate-900 mb-4">{isAr ? 'منتجات مختارة' : 'Featured Products'}</h3>
-              <p className="text-slate-500">{isAr ? 'الأكثر طلباً من قبل عملائنا' : 'Most requested by our clients'}</p>
+          {/* Best Sellers */}
+          <div className="max-w-[1400px] mx-auto px-6 lg:px-12 pb-24">
+            <div className="flex justify-between items-end mb-12">
+              <h3 className="text-2xl font-black uppercase tracking-tight">{isAr ? 'الأكثر مبيعاً' : 'BEST-SELLERS'}</h3>
+              <a href="#" className="text-xs font-bold uppercase tracking-widest border-b border-black pb-1 hover:text-slate-500 transition-colors">
+                {isAr ? 'عرض الكل' : 'TOUT VOIR'}
+              </a>
             </div>
-            
-            <div className="flex bg-white p-1 rounded-xl shadow-sm overflow-x-auto w-full md:w-auto">
-              <button onClick={() => setActiveCategory('all')} className={`px-5 py-2.5 rounded-lg font-bold text-sm whitespace-nowrap transition-all ${activeCategory === 'all' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>
-                {isAr ? 'الكل' : 'All'}
-              </button>
-              {UNIFORM_CATEGORIES.map(cat => (
-                <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-5 py-2.5 rounded-lg font-bold text-sm whitespace-nowrap transition-all ${activeCategory === cat.id ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>
-                  {isAr ? cat.name : cat.nameFr}
-                </button>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+              {MOCK_PRODUCTS.map(product => (
+                <div key={product.id} className="group cursor-pointer" onClick={() => openProductPage(product)}>
+                  <div className="relative aspect-[3/4] overflow-hidden bg-slate-100 mb-4">
+                    <img src={product.image} alt={product.name} className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-0" />
+                    <img src={product.hoverImage} alt={product.name} className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                    {/* Quick Add Button */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <button className="w-full bg-white text-black py-3 text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
+                        {isAr ? 'إضافة سريعة' : 'AJOUT RAPIDE'}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-sm font-bold uppercase tracking-widest mb-1">{isAr ? product.name : product.nameFr}</h4>
+                      <div className="flex gap-1.5 mt-2">
+                        {product.colors.map(color => (
+                          <div key={color} className={`w-3 h-3 rounded-full border border-slate-300`} style={{ backgroundColor: color }}></div>
+                        ))}
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium">{product.price} MAD</span>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {MOCK_PRODUCTS.filter(p => activeCategory === 'all' || p.category === activeCategory).map(product => (
-              <div key={product.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-200 group">
-                <div className="h-64 overflow-hidden relative p-4">
-                  <div className="absolute inset-0 bg-slate-100 rounded-t-2xl"></div>
-                  <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-xl relative z-10 group-hover:scale-105 transition-transform duration-500" />
+          {/* Sustainable Section */}
+          <div className="bg-slate-50 py-24">
+            <div className="max-w-[1400px] mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center gap-12 lg:gap-24">
+              <div className="flex-1 order-2 md:order-1 text-center md:text-left" dir={isAr ? 'rtl' : 'ltr'}>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-4 block">
+                  {isAr ? 'الاستدامة' : 'DURABILITÉ'}
+                </span>
+                <h2 className="text-4xl lg:text-5xl font-black uppercase tracking-tight mb-6 leading-tight">
+                  {isAr ? 'مستقبل الزي المهني' : 'CONÇU POUR L\'AVENIR'}
+                </h2>
+                <p className="text-slate-600 mb-8 max-w-lg mx-auto md:mx-0">
+                  {isAr 
+                    ? 'نحن نستخدم أقمشة مستدامة وعالية الأداء لتحمل ظروف العمل القاسية في المطبخ مع الحفاظ على البيئة. كل قطعة مصممة لتدوم وتوفر راحة استثنائية.'
+                    : 'Nous utilisons des tissus durables et performants pour résister aux conditions intenses en cuisine tout en préservant l\'environnement. Chaque pièce est conçue pour durer.'}
+                </p>
+                <button className="px-8 py-4 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition-colors">
+                  {isAr ? 'اقرأ المزيد' : 'EN SAVOIR PLUS'}
+                </button>
+              </div>
+              <div className="flex-1 order-1 md:order-2 w-full">
+                <div className="aspect-[4/5] bg-slate-200 relative overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?auto=format&fit=crop&q=80&w=1000" alt="Sustainability" className="absolute inset-0 w-full h-full object-cover" />
                 </div>
-                <div className="p-5">
-                  <div className="text-xs font-bold text-indigo-600 mb-2 uppercase tracking-wider">
-                    {UNIFORM_CATEGORIES.find(c => c.id === product.category)?.[isAr ? 'name' : 'nameFr']}
-                  </div>
-                  <h4 className="text-lg font-bold text-slate-900 mb-3">{isAr ? product.name : product.nameFr}</h4>
-                  
-                  <div className="flex gap-1.5 mb-4">
-                    {product.colors.map(color => (
-                      <div key={color} className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: color }}></div>
-                    ))}
-                  </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
-                  <div className="flex justify-between items-center border-t border-slate-100 pt-4 mt-2">
-                    <span className="text-xl font-black text-slate-900">{product.price} DH</span>
-                    <button className="w-10 h-10 rounded-xl bg-slate-50 text-slate-700 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-colors">
-                      <ShoppingBag className="w-5 h-5" />
+      {currentView === 'product' && selectedProduct && (
+        <div className="pt-32 pb-24 max-w-[1400px] mx-auto px-6 lg:px-12">
+          
+          <button 
+            onClick={goHome}
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-black mb-8 transition-colors"
+          >
+            {isAr ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+            {isAr ? 'العودة للمتجر' : 'RETOUR À LA BOUTIQUE'}
+          </button>
+
+          <div className="flex flex-col md:flex-row gap-12 lg:gap-24">
+            {/* Product Image Gallery */}
+            <div className="md:w-1/2 flex flex-col gap-4">
+              <div className="aspect-[3/4] bg-slate-50 relative overflow-hidden group">
+                <img src={selectedProduct.image} alt={selectedProduct.name} className="absolute inset-0 w-full h-full object-cover" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="aspect-[3/4] bg-slate-50 relative overflow-hidden">
+                  <img src={selectedProduct.hoverImage} alt={selectedProduct.name} className="absolute inset-0 w-full h-full object-cover" />
+                </div>
+                <div className="aspect-[3/4] bg-slate-50 relative overflow-hidden">
+                  <img src={selectedProduct.image} alt={selectedProduct.name} className="absolute inset-0 w-full h-full object-cover object-bottom" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Product Details */}
+            <div className="md:w-1/2 md:py-8 lg:sticky lg:top-32 lg:h-fit">
+              <div className="mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{selectedProduct.category}</div>
+              <h2 className="text-4xl font-black uppercase tracking-tight mb-2">{isAr ? selectedProduct.name : selectedProduct.nameFr}</h2>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="flex text-black">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className={`w-4 h-4 ${i < Math.floor(selectedProduct.rating) ? 'fill-current' : ''}`} />
+                  ))}
+                </div>
+                <span className="text-sm font-bold">{selectedProduct.rating}</span>
+                <span className="text-sm text-slate-500">({selectedProduct.reviews} {isAr ? 'تقييم' : 'avis'})</span>
+              </div>
+              <div className="text-2xl font-medium mb-10">{selectedProduct.price} MAD</div>
+              
+              <div className="mb-10">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-xs font-bold uppercase tracking-widest">{isAr ? 'اللون' : 'COULEUR'}</h4>
+                </div>
+                <div className="flex gap-4">
+                  {selectedProduct.colors.map((color: string) => (
+                    <button 
+                      key={color} 
+                      onClick={() => setSelectedColor(color)}
+                      className={`w-10 h-10 rounded-full border-2 transition-all ${selectedColor === color ? 'border-black ring-2 ring-black/20 ring-offset-2' : 'border-slate-200'}`}
+                      style={{ backgroundColor: color }}
+                    ></button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-12">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-xs font-bold uppercase tracking-widest">{isAr ? 'المقاس' : 'TAILLE'}</h4>
+                  <a href="#" className="text-xs text-slate-500 underline">{isAr ? 'دليل المقاسات' : 'Guide des tailles'}</a>
+                </div>
+                <div className="grid grid-cols-4 lg:grid-cols-5 gap-3">
+                  {selectedProduct.sizes.map((size: string) => (
+                    <button 
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`py-4 text-xs font-bold uppercase tracking-widest border transition-all ${selectedSize === size ? 'border-black bg-black text-white' : 'border-slate-200 hover:border-black'}`}
+                    >
+                      {size}
                     </button>
+                  ))}
+                </div>
+              </div>
+
+              <button 
+                onClick={handleAddToCart}
+                className={`w-full py-5 flex justify-center items-center gap-3 text-sm font-bold uppercase tracking-widest transition-all ${showCartSuccess ? 'bg-green-600 text-white' : 'bg-black text-white hover:bg-slate-900'}`}
+              >
+                {showCartSuccess ? (
+                  isAr ? 'تمت الإضافة بنجاح!' : 'AJOUTÉ AVEC SUCCÈS !'
+                ) : (
+                  <>
+                    <ShoppingBag className="w-5 h-5" />
+                    {isAr ? 'أضف إلى السلة' : 'AJOUTER AU PANIER'}
+                  </>
+                )}
+              </button>
+              
+              <div className="mt-12 space-y-6 border-t border-slate-100 pt-8">
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-widest mb-2">{isAr ? 'تفاصيل المنتج' : 'DÉTAILS DU PRODUIT'}</h4>
+                  <p className="text-sm text-slate-500 leading-relaxed">
+                    {isAr 
+                      ? 'هذا المنتج مصمم خصيصاً ليتحمل بيئة العمل القاسية، ويوفر راحة استثنائية طوال اليوم. يمكنك أيضاً طلب تطريز الشعار الخاص بك بعد إتمام الطلب.' 
+                      : 'Cet article est spécialement conçu pour résister aux environnements de travail exigeants, offrant un confort exceptionnel tout au long de la journée. Vous pourrez demander une broderie personnalisée après votre commande.'}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-widest mb-2">{isAr ? 'التوصيل والاسترجاع' : 'LIVRAISON ET RETOURS'}</h4>
+                  <p className="text-sm text-slate-500 leading-relaxed">
+                    {isAr 
+                      ? 'شحن مجاني للطلبات فوق 1000 درهم. استرجاع مجاني خلال 14 يوماً من تاريخ الاستلام.' 
+                      : 'Livraison gratuite à partir de 1000 DH. Retours gratuits sous 14 jours après réception.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Reviews Section */}
+              <div className="mt-12 pt-8 border-t border-slate-100">
+                <h3 className="text-lg font-black uppercase tracking-tight mb-6">{isAr ? 'آراء العملاء' : 'AVIS CLIENTS'}</h3>
+                <div className="space-y-6">
+                  <div className="bg-slate-50 p-6 rounded-2xl">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h5 className="font-bold text-sm mb-1">{isAr ? 'أمين. ك - شيف تنفيذي' : 'Amine. K - Chef Exécutif'}</h5>
+                        <div className="flex text-amber-400">
+                          <Star className="w-3 h-3 fill-current" /><Star className="w-3 h-3 fill-current" /><Star className="w-3 h-3 fill-current" /><Star className="w-3 h-3 fill-current" /><Star className="w-3 h-3 fill-current" />
+                        </div>
+                      </div>
+                      <span className="text-xs text-slate-400">12 Oct 2023</span>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {isAr ? 'جودة مذهلة. القماش لا يتأثر بالحرارة ومريح جداً خلال ساعات العمل الطويلة في المطبخ.' : 'Qualité incroyable. Le tissu résiste parfaitement à la chaleur et reste très confortable pendant les longues heures de service.'}
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 p-6 rounded-2xl">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h5 className="font-bold text-sm mb-1">{isAr ? 'سارة. م - شيف معجنات' : 'Sara. M - Chef Pâtissière'}</h5>
+                        <div className="flex text-amber-400">
+                          <Star className="w-3 h-3 fill-current" /><Star className="w-3 h-3 fill-current" /><Star className="w-3 h-3 fill-current" /><Star className="w-3 h-3 fill-current" /><Star className="w-3 h-3 fill-current" />
+                        </div>
+                      </div>
+                      <span className="text-xs text-slate-400">05 Nov 2023</span>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {isAr ? 'أفضل زي جربته حتى الآن. التفاصيل والتطريز ممتازة جداً. أنصح به بشدة!' : 'Le meilleur uniforme que j\'ai eu jusqu\'à présent. Les détails et la broderie sont excellents. Je recommande vivement!'}
+                    </p>
                   </div>
                 </div>
               </div>
-            ))}
+
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-slate-200 pt-20 pb-10">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+          <div className="col-span-1 md:col-span-2">
+             <div className="text-2xl font-black tracking-tighter mb-6">ZIY<span className="font-light">PRO</span></div>
+             <p className="text-sm text-slate-500 max-w-sm mb-6">
+               {isAr ? 'الخيار الأول لأزياء الطهاة والمطاعم الراقية في المغرب.' : 'Le choix privilégié pour les vêtements de chef et de restauration haut de gamme au Maroc.'}
+             </p>
+          </div>
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-widest mb-6">{isAr ? 'المتجر' : 'BOUTIQUE'}</h4>
+            <ul className="space-y-4 text-sm text-slate-500">
+              <li><button onClick={goHome} className="hover:text-black transition-colors">{isAr ? 'رجال' : 'Homme'}</button></li>
+              <li><button onClick={goHome} className="hover:text-black transition-colors">{isAr ? 'نساء' : 'Femme'}</button></li>
+              <li><button onClick={goHome} className="hover:text-black transition-colors">{isAr ? 'مآزر' : 'Tabliers'}</button></li>
+              <li><button onClick={goHome} className="hover:text-black transition-colors">{isAr ? 'مجموعات' : 'Collections'}</button></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-widest mb-6">{isAr ? 'خدمة العملاء' : 'SERVICE CLIENT'}</h4>
+            <ul className="space-y-4 text-sm text-slate-500">
+              <li><a href="#" className="hover:text-black transition-colors">{isAr ? 'اتصل بنا' : 'Contact'}</a></li>
+              <li><a href="#" className="hover:text-black transition-colors">{isAr ? 'التوصيل والاسترجاع' : 'Livraison & Retours'}</a></li>
+              <li><a href="#" className="hover:text-black transition-colors">{isAr ? 'الأسئلة الشائعة' : 'FAQ'}</a></li>
+              <li><a href="#" className="hover:text-black transition-colors">{isAr ? 'دليل المقاسات' : 'Guide des Tailles'}</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+          <p>© {new Date().getFullYear()} ZIY PRO. {isAr ? 'جميع الحقوق محفوظة.' : 'Tous droits réservés.'}</p>
+          <div className="flex gap-4">
+            <a href="#" className="hover:text-black transition-colors">Instagram</a>
+            <a href="#" className="hover:text-black transition-colors">Facebook</a>
+            <a href="#" className="hover:text-black transition-colors">LinkedIn</a>
+          </div>
+        </div>
+      </footer>
 
     </div>
   );
